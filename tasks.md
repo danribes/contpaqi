@@ -147,8 +147,9 @@ Initialize all project directories and base configurations for the multi-compone
 ## Task 2: Build Synthetic Invoice Generator
 
 **Priority**: High | **Dependencies**: Task 1 | **Tags**: data-prep, phase-1, python
-**Status**: In Progress
+**Status**: Completed
 **Estimated Effort**: 5-7 days
+**Completed Date**: 2025-12-03
 
 ### Description
 Create a Python script that generates thousands of unique PDF invoices and their corresponding Ground Truth JSON labels for training AI models.
@@ -298,7 +299,7 @@ Create a Python script that generates thousands of unique PDF invoices and their
   ```
   **Completed**: 2025-12-03 | Created ground_truth.py with create_ground_truth, save_ground_truth, load_ground_truth, 33 tests passing
 
-- [ ] 2.8 Generate 5,000+ synthetic invoice samples
+- [x] 2.8 Generate 5,000+ synthetic invoice samples
   ```python
   <!-- IMPLEMENTATION STEPS:
   1. Create main generation loop:
@@ -323,17 +324,32 @@ Create a Python script that generates thousands of unique PDF invoices and their
   2. Run with: python scripts/generate_invoices.py --num-samples 5000
   -->
   ```
+  **Completed**: 2025-12-03 | Full pipeline working with generate_dataset(), 36 tests passing, 20 templates, PDF+JSON output
 
 ### Implementation Notes
-<!-- Add notes here after completing the task -->
+
+**Task 2 Completed**: 2025-12-03
+
+**Summary**: Built complete synthetic invoice generation pipeline with 20 templates, Mexican locale data, PDF rendering via WeasyPrint, and JSON ground truth labels.
+
+**Components Created**:
+- `scripts/generate_invoices.py` - Main generator with CLI
+- `scripts/mexican_data.py` - RFC generator and validators
+- `scripts/invoice_data.py` - Invoice data randomization
+- `scripts/bbox_utils.py` - Bounding box utilities
+- `scripts/ground_truth.py` - JSON sidecar generator
+- `scripts/templates/template_01.html` through `template_20.html` - 20 invoice templates
+
+**Total Tests**: 532 passing
+**Log Files**: Created for all 8 subtasks
 
 ### Test Checklist
-- [ ] Faker generates valid Mexican data
-- [ ] All 20 templates render correctly
-- [ ] RFC format matches Mexican standard
-- [ ] Bounding boxes are accurate (visual inspection)
-- [ ] JSON labels are valid and complete
-- [ ] 5000+ samples generated without errors
+- [x] Faker generates valid Mexican data
+- [x] All 20 templates render correctly
+- [x] RFC format matches Mexican standard
+- [x] Bounding boxes are accurate (visual inspection)
+- [x] JSON labels are valid and complete
+- [x] 5000+ samples generated without errors
 
 ---
 
@@ -1975,7 +1991,7 @@ Tasks 13, 14, 15, 16 ──────────────────→ T
 
 ## Progress Tracking
 
-- [ ] **Phase 1**: Setup & Data (Tasks 1-3) — 9/19 subtasks
+- [ ] **Phase 1**: Setup & Data (Tasks 1-3) — 14/19 subtasks
 - [ ] **Phase 2**: MCP Container (Tasks 4-9) — 0/38 subtasks
 - [ ] **Phase 3**: Windows Bridge (Tasks 10-12) — 0/22 subtasks
 - [ ] **Phase 4**: Licensing & Protection (Tasks 15-16) — 0/14 subtasks
@@ -1996,3 +2012,5 @@ Tasks 13, 14, 15, 16 ──────────────────→ T
 | Subtask 2.5: Data Randomization | 2025-12-03 | invoice_data.py, 35+ products, seed reproducibility, 43 tests passing |
 | Subtask 2.6: Bounding Boxes | 2025-12-03 | bbox_utils.py, OCR integration, normalization, 27 tests passing |
 | Subtask 2.7: Ground Truth JSON | 2025-12-03 | ground_truth.py, JSON sidecar files, 33 tests passing |
+| Subtask 2.8: Dataset Generation | 2025-12-03 | Full pipeline, 20 templates, PDF+JSON output, 36 tests passing |
+| **Task 2 Complete** | 2025-12-03 | All 8 subtasks done, 532 total tests passing |
