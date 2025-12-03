@@ -1,0 +1,23 @@
+# Invoice Generator Dependencies
+# For generating synthetic training data
+
+# Data generation
+faker==22.0.0
+
+# PDF generation
+weasyprint==60.1
+
+# Image processing
+Pillow==10.1.0
+
+# Template rendering
+jinja2==3.1.2
+
+# PDF to image conversion (for bounding box calculation)
+pdf2image==1.16.3
+
+# OCR for ground truth extraction
+pytesseract==0.3.10
+
+# Progress bar
+tqdm==4.66.1
