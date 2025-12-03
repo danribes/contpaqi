@@ -18,8 +18,11 @@ node_modules/
 *.suo
 *.ntvs*
 *.njsproj
-*.sln
+# Allow specific solution files for C# projects
+!windows-bridge/*.sln
 *.sw?
 
 # OS specific
 .DS_Store
+__pycache__/
+*.pyc
