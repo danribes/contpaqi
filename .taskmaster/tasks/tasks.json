@@ -1,0 +1,314 @@
+{
+  "tasks": [
+    {
+      "id": 1,
+      "title": "Project Setup & Scaffolding",
+      "description": "Initialize all project directories and base configurations for the multi-component architecture",
+      "status": "pending",
+      "priority": "high",
+      "dependencies": [],
+      "subtasks": [
+        {"id": "1.1", "title": "Create project directory structure per plan.md", "status": "pending"},
+        {"id": "1.2", "title": "Initialize Python project with pyproject.toml in mcp-container/", "status": "pending"},
+        {"id": "1.3", "title": "Initialize C# ASP.NET Core project in windows-bridge/", "status": "pending"},
+        {"id": "1.4", "title": "Initialize Electron + React project in desktop-app/", "status": "pending"},
+        {"id": "1.5", "title": "Create base Dockerfile for MCP container", "status": "pending"},
+        {"id": "1.6", "title": "Configure linting: black/ruff (Python), dotnet format (C#), eslint (TS)", "status": "pending"}
+      ],
+      "tags": ["setup", "phase-1"]
+    },
+    {
+      "id": 2,
+      "title": "Build Synthetic Invoice Generator",
+      "description": "Create a Python script that generates thousands of unique PDF invoices and their corresponding Ground Truth JSON labels for training AI models",
+      "status": "pending",
+      "priority": "high",
+      "dependencies": [1],
+      "subtasks": [
+        {"id": "2.1", "title": "Set up Python environment with Faker and WeasyPrint in scripts/", "status": "pending"},
+        {"id": "2.2", "title": "Configure Faker for Mexican locale (Names, RFCs, Addresses)", "status": "pending"},
+        {"id": "2.3", "title": "Design 10 distinct HTML/CSS invoice templates", "status": "pending"},
+        {"id": "2.4", "title": "Design 10 additional template variations (fonts, layouts)", "status": "pending"},
+        {"id": "2.5", "title": "Implement data randomization logic for company names, dates, prices", "status": "pending"},
+        {"id": "2.6", "title": "Implement bounding box calculation for all fields", "status": "pending"},
+        {"id": "2.7", "title": "Create JSON sidecar file generator for ground truth labels", "status": "pending"},
+        {"id": "2.8", "title": "Generate 5,000+ synthetic invoice samples", "status": "pending"}
+      ],
+      "tags": ["data-prep", "phase-1", "python"]
+    },
+    {
+      "id": 3,
+      "title": "Format Data for TATR & LayoutLM",
+      "description": "Convert the raw PDF/JSON pairs into the specific formats required by Hugging Face Transformers library",
+      "status": "pending",
+      "priority": "high",
+      "dependencies": [2],
+      "subtasks": [
+        {"id": "3.1", "title": "Create prepare_datasets.py script", "status": "pending"},
+        {"id": "3.2", "title": "Implement TATR data preparation (COCO format, normalized boxes)", "status": "pending"},
+        {"id": "3.3", "title": "Implement LayoutLMv3 data preparation (BIO tags, tokens)", "status": "pending"},
+        {"id": "3.4", "title": "Create train/validation/test splits (80/10/10)", "status": "pending"},
+        {"id": "3.5", "title": "Validate dataset format compatibility with Hugging Face", "status": "pending"}
+      ],
+      "tags": ["data-prep", "phase-1", "ml"]
+    },
+    {
+      "id": 4,
+      "title": "Docker Environment & Dependencies",
+      "description": "Create a highly optimized Dockerfile for Python AI inference with all required dependencies",
+      "status": "pending",
+      "priority": "high",
+      "dependencies": [1],
+      "subtasks": [
+        {"id": "4.1", "title": "Create Dockerfile with python:3.9-slim-bullseye base", "status": "pending"},
+        {"id": "4.2", "title": "Install system deps (tesseract-ocr, tesseract-ocr-spa, poppler)", "status": "pending"},
+        {"id": "4.3", "title": "Create requirements.txt with pinned versions", "status": "pending"},
+        {"id": "4.4", "title": "Implement multi-stage build for optimization", "status": "pending"},
+        {"id": "4.5", "title": "Create docker-compose.yml for local development", "status": "pending"},
+        {"id": "4.6", "title": "Test container builds and runs successfully", "status": "pending"}
+      ],
+      "tags": ["mcp-container", "phase-2", "docker"]
+    },
+    {
+      "id": 5,
+      "title": "OCR Layer Implementation",
+      "description": "Implement Tesseract OCR wrapper with Spanish support and coordinate extraction",
+      "status": "pending",
+      "priority": "high",
+      "dependencies": [4],
+      "subtasks": [
+        {"id": "5.1", "title": "Create mcp-container/src/utils/ocr.py", "status": "pending"},
+        {"id": "5.2", "title": "Implement Tesseract wrapper with Spanish support", "status": "pending"},
+        {"id": "5.3", "title": "Extract words with coordinates (bounding boxes)", "status": "pending"},
+        {"id": "5.4", "title": "Handle Spanish characters properly (UTF-8)", "status": "pending"}
+      ],
+      "tags": ["mcp-container", "phase-2", "ocr"]
+    },
+    {
+      "id": 6,
+      "title": "TATR Model Integration",
+      "description": "Implement Table Transformer model for detecting table structures in invoices",
+      "status": "pending",
+      "priority": "high",
+      "dependencies": [3, 4],
+      "subtasks": [
+        {"id": "6.1", "title": "Create mcp-container/src/models/tatr.py", "status": "pending"},
+        {"id": "6.2", "title": "Implement TATR model loading (Table Transformer)", "status": "pending"},
+        {"id": "6.3", "title": "Implement table/row detection inference", "status": "pending"},
+        {"id": "6.4", "title": "Return bounding boxes for detected rows", "status": "pending"}
+      ],
+      "tags": ["mcp-container", "phase-2", "ml", "us1"]
+    },
+    {
+      "id": 7,
+      "title": "LayoutLM Model Integration",
+      "description": "Implement LayoutLMv3 model for token classification and field extraction",
+      "status": "pending",
+      "priority": "high",
+      "dependencies": [3, 4],
+      "subtasks": [
+        {"id": "7.1", "title": "Create mcp-container/src/models/layoutlm.py", "status": "pending"},
+        {"id": "7.2", "title": "Implement LayoutLMv3 model loading", "status": "pending"},
+        {"id": "7.3", "title": "Implement token classification inference", "status": "pending"},
+        {"id": "7.4", "title": "Map tokens to field labels (RFC, date, total, etc.)", "status": "pending"}
+      ],
+      "tags": ["mcp-container", "phase-2", "ml", "us1"]
+    },
+    {
+      "id": 8,
+      "title": "Inference Pipeline",
+      "description": "The core logic that orchestrates OCR and both AI models for complete invoice extraction",
+      "status": "pending",
+      "priority": "high",
+      "dependencies": [5, 6, 7],
+      "subtasks": [
+        {"id": "8.1", "title": "Create InvoiceInferenceEngine class in inference.py", "status": "pending"},
+        {"id": "8.2", "title": "Implement OCR method integration", "status": "pending"},
+        {"id": "8.3", "title": "Implement TATR integration for row detection", "status": "pending"},
+        {"id": "8.4", "title": "Implement LayoutLM integration for field extraction", "status": "pending"},
+        {"id": "8.5", "title": "Implement intersection logic (words in rows → line items)", "status": "pending"},
+        {"id": "8.6", "title": "Create predict(image) method combining all steps", "status": "pending"},
+        {"id": "8.7", "title": "Implement confidence scoring for predictions", "status": "pending"},
+        {"id": "8.8", "title": "Write unit tests for inference pipeline", "status": "pending"}
+      ],
+      "tags": ["mcp-container", "phase-2", "us1"]
+    },
+    {
+      "id": 9,
+      "title": "MCP Container API & Validation",
+      "description": "FastAPI interface that receives PDF files and enforces data validation",
+      "status": "pending",
+      "priority": "high",
+      "dependencies": [8],
+      "subtasks": [
+        {"id": "9.1", "title": "Create FastAPI application in main.py", "status": "pending"},
+        {"id": "9.2", "title": "Define Pydantic models (Invoice, LineItem, Response)", "status": "pending"},
+        {"id": "9.3", "title": "Implement POST /process_pdf endpoint", "status": "pending"},
+        {"id": "9.4", "title": "Implement RFC regex validation", "status": "pending"},
+        {"id": "9.5", "title": "Implement math verification (subtotal + IVA = total)", "status": "pending"},
+        {"id": "9.6", "title": "Implement /health endpoint", "status": "pending"},
+        {"id": "9.7", "title": "Add error handling and logging", "status": "pending"},
+        {"id": "9.8", "title": "Write API integration tests", "status": "pending"}
+      ],
+      "tags": ["mcp-container", "phase-2", "api", "us1", "us2"]
+    },
+    {
+      "id": 10,
+      "title": ".NET Project & SDK Integration",
+      "description": "Setup C# ASP.NET Core Web API project that references Contpaqi COM libraries",
+      "status": "pending",
+      "priority": "high",
+      "dependencies": [1],
+      "subtasks": [
+        {"id": "10.1", "title": "Create ASP.NET Core Web API project", "status": "pending"},
+        {"id": "10.2", "title": "Configure for .NET 6.0 with x86 platform target", "status": "pending"},
+        {"id": "10.3", "title": "Add COM reference to MGW_SDK.dll", "status": "pending"},
+        {"id": "10.4", "title": "Create SdkInterop.cs wrapper class", "status": "pending"},
+        {"id": "10.5", "title": "Map fInicializaSDK function", "status": "pending"},
+        {"id": "10.6", "title": "Map fCreaPoliza function", "status": "pending"},
+        {"id": "10.7", "title": "Implement error handling for SDK calls", "status": "pending"},
+        {"id": "10.8", "title": "Write unit tests with mocked SDK", "status": "pending"}
+      ],
+      "tags": ["windows-bridge", "phase-3", "csharp", "us3"]
+    },
+    {
+      "id": 11,
+      "title": "Job Queue Service",
+      "description": "Background service that forces requests to be processed sequentially (SDK limitation)",
+      "status": "pending",
+      "priority": "high",
+      "dependencies": [10],
+      "subtasks": [
+        {"id": "11.1", "title": "Create JobQueueService as IHostedService", "status": "pending"},
+        {"id": "11.2", "title": "Implement queue using System.Threading.Channels", "status": "pending"},
+        {"id": "11.3", "title": "Implement processing loop with SDK lifecycle", "status": "pending"},
+        {"id": "11.4", "title": "Add 500ms delay between operations", "status": "pending"},
+        {"id": "11.5", "title": "Implement job status tracking", "status": "pending"},
+        {"id": "11.6", "title": "Add retry logic for failed operations", "status": "pending"},
+        {"id": "11.7", "title": "Implement graceful shutdown handling", "status": "pending"}
+      ],
+      "tags": ["windows-bridge", "phase-3", "us3"]
+    },
+    {
+      "id": 12,
+      "title": "Windows Bridge Security & API",
+      "description": "Network locking and API endpoints for the Windows Bridge service",
+      "status": "pending",
+      "priority": "high",
+      "dependencies": [11],
+      "subtasks": [
+        {"id": "12.1", "title": "Configure Kestrel to listen on 127.0.0.1:5000 only", "status": "pending"},
+        {"id": "12.2", "title": "Create localhost validation middleware", "status": "pending"},
+        {"id": "12.3", "title": "Implement POST /api/invoice endpoint", "status": "pending"},
+        {"id": "12.4", "title": "Implement GET /api/status/{jobId} endpoint", "status": "pending"},
+        {"id": "12.5", "title": "Add security headers", "status": "pending"},
+        {"id": "12.6", "title": "Implement request logging for audit trail", "status": "pending"},
+        {"id": "12.7", "title": "Write security tests to verify isolation", "status": "pending"}
+      ],
+      "tags": ["windows-bridge", "phase-3", "security", "us3"]
+    },
+    {
+      "id": 13,
+      "title": "Electron Shell & Docker Management",
+      "description": "Desktop app wrapper that manages the Docker background process",
+      "status": "pending",
+      "priority": "medium",
+      "dependencies": [9, 12],
+      "subtasks": [
+        {"id": "13.1", "title": "Initialize Electron + React project with Vite", "status": "pending"},
+        {"id": "13.2", "title": "Configure Electron main process", "status": "pending"},
+        {"id": "13.3", "title": "Implement Docker status checking (docker ps)", "status": "pending"},
+        {"id": "13.4", "title": "Implement container lifecycle management (start/stop)", "status": "pending"},
+        {"id": "13.5", "title": "Handle Docker daemon not running scenario", "status": "pending"},
+        {"id": "13.6", "title": "Implement health check polling with retry", "status": "pending"},
+        {"id": "13.7", "title": "Create status indicators (Starting/Ready/Error)", "status": "pending"}
+      ],
+      "tags": ["desktop-app", "phase-5", "electron", "us2"]
+    },
+    {
+      "id": 14,
+      "title": "Human-in-the-Loop UI",
+      "description": "Verification screen where users confirm and correct extracted data",
+      "status": "pending",
+      "priority": "medium",
+      "dependencies": [13],
+      "subtasks": [
+        {"id": "14.1", "title": "Create split-screen layout (PDF + form)", "status": "pending"},
+        {"id": "14.2", "title": "Implement PDF viewer with react-pdf (zoom, navigation)", "status": "pending"},
+        {"id": "14.3", "title": "Create InvoiceForm component with auto-population", "status": "pending"},
+        {"id": "14.4", "title": "Implement confidence-based highlighting (orange <0.90)", "status": "pending"},
+        {"id": "14.5", "title": "Implement math error highlighting (red)", "status": "pending"},
+        {"id": "14.6", "title": "Implement validation blocking (disable Submit)", "status": "pending"},
+        {"id": "14.7", "title": "Create manual correction interface", "status": "pending"},
+        {"id": "14.8", "title": "Implement submission confirmation flow", "status": "pending"},
+        {"id": "14.9", "title": "Add batch processing view for multiple invoices", "status": "pending"},
+        {"id": "14.10", "title": "Add keyboard shortcuts for efficiency", "status": "pending"}
+      ],
+      "tags": ["desktop-app", "phase-5", "react", "us2"]
+    },
+    {
+      "id": 15,
+      "title": "Hardware-Locked Licensing",
+      "description": "Validate that user has paid before processing invoices",
+      "status": "pending",
+      "priority": "medium",
+      "dependencies": [12],
+      "subtasks": [
+        {"id": "15.1", "title": "Implement hardware fingerprint collection (UUID)", "status": "pending"},
+        {"id": "15.2", "title": "Add fallback identifiers (MAC address)", "status": "pending"},
+        {"id": "15.3", "title": "Set up cloud licensing server (Lambda/Firebase)", "status": "pending"},
+        {"id": "15.4", "title": "Create license validation endpoint", "status": "pending"},
+        {"id": "15.5", "title": "Implement JWT signing and validation", "status": "pending"},
+        {"id": "15.6", "title": "Implement offline grace period (7 days)", "status": "pending"},
+        {"id": "15.7", "title": "Integrate license check into JobQueueService", "status": "pending"},
+        {"id": "15.8", "title": "Create license management UI", "status": "pending"}
+      ],
+      "tags": ["licensing", "phase-4", "us4"]
+    },
+    {
+      "id": 16,
+      "title": "Code Obfuscation",
+      "description": "Protect code from reverse engineering",
+      "status": "pending",
+      "priority": "low",
+      "dependencies": [9, 12],
+      "subtasks": [
+        {"id": "16.1", "title": "Install and configure PyArmor for Python", "status": "pending"},
+        {"id": "16.2", "title": "Obfuscate inference.py and main.py", "status": "pending"},
+        {"id": "16.3", "title": "Modify Dockerfile to use obfuscated dist/", "status": "pending"},
+        {"id": "16.4", "title": "Configure Dotfuscator Community for C#", "status": "pending"},
+        {"id": "16.5", "title": "Enable string encryption", "status": "pending"},
+        {"id": "16.6", "title": "Test obfuscated code functionality", "status": "pending"}
+      ],
+      "tags": ["protection", "phase-4"]
+    },
+    {
+      "id": 17,
+      "title": "Inno Setup Installer",
+      "description": "Create Windows installer with all dependencies and services",
+      "status": "pending",
+      "priority": "low",
+      "dependencies": [13, 14, 15, 16],
+      "subtasks": [
+        {"id": "17.1", "title": "Create inno-setup.iss script structure", "status": "pending"},
+        {"id": "17.2", "title": "Implement Docker Desktop prerequisite check", "status": "pending"},
+        {"id": "17.3", "title": "Implement Windows Service installation", "status": "pending"},
+        {"id": "17.4", "title": "Bundle Docker image (docker save)", "status": "pending"},
+        {"id": "17.5", "title": "Implement silent Docker image loading", "status": "pending"},
+        {"id": "17.6", "title": "Create uninstaller logic", "status": "pending"},
+        {"id": "17.7", "title": "Add desktop shortcut creation", "status": "pending"},
+        {"id": "17.8", "title": "Implement first-run wizard", "status": "pending"},
+        {"id": "17.9", "title": "Code sign the installer", "status": "pending"},
+        {"id": "17.10", "title": "Test on clean Windows 10/11 machines", "status": "pending"}
+      ],
+      "tags": ["deployment", "phase-6"]
+    }
+  ],
+  "metadata": {
+    "projectName": "Contpaqi AI Bridge",
+    "version": "1.0.0",
+    "createdAt": "2025-12-03",
+    "totalTasks": 17,
+    "totalSubtasks": 119
+  }
+}
