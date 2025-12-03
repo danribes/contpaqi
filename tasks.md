@@ -250,7 +250,7 @@ Create a Python script that generates thousands of unique PDF invoices and their
   ```
   **Completed**: 2025-12-03 | Created invoice_data.py with generate_invoice_data(), 35+ product descriptions, seed reproducibility, 16% IVA calculation
 
-- [ ] 2.6 Implement bounding box calculation for all fields
+- [x] 2.6 Implement bounding box calculation for all fields
   ```python
   <!-- IMPLEMENTATION STEPS:
   1. After rendering PDF, use pdf2image to convert to image
@@ -270,6 +270,7 @@ Create a Python script that generates thousands of unique PDF invoices and their
   5. For line items, store row-level bounding boxes
   -->
   ```
+  **Completed**: 2025-12-03 | Created bbox_utils.py with find_text_bbox, find_numeric_bbox, find_all_field_bboxes, normalization, merging
 
 - [ ] 2.7 Create JSON sidecar file generator for ground truth labels
   ```python
