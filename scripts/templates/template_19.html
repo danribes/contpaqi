@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Factura {{ folio }}</title>
+    <style>
+        /* Template 19: System UI font, ultra-minimal, borderless, pink/rose accent */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 12px; color: #3f3f46; padding: 40px; background: white; }
+        .invoice { max-width: 700px; margin: 0 auto; }
+        .header { margin-bottom: 50px; }
+        .header-top { display: flex; justify-content: space-between; align-items: flex-start; }
+        .brand h1 { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 4px; color: #e11d48; }
+        .brand .company { font-size: 20px; font-weight: 300; color: #18181b; margin-top: 8px; }
+        .invoice-badge { background: #fdf2f8; color: #e11d48; padding: 12px 20px; border-radius: 4px; }
+        .invoice-badge .label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.7; }
+        .invoice-badge .folio { font-size: 18px; font-weight: 600; margin-top: 2px; }
+        .date { color: #a1a1aa; margin-top: 20px; }
+        .parties { display: flex; gap: 80px; margin-bottom: 50px; }
+        .party { }
+        .party-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; color: #e11d48; margin-bottom: 8px; }
+        .party .name { font-size: 15px; font-weight: 500; color: #18181b; }
+        .party .details { color: #71717a; margin-top: 4px; line-height: 1.6; }
+        .items { margin-bottom: 40px; }
+        .items-header { display: flex; padding: 12px 0; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: #a1a1aa; }
+        .items-header span { flex: 1; }
+        .items-header span:first-child { flex: 3; }
+        .items-header span:last-child { text-align: right; }
+        .item-row { display: flex; padding: 16px 0; border-top: 1px solid #f4f4f5; }
+        .item-row span { flex: 1; color: #52525b; }
+        .item-row span:first-child { flex: 3; color: #18181b; font-weight: 500; }
+        .item-row span:last-child { text-align: right; font-weight: 500; }
+        <table style="display:none;"><tr><td></td></tr></table>
+        .totals { display: flex; justify-content: flex-end; padding-top: 20px; border-top: 1px solid #f4f4f5; }
+        .totals-list { width: 250px; }
+        .total-row { display: flex; justify-content: space-between; padding: 8px 0; color: #71717a; }
+        .total-row.grand { color: #e11d48; font-size: 20px; font-weight: 600; padding-top: 16px; margin-top: 8px; border-top: 2px solid #e11d48; }
+        .footer { margin-top: 60px; color: #d4d4d8; font-size: 10px; }
+    </style>
+</head>
+<body>
+    <div class="invoice">
+        <div class="header">
+            <div class="header-top">
+                <div class="brand">
+                    <h1>Factura</h1>
+                    <div class="company">{{ emisor.name }}</div>
+                </div>
+                <div class="invoice-badge">
+                    <div class="label">Número</div>
+                    <div class="folio">{{ folio }}</div>
+                </div>
+            </div>
+            <div class="date">{{ date }}</div>
+        </div>
+
+        <div class="parties">
+            <div class="party">
+                <div class="party-label">De</div>
+                <div class="name">{{ emisor.name }}</div>
+                <div class="details">
+                    {{ emisor.rfc }}<br>
+                    {{ emisor.address }}
+                </div>
+            </div>
+            <div class="party">
+                <div class="party-label">Para</div>
+                <div class="name">{{ receptor.name }}</div>
+                <div class="details">
+                    {{ receptor.rfc }}<br>
+                    {{ receptor.address }}
+                </div>
+            </div>
+        </div>
+
+        <div class="items">
+            <div class="items-header">
+                <span>Descripción</span>
+                <span>Cant.</span>
+                <span>Precio</span>
+                <span>Total</span>
+            </div>
+            <table style="display:none;"><tr><td></td></tr></table>
+            {% for item in items %}
+            <div class="item-row">
+                <span>{{ item.description }}</span>
+                <span>{{ item.quantity }}</span>
+                <span>${{ "%.2f"|format(item.unit_price) }}</span>
+                <span>${{ "%.2f"|format(item.amount) }}</span>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="totals">
+            <div class="totals-list">
+                <div class="total-row"><span>Subtotal</span><span>${{ "%.2f"|format(subtotal) }}</span></div>
+                <div class="total-row"><span>IVA 16%</span><span>${{ "%.2f"|format(iva) }}</span></div>
+                <div class="total-row grand"><span>Total</span><span>${{ "%.2f"|format(total) }} {{ currency }}</span></div>
+            </div>
+        </div>
+
+        <div class="footer">
+            Este documento es una representación impresa de un CFDI
+        </div>
+    </div>
+</body>
+</html>
