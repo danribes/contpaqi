@@ -187,7 +187,7 @@ Create a Python script that generates thousands of unique PDF invoices and their
   ```
   **Completed**: 2025-12-03 | Created mexican_data.py with RFC generator, validator, company/person generators
 
-- [ ] 2.3 Design 10 distinct HTML/CSS invoice templates
+- [x] 2.3 Design 10 distinct HTML/CSS invoice templates
   ```
   <!-- IMPLEMENTATION STEPS:
   1. Create scripts/templates/ directory
@@ -202,6 +202,7 @@ Create a Python script that generates thousands of unique PDF invoices and their
   5. Vary: logo position (left/center/right), table styles, fonts
   -->
   ```
+  **Completed**: 2025-12-03 | Created 10 distinct templates with varied colors, fonts, and layouts
 
 - [ ] 2.4 Design 10 additional template variations (fonts, layouts)
   ```

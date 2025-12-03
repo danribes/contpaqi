@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Factura {{ folio }}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Palatino Linotype', serif; font-size: 11px; color: #1e293b; padding: 20px; background: #f8fafc; }
+        .invoice { max-width: 800px; margin: 0 auto; background: white; border: 3px solid #0d9488; }
+        .header { background: #0d9488; color: white; padding: 25px; display: flex; justify-content: space-between; align-items: center; }
+        .header-left h1 { font-size: 28px; font-weight: normal; letter-spacing: 3px; }
+        .header-left .tagline { font-style: italic; opacity: 0.8; margin-top: 5px; }
+        .header-right { text-align: right; }
+        .header-right .folio { font-size: 20px; font-weight: bold; }
+        .header-right .date { opacity: 0.9; }
+        .ribbon { background: linear-gradient(90deg, #14b8a6, #0d9488, #14b8a6); height: 5px; }
+        .content { padding: 30px; }
+        .parties-wrapper { display: flex; gap: 30px; margin-bottom: 30px; }
+        .party-box { flex: 1; position: relative; padding: 20px; padding-left: 25px; }
+        .party-box::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: #0d9488; }
+        .party-box h4 { color: #0d9488; font-size: 11px; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px; }
+        .party-box .name { font-size: 15px; font-weight: bold; margin-bottom: 5px; }
+        .party-box .rfc { font-family: 'Lucida Console', monospace; color: #64748b; }
+        .party-box .address { color: #64748b; margin-top: 5px; }
+        .items-section { margin-bottom: 25px; }
+        .items-header { background: #0d9488; color: white; display: flex; padding: 12px 15px; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; }
+        .items-header span { flex: 1; }
+        .items-header span:first-child { flex: 3; }
+        .items-header span:last-child { text-align: right; }
+        .item-row { display: flex; padding: 12px 15px; border-bottom: 1px solid #e2e8f0; }
+        .item-row:nth-child(even) { background: #f1f5f9; }
+        .item-row span { flex: 1; }
+        .item-row span:first-child { flex: 3; }
+        .item-row span:last-child { text-align: right; font-family: 'Lucida Console', monospace; }
+        .totals-section { display: flex; justify-content: flex-end; }
+        .totals-box { width: 300px; border: 2px solid #0d9488; }
+        .total-row { display: flex; justify-content: space-between; padding: 10px 15px; border-bottom: 1px solid #e2e8f0; }
+        .total-row:last-child { border: none; background: #0d9488; color: white; font-weight: bold; font-size: 14px; }
+        .total-row span:last-child { font-family: 'Lucida Console', monospace; }
+        .footer { background: #f1f5f9; padding: 15px 30px; text-align: center; color: #64748b; font-size: 10px; border-top: 1px solid #e2e8f0; }
+    </style>
+</head>
+<body>
+    <div class="invoice">
+        <div class="header">
+            <div class="header-left">
+                <h1>FACTURA</h1>
+                <div class="tagline">{{ emisor.name }}</div>
+            </div>
+            <div class="header-right">
+                <div class="folio">{{ folio }}</div>
+                <div class="date">{{ date }}</div>
+            </div>
+        </div>
+        <div class="ribbon"></div>
+
+        <div class="content">
+            <div class="parties-wrapper">
+                <div class="party-box">
+                    <h4>Emisor</h4>
+                    <div class="name">{{ emisor.name }}</div>
+                    <div class="rfc">RFC: {{ emisor.rfc }}</div>
+                    <div class="address">{{ emisor.address }}</div>
+                </div>
+                <div class="party-box">
+                    <h4>Receptor</h4>
+                    <div class="name">{{ receptor.name }}</div>
+                    <div class="rfc">RFC: {{ receptor.rfc }}</div>
+                    <div class="address">{{ receptor.address }}</div>
+                </div>
+            </div>
+
+            <div class="items-section">
+                <div class="items-header">
+                    <span>Descripcion</span>
+                    <span>Cantidad</span>
+                    <span>P. Unitario</span>
+                    <span>Importe</span>
+                </div>
+                <table style="display: none;"><tr><td></td></tr></table>
+                {% for item in items %}
+                <div class="item-row">
+                    <span>{{ item.description }}</span>
+                    <span>{{ item.quantity }}</span>
+                    <span>${{ "%.2f"|format(item.unit_price) }}</span>
+                    <span>${{ "%.2f"|format(item.amount) }}</span>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="totals-section">
+                <div class="totals-box">
+                    <div class="total-row"><span>Subtotal</span><span>${{ "%.2f"|format(subtotal) }}</span></div>
+                    <div class="total-row"><span>IVA (16%)</span><span>${{ "%.2f"|format(iva) }}</span></div>
+                    <div class="total-row"><span>Total {{ currency }}</span><span>${{ "%.2f"|format(total) }}</span></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            Este documento es una representacion impresa de un CFDI
+        </div>
+    </div>
+</body>
+</html>

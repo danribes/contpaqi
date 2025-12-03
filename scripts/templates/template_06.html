@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Factura {{ folio }}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; font-size: 11px; color: #1e293b; padding: 15px; }
+        .invoice { max-width: 780px; margin: 0 auto; border: 1px solid #cbd5e1; }
+        .header { background: #0f172a; color: white; padding: 20px; text-align: center; }
+        .header h1 { font-size: 24px; font-weight: 300; letter-spacing: 8px; margin-bottom: 5px; }
+        .header .company { font-size: 14px; opacity: 0.9; }
+        .sub-header { background: #f1f5f9; padding: 12px 20px; display: flex; justify-content: space-between; }
+        .sub-header span { font-weight: 500; }
+        .body { padding: 20px; }
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px; }
+        .info-box { background: #f8fafc; padding: 15px; border-radius: 4px; }
+        .info-box h4 { color: #0f172a; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; border-bottom: 2px solid #0f172a; padding-bottom: 5px; }
+        .info-box p { margin: 4px 0; }
+        .info-box .rfc { color: #0f172a; font-weight: bold; font-family: monospace; }
+        table.conceptos { width: 100%; border-collapse: collapse; }
+        table.conceptos th { background: #0f172a; color: white; padding: 10px; text-align: left; font-weight: 500; font-size: 10px; text-transform: uppercase; }
+        table.conceptos td { padding: 10px; border-bottom: 1px solid #e2e8f0; }
+        table.conceptos .right { text-align: right; }
+        table.conceptos tbody tr:last-child td { border-bottom: 2px solid #0f172a; }
+        .totals { width: 280px; margin-left: auto; margin-top: 15px; }
+        .totals .row { display: flex; justify-content: space-between; padding: 8px 12px; background: #f8fafc; margin-bottom: 2px; }
+        .totals .row.grand { background: #0f172a; color: white; font-weight: bold; font-size: 14px; }
+        .footer { background: #0f172a; color: white; text-align: center; padding: 10px; font-size: 9px; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="invoice">
+        <div class="header">
+            <h1>FACTURA</h1>
+            <div class="company">{{ emisor.name }}</div>
+        </div>
+        <div class="sub-header">
+            <span>Folio: {{ folio }}</span>
+            <span>Fecha: {{ date }}</span>
+            <span>Moneda: {{ currency }}</span>
+        </div>
+
+        <div class="body">
+            <div class="info-grid">
+                <div class="info-box">
+                    <h4>Emisor</h4>
+                    <p><strong>{{ emisor.name }}</strong></p>
+                    <p>RFC: <span class="rfc">{{ emisor.rfc }}</span></p>
+                    <p>{{ emisor.address }}</p>
+                </div>
+                <div class="info-box">
+                    <h4>Receptor</h4>
+                    <p><strong>{{ receptor.name }}</strong></p>
+                    <p>RFC: <span class="rfc">{{ receptor.rfc }}</span></p>
+                    <p>{{ receptor.address }}</p>
+                </div>
+            </div>
+
+            <table class="conceptos">
+                <thead>
+                    <tr>
+                        <th>Descripción</th>
+                        <th>Cantidad</th>
+                        <th>Precio Unitario</th>
+                        <th>Importe</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items %}
+                    <tr>
+                        <td>{{ item.description }}</td>
+                        <td class="right">{{ item.quantity }}</td>
+                        <td class="right">${{ "%.2f"|format(item.unit_price) }}</td>
+                        <td class="right">${{ "%.2f"|format(item.amount) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <div class="totals">
+                <div class="row"><span>Subtotal</span><span>${{ "%.2f"|format(subtotal) }}</span></div>
+                <div class="row"><span>IVA 16%</span><span>${{ "%.2f"|format(iva) }}</span></div>
+                <div class="row grand"><span>Total</span><span>${{ "%.2f"|format(total) }}</span></div>
+            </div>
+        </div>
+
+        <div class="footer">Este documento es una representación impresa de un CFDI</div>
+    </div>
+</body>
+</html>

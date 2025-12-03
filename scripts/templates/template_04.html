@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Factura {{ folio }}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Courier New', monospace; font-size: 11px; color: #1f2937; padding: 25px; background: #f9fafb; }
+        .invoice { max-width: 750px; margin: 0 auto; background: white; padding: 30px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .header { display: flex; justify-content: space-between; padding-bottom: 20px; border-bottom: 2px dashed #9333ea; margin-bottom: 20px; }
+        .company-info { }
+        .company-name { font-size: 20px; font-weight: bold; color: #9333ea; }
+        .invoice-box { background: #9333ea; color: white; padding: 15px 25px; text-align: center; }
+        .invoice-box h1 { font-size: 18px; margin-bottom: 5px; }
+        .section { margin-bottom: 20px; }
+        .section-header { background: #f3e8ff; padding: 8px 12px; font-weight: bold; color: #9333ea; margin-bottom: 10px; }
+        .two-column { display: flex; gap: 15px; }
+        .column { flex: 1; border: 1px dashed #d8b4fe; padding: 12px; }
+        .label { color: #9333ea; font-weight: bold; }
+        table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+        th { background: #9333ea; color: white; padding: 10px; text-align: left; }
+        td { padding: 10px; border-bottom: 1px dashed #e9d5ff; }
+        .text-right { text-align: right; }
+        .totals { width: 280px; margin-left: auto; }
+        .totals tr td { border: none; padding: 6px 10px; }
+        .totals .final { background: #9333ea; color: white; font-weight: bold; font-size: 14px; }
+        .footer { margin-top: 25px; text-align: center; font-size: 9px; color: #6b7280; border-top: 2px dashed #9333ea; padding-top: 15px; }
+    </style>
+</head>
+<body>
+    <div class="invoice">
+        <div class="header">
+            <div class="company-info">
+                <div class="company-name">{{ emisor.name }}</div>
+                <div>RFC: {{ emisor.rfc }}</div>
+            </div>
+            <div class="invoice-box">
+                <h1>FACTURA</h1>
+                <div>No. {{ folio }}</div>
+                <div>{{ date }}</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="two-column">
+                <div class="column">
+                    <div class="section-header">EMISOR</div>
+                    <p><span class="label">Razón Social:</span> {{ emisor.name }}</p>
+                    <p><span class="label">RFC:</span> {{ emisor.rfc }}</p>
+                    <p><span class="label">Domicilio:</span> {{ emisor.address }}</p>
+                </div>
+                <div class="column">
+                    <div class="section-header">RECEPTOR</div>
+                    <p><span class="label">Razón Social:</span> {{ receptor.name }}</p>
+                    <p><span class="label">RFC:</span> {{ receptor.rfc }}</p>
+                    <p><span class="label">Domicilio:</span> {{ receptor.address }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-header">CONCEPTOS</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Descripción</th>
+                        <th>Qty</th>
+                        <th>P.U.</th>
+                        <th>Importe</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items %}
+                    <tr>
+                        <td>{{ item.description }}</td>
+                        <td class="text-right">{{ item.quantity }}</td>
+                        <td class="text-right">${{ "%.2f"|format(item.unit_price) }}</td>
+                        <td class="text-right">${{ "%.2f"|format(item.amount) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <table class="totals">
+            <tr>
+                <td>Subtotal:</td>
+                <td class="text-right">${{ "%.2f"|format(subtotal) }}</td>
+            </tr>
+            <tr>
+                <td>IVA (16%):</td>
+                <td class="text-right">${{ "%.2f"|format(iva) }}</td>
+            </tr>
+            <tr class="final">
+                <td>TOTAL {{ currency }}:</td>
+                <td class="text-right">${{ "%.2f"|format(total) }}</td>
+            </tr>
+        </table>
+
+        <div class="footer">
+            <p>Documento generado electrónicamente - CFDI</p>
+        </div>
+    </div>
+</body>
+</html>
