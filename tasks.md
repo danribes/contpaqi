@@ -147,7 +147,7 @@ Initialize all project directories and base configurations for the multi-compone
 ## Task 2: Build Synthetic Invoice Generator
 
 **Priority**: High | **Dependencies**: Task 1 | **Tags**: data-prep, phase-1, python
-**Status**: Not Started
+**Status**: In Progress
 **Estimated Effort**: 5-7 days
 
 ### Description
@@ -155,7 +155,7 @@ Create a Python script that generates thousands of unique PDF invoices and their
 
 ### Subtasks
 
-- [ ] 2.1 Set up Python environment with Faker and WeasyPrint in scripts/
+- [x] 2.1 Set up Python environment with Faker and WeasyPrint in scripts/
   ```
   <!-- IMPLEMENTATION STEPS:
   1. Create scripts/requirements.txt:
@@ -168,6 +168,7 @@ Create a Python script that generates thousands of unique PDF invoices and their
   4. Install: pip install -r requirements.txt
   -->
   ```
+  **Completed**: 2025-12-03 | Created requirements.txt, generate_invoices.py with CLI, templates/ directory
 
 - [ ] 2.2 Configure Faker for Mexican locale (Names, RFCs, Addresses)
   ```python
@@ -1968,7 +1969,7 @@ Tasks 13, 14, 15, 16 ──────────────────→ T
 
 ## Progress Tracking
 
-- [ ] **Phase 1**: Setup & Data (Tasks 1-3) — 6/19 subtasks
+- [ ] **Phase 1**: Setup & Data (Tasks 1-3) — 7/19 subtasks
 - [ ] **Phase 2**: MCP Container (Tasks 4-9) — 0/38 subtasks
 - [ ] **Phase 3**: Windows Bridge (Tasks 10-12) — 0/22 subtasks
 - [ ] **Phase 4**: Licensing & Protection (Tasks 15-16) — 0/14 subtasks
@@ -1982,3 +1983,4 @@ Tasks 13, 14, 15, 16 ──────────────────→ T
 | Task | Completed Date | Notes |
 |------|----------------|-------|
 | Task 1: Project Setup & Scaffolding | 2025-12-03 | 6/6 subtasks, 27 tests passing |
+| Subtask 2.1: Scripts Setup | 2025-12-03 | requirements.txt, generate_invoices.py, 12 tests passing |
