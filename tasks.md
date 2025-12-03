@@ -218,7 +218,7 @@ Create a Python script that generates thousands of unique PDF invoices and their
   ```
   **Completed**: 2025-12-03 | Created 10 additional templates with Roboto, Lato, Montserrat, Poppins, etc. Includes 3 landscape, 1 dark mode, various layouts
 
-- [ ] 2.5 Implement data randomization logic for company names, dates, prices
+- [x] 2.5 Implement data randomization logic for company names, dates, prices
   ```python
   <!-- IMPLEMENTATION STEPS:
   1. Create generate_invoice_data() function:
@@ -248,6 +248,7 @@ Create a Python script that generates thousands of unique PDF invoices and their
          }
   -->
   ```
+  **Completed**: 2025-12-03 | Created invoice_data.py with generate_invoice_data(), 35+ product descriptions, seed reproducibility, 16% IVA calculation
 
 - [ ] 2.6 Implement bounding box calculation for all fields
   ```python
