@@ -170,7 +170,7 @@ Create a Python script that generates thousands of unique PDF invoices and their
   ```
   **Completed**: 2025-12-03 | Created requirements.txt, generate_invoices.py with CLI, templates/ directory
 
-- [ ] 2.2 Configure Faker for Mexican locale (Names, RFCs, Addresses)
+- [x] 2.2 Configure Faker for Mexican locale (Names, RFCs, Addresses)
   ```python
   <!-- IMPLEMENTATION STEPS:
   1. Import: from faker import Faker
@@ -185,6 +185,7 @@ Create a Python script that generates thousands of unique PDF invoices and their
   4. Test with: fake.name(), fake.address(), generate_rfc()
   -->
   ```
+  **Completed**: 2025-12-03 | Created mexican_data.py with RFC generator, validator, company/person generators
 
 - [ ] 2.3 Design 10 distinct HTML/CSS invoice templates
   ```
@@ -1969,7 +1970,7 @@ Tasks 13, 14, 15, 16 ──────────────────→ T
 
 ## Progress Tracking
 
-- [ ] **Phase 1**: Setup & Data (Tasks 1-3) — 7/19 subtasks
+- [ ] **Phase 1**: Setup & Data (Tasks 1-3) — 8/19 subtasks
 - [ ] **Phase 2**: MCP Container (Tasks 4-9) — 0/38 subtasks
 - [ ] **Phase 3**: Windows Bridge (Tasks 10-12) — 0/22 subtasks
 - [ ] **Phase 4**: Licensing & Protection (Tasks 15-16) — 0/14 subtasks
@@ -1984,3 +1985,4 @@ Tasks 13, 14, 15, 16 ──────────────────→ T
 |------|----------------|-------|
 | Task 1: Project Setup & Scaffolding | 2025-12-03 | 6/6 subtasks, 27 tests passing |
 | Subtask 2.1: Scripts Setup | 2025-12-03 | requirements.txt, generate_invoices.py, 12 tests passing |
+| Subtask 2.2: Mexican Locale | 2025-12-03 | mexican_data.py, RFC generator/validator, 22 tests passing |
