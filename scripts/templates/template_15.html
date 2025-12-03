@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Factura {{ folio }}</title>
+    <style>
+        /* Template 15: Nunito font, single column stacked, orange/warm, no table borders */
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Nunito', sans-serif; font-size: 12px; color: #44403c; padding: 30px; background: #fffbeb; }
+        .invoice { max-width: 650px; margin: 0 auto; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 25px rgba(251, 146, 60, 0.15); }
+        .header { background: linear-gradient(135deg, #fb923c 0%, #f97316 100%); color: white; padding: 30px; text-align: center; }
+        .header h1 { font-size: 28px; font-weight: 800; }
+        .header .subtitle { opacity: 0.9; margin-top: 5px; }
+        .header .folio-box { display: inline-block; background: rgba(255,255,255,0.2); padding: 10px 25px; border-radius: 25px; margin-top: 15px; }
+        .header .folio { font-size: 18px; font-weight: 700; }
+        .content { padding: 30px; }
+        .date-line { text-align: center; color: #78716c; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 2px dashed #fed7aa; }
+        .section { margin-bottom: 25px; }
+        .section-header { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: #f97316; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }
+        .section-header::after { content: ''; flex: 1; height: 1px; background: #fed7aa; }
+        .party-card { background: #fffbeb; padding: 15px; border-radius: 10px; margin-bottom: 10px; }
+        .party-card .name { font-size: 15px; font-weight: 700; color: #1c1917; }
+        .party-card .rfc { color: #78716c; margin-top: 3px; }
+        .party-card .address { color: #a8a29e; font-size: 11px; margin-top: 3px; }
+        .items-list { }
+        .item-row { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid #fef3c7; }
+        .item-row:last-child { border-bottom: none; }
+        .item-info { flex: 1; }
+        .item-info .desc { font-weight: 600; color: #1c1917; }
+        .item-info .meta { font-size: 11px; color: #78716c; margin-top: 2px; }
+        .item-amount { font-size: 14px; font-weight: 700; color: #1c1917; }
+        <table style="display:none;"><tr><td></td></tr></table>
+        .totals { background: #fffbeb; border-radius: 10px; padding: 20px; margin-top: 20px; }
+        .total-row { display: flex; justify-content: space-between; padding: 8px 0; color: #78716c; }
+        .total-row.grand { padding-top: 15px; margin-top: 10px; border-top: 2px solid #f97316; color: #f97316; font-size: 20px; font-weight: 800; }
+        .footer { text-align: center; padding: 20px; color: #a8a29e; font-size: 10px; background: #fef3c7; }
+    </style>
+</head>
+<body>
+    <div class="invoice">
+        <div class="header">
+            <h1>Factura</h1>
+            <div class="subtitle">{{ emisor.name }}</div>
+            <div class="folio-box">
+                <div class="folio">{{ folio }}</div>
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="date-line">Fecha: {{ date }}</div>
+
+            <div class="section">
+                <div class="section-header">Emisor</div>
+                <div class="party-card">
+                    <div class="name">{{ emisor.name }}</div>
+                    <div class="rfc">RFC: {{ emisor.rfc }}</div>
+                    <div class="address">{{ emisor.address }}</div>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-header">Receptor</div>
+                <div class="party-card">
+                    <div class="name">{{ receptor.name }}</div>
+                    <div class="rfc">RFC: {{ receptor.rfc }}</div>
+                    <div class="address">{{ receptor.address }}</div>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-header">Conceptos</div>
+                <table style="display:none;"><tr><td></td></tr></table>
+                <div class="items-list">
+                    {% for item in items %}
+                    <div class="item-row">
+                        <div class="item-info">
+                            <div class="desc">{{ item.description }}</div>
+                            <div class="meta">{{ item.quantity }} × ${{ "%.2f"|format(item.unit_price) }}</div>
+                        </div>
+                        <div class="item-amount">${{ "%.2f"|format(item.amount) }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="totals">
+                <div class="total-row"><span>Subtotal</span><span>${{ "%.2f"|format(subtotal) }}</span></div>
+                <div class="total-row"><span>IVA (16%)</span><span>${{ "%.2f"|format(iva) }}</span></div>
+                <div class="total-row grand"><span>Total {{ currency }}</span><span>${{ "%.2f"|format(total) }}</span></div>
+            </div>
+        </div>
+
+        <div class="footer">
+            Este documento es una representación impresa de un CFDI
+        </div>
+    </div>
+</body>
+</html>
