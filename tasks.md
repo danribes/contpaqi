@@ -272,7 +272,7 @@ Create a Python script that generates thousands of unique PDF invoices and their
   ```
   **Completed**: 2025-12-03 | Created bbox_utils.py with find_text_bbox, find_numeric_bbox, find_all_field_bboxes, normalization, merging
 
-- [ ] 2.7 Create JSON sidecar file generator for ground truth labels
+- [x] 2.7 Create JSON sidecar file generator for ground truth labels
   ```python
   <!-- IMPLEMENTATION STEPS:
   1. Create function save_ground_truth():
@@ -296,6 +296,7 @@ Create a Python script that generates thousands of unique PDF invoices and their
              json.dump(ground_truth, f, indent=2)
   -->
   ```
+  **Completed**: 2025-12-03 | Created ground_truth.py with create_ground_truth, save_ground_truth, load_ground_truth, 33 tests passing
 
 - [ ] 2.8 Generate 5,000+ synthetic invoice samples
   ```python
@@ -1974,7 +1975,7 @@ Tasks 13, 14, 15, 16 ──────────────────→ T
 
 ## Progress Tracking
 
-- [ ] **Phase 1**: Setup & Data (Tasks 1-3) — 8/19 subtasks
+- [ ] **Phase 1**: Setup & Data (Tasks 1-3) — 9/19 subtasks
 - [ ] **Phase 2**: MCP Container (Tasks 4-9) — 0/38 subtasks
 - [ ] **Phase 3**: Windows Bridge (Tasks 10-12) — 0/22 subtasks
 - [ ] **Phase 4**: Licensing & Protection (Tasks 15-16) — 0/14 subtasks
@@ -1990,3 +1991,8 @@ Tasks 13, 14, 15, 16 ──────────────────→ T
 | Task 1: Project Setup & Scaffolding | 2025-12-03 | 6/6 subtasks, 27 tests passing |
 | Subtask 2.1: Scripts Setup | 2025-12-03 | requirements.txt, generate_invoices.py, 12 tests passing |
 | Subtask 2.2: Mexican Locale | 2025-12-03 | mexican_data.py, RFC generator/validator, 22 tests passing |
+| Subtask 2.3: Invoice Templates | 2025-12-03 | 10 templates, varied styles/colors/fonts, 134 tests passing |
+| Subtask 2.4: Additional Templates | 2025-12-03 | 10 more templates (11-20), 3 landscape, 1 dark, 198 tests passing |
+| Subtask 2.5: Data Randomization | 2025-12-03 | invoice_data.py, 35+ products, seed reproducibility, 43 tests passing |
+| Subtask 2.6: Bounding Boxes | 2025-12-03 | bbox_utils.py, OCR integration, normalization, 27 tests passing |
+| Subtask 2.7: Ground Truth JSON | 2025-12-03 | ground_truth.py, JSON sidecar files, 33 tests passing |
