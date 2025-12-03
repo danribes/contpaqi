@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Factura {{ folio }}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Calibri', 'Candara', sans-serif; font-size: 11px; color: #292524; padding: 25px; background: linear-gradient(135deg, #fef2f2 0%, #fff7ed 100%); }
+        .invoice { max-width: 800px; margin: 0 auto; background: white; border-radius: 0; box-shadow: 8px 8px 0 #dc2626; border: 2px solid #292524; }
+        .header { padding: 25px 30px; border-bottom: 2px solid #292524; display: flex; justify-content: space-between; }
+        .brand { display: flex; align-items: center; gap: 15px; }
+        .brand-icon { width: 50px; height: 50px; background: #dc2626; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; font-weight: bold; }
+        .brand-text h1 { font-size: 22px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; }
+        .brand-text p { color: #78716c; font-size: 10px; text-transform: uppercase; letter-spacing: 3px; }
+        .invoice-meta { text-align: right; }
+        .invoice-meta .label { font-size: 10px; color: #78716c; text-transform: uppercase; }
+        .invoice-meta .folio { font-size: 24px; font-weight: 900; color: #dc2626; }
+        .invoice-meta .date { font-size: 12px; margin-top: 5px; }
+        .body { padding: 30px; }
+        .parties { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-bottom: 30px; }
+        .party { padding: 20px; border: 2px solid #292524; position: relative; }
+        .party::before { content: ''; position: absolute; top: -2px; left: 20px; right: 20px; height: 4px; }
+        .party.emisor::before { background: #dc2626; }
+        .party.receptor::before { background: #f97316; }
+        .party h3 { font-size: 10px; text-transform: uppercase; letter-spacing: 3px; color: #78716c; margin-bottom: 12px; }
+        .party .name { font-size: 14px; font-weight: 700; margin-bottom: 8px; }
+        .party .rfc { font-family: 'Consolas', monospace; background: #fef2f2; padding: 4px 8px; display: inline-block; border: 1px solid #fecaca; }
+        .party .address { color: #78716c; margin-top: 8px; line-height: 1.4; }
+        table { width: 100%; border-collapse: collapse; border: 2px solid #292524; }
+        thead { background: #292524; color: white; }
+        th { padding: 12px; text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+        th:last-child { text-align: right; }
+        td { padding: 12px; border-bottom: 1px solid #e7e5e4; }
+        td:last-child { text-align: right; }
+        tr:nth-child(even) { background: #fafaf9; }
+        .numeric { font-family: 'Consolas', monospace; }
+        .totals { margin-top: 25px; display: flex; justify-content: flex-end; }
+        .totals-grid { width: 280px; }
+        .totals-row { display: flex; justify-content: space-between; padding: 10px 15px; border: 2px solid #292524; border-top: none; }
+        .totals-row:first-child { border-top: 2px solid #292524; }
+        .totals-row.grand { background: #dc2626; color: white; font-weight: 700; font-size: 14px; }
+        .totals-row .amount { font-family: 'Consolas', monospace; }
+        .footer { margin-top: 30px; padding: 15px; background: #292524; color: white; text-align: center; font-size: 10px; letter-spacing: 1px; }
+    </style>
+</head>
+<body>
+    <div class="invoice">
+        <div class="header">
+            <div class="brand">
+                <div class="brand-icon">F</div>
+                <div class="brand-text">
+                    <h1>Factura</h1>
+                    <p>Comprobante Fiscal Digital</p>
+                </div>
+            </div>
+            <div class="invoice-meta">
+                <div class="label">No. Factura</div>
+                <div class="folio">{{ folio }}</div>
+                <div class="date">{{ date }}</div>
+            </div>
+        </div>
+
+        <div class="body">
+            <div class="parties">
+                <div class="party emisor">
+                    <h3>Datos del Emisor</h3>
+                    <div class="name">{{ emisor.name }}</div>
+                    <div class="rfc">{{ emisor.rfc }}</div>
+                    <div class="address">{{ emisor.address }}</div>
+                </div>
+                <div class="party receptor">
+                    <h3>Datos del Receptor</h3>
+                    <div class="name">{{ receptor.name }}</div>
+                    <div class="rfc">{{ receptor.rfc }}</div>
+                    <div class="address">{{ receptor.address }}</div>
+                </div>
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Concepto</th>
+                        <th>Cantidad</th>
+                        <th>Precio Unit.</th>
+                        <th>Importe</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items %}
+                    <tr>
+                        <td>{{ item.description }}</td>
+                        <td class="numeric">{{ item.quantity }}</td>
+                        <td class="numeric">${{ "%.2f"|format(item.unit_price) }}</td>
+                        <td class="numeric">${{ "%.2f"|format(item.amount) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <div class="totals">
+                <div class="totals-grid">
+                    <div class="totals-row"><span>Subtotal</span><span class="amount">${{ "%.2f"|format(subtotal) }}</span></div>
+                    <div class="totals-row"><span>IVA (16%)</span><span class="amount">${{ "%.2f"|format(iva) }}</span></div>
+                    <div class="totals-row grand"><span>Total {{ currency }}</span><span class="amount">${{ "%.2f"|format(total) }}</span></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            {{ emisor.name }} &bull; Este documento es una representacion impresa de un CFDI
+        </div>
+    </div>
+</body>
+</html>

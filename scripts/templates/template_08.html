@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Factura {{ folio }}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Trebuchet MS', sans-serif; font-size: 11px; color: #374151; padding: 25px; background: #f3f4f6; }
+        .invoice { max-width: 800px; margin: 0 auto; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .header { background: linear-gradient(to right, #7c3aed, #a855f7); color: white; padding: 30px; position: relative; }
+        .header::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 4px; background: linear-gradient(to right, #fbbf24, #f59e0b); }
+        .header-content { display: flex; justify-content: space-between; align-items: center; }
+        .logo-text { font-size: 24px; font-weight: bold; }
+        .invoice-info { text-align: right; }
+        .invoice-info h1 { font-size: 32px; font-weight: 300; }
+        .invoice-info .meta { opacity: 0.9; margin-top: 5px; }
+        .body { padding: 30px; }
+        .parties { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-bottom: 30px; }
+        .party { padding: 20px; border-radius: 8px; }
+        .party.emisor { background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%); }
+        .party.receptor { background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); }
+        .party h3 { font-size: 12px; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 12px; color: #7c3aed; }
+        .party .name { font-size: 14px; font-weight: bold; margin-bottom: 5px; }
+        .party .rfc { font-family: 'Courier New', monospace; background: white; padding: 3px 8px; border-radius: 4px; display: inline-block; }
+        .table-container { background: #fafafa; border-radius: 8px; padding: 20px; }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #7c3aed; color: white; padding: 12px; text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; }
+        th:first-child { border-radius: 6px 0 0 6px; }
+        th:last-child { border-radius: 0 6px 6px 0; }
+        td { padding: 12px; border-bottom: 1px solid #e5e7eb; }
+        td.numeric { text-align: right; font-family: 'Courier New', monospace; }
+        .totals { margin-top: 25px; display: flex; justify-content: flex-end; }
+        .totals-card { background: linear-gradient(135deg, #7c3aed, #a855f7); color: white; padding: 20px; border-radius: 8px; min-width: 280px; }
+        .totals-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.2); }
+        .totals-row:last-child { border: none; font-size: 18px; font-weight: bold; padding-top: 12px; }
+    </style>
+</head>
+<body>
+    <div class="invoice">
+        <div class="header">
+            <div class="header-content">
+                <div class="logo-text">{{ emisor.name }}</div>
+                <div class="invoice-info">
+                    <h1>Factura</h1>
+                    <div class="meta">{{ folio }} • {{ date }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="body">
+            <div class="parties">
+                <div class="party emisor">
+                    <h3>Emisor</h3>
+                    <div class="name">{{ emisor.name }}</div>
+                    <div>RFC: <span class="rfc">{{ emisor.rfc }}</span></div>
+                    <div>{{ emisor.address }}</div>
+                </div>
+                <div class="party receptor">
+                    <h3>Receptor</h3>
+                    <div class="name">{{ receptor.name }}</div>
+                    <div>RFC: <span class="rfc">{{ receptor.rfc }}</span></div>
+                    <div>{{ receptor.address }}</div>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Descripción</th>
+                            <th>Cantidad</th>
+                            <th>Precio Unitario</th>
+                            <th>Importe</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in items %}
+                        <tr>
+                            <td>{{ item.description }}</td>
+                            <td class="numeric">{{ item.quantity }}</td>
+                            <td class="numeric">${{ "%.2f"|format(item.unit_price) }}</td>
+                            <td class="numeric">${{ "%.2f"|format(item.amount) }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="totals">
+                <div class="totals-card">
+                    <div class="totals-row"><span>Subtotal</span><span>${{ "%.2f"|format(subtotal) }}</span></div>
+                    <div class="totals-row"><span>IVA (16%)</span><span>${{ "%.2f"|format(iva) }}</span></div>
+                    <div class="totals-row"><span>Total {{ currency }}</span><span>${{ "%.2f"|format(total) }}</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Factura {{ folio }}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Times New Roman', serif; font-size: 11px; color: #1a1a1a; padding: 15px; background: #fff; }
+        .invoice { max-width: 780px; margin: 0 auto; border: 1px solid #000; padding: 20px; }
+        .header { text-align: center; border-bottom: 3px double #000; padding-bottom: 15px; margin-bottom: 20px; }
+        .header h1 { font-size: 32px; letter-spacing: 5px; margin-bottom: 5px; }
+        .header .company { font-size: 18px; font-weight: bold; }
+        .meta { display: flex; justify-content: space-between; margin-bottom: 20px; }
+        .meta-box { border: 1px solid #000; padding: 10px; width: 30%; }
+        .meta-box label { font-weight: bold; display: block; }
+        .section { margin-bottom: 20px; }
+        .section-title { font-weight: bold; text-decoration: underline; margin-bottom: 10px; }
+        .party-grid { display: flex; justify-content: space-between; }
+        .party-box { width: 48%; border: 1px solid #000; padding: 10px; }
+        .party-box h4 { background: #000; color: #fff; margin: -10px -10px 10px -10px; padding: 5px; text-align: center; }
+        table.items { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        table.items th, table.items td { border: 1px solid #000; padding: 8px; }
+        table.items th { background: #f0f0f0; font-weight: bold; }
+        table.items td.number { text-align: right; }
+        .summary { width: 250px; margin-left: auto; border: 1px solid #000; }
+        .summary td { padding: 5px 10px; }
+        .summary .grand-total { background: #000; color: #fff; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="invoice">
+        <div class="header">
+            <div class="company">{{ emisor.name }}</div>
+            <h1>FACTURA</h1>
+        </div>
+
+        <div class="meta">
+            <div class="meta-box">
+                <label>Folio:</label>
+                <span>{{ folio }}</span>
+            </div>
+            <div class="meta-box">
+                <label>Fecha:</label>
+                <span>{{ date }}</span>
+            </div>
+            <div class="meta-box">
+                <label>Moneda:</label>
+                <span>{{ currency }}</span>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="party-grid">
+                <div class="party-box">
+                    <h4>EMISOR</h4>
+                    <p><strong>{{ emisor.name }}</strong></p>
+                    <p>RFC: {{ emisor.rfc }}</p>
+                    <p>{{ emisor.address }}</p>
+                </div>
+                <div class="party-box">
+                    <h4>RECEPTOR</h4>
+                    <p><strong>{{ receptor.name }}</strong></p>
+                    <p>RFC: {{ receptor.rfc }}</p>
+                    <p>{{ receptor.address }}</p>
+                </div>
+            </div>
+        </div>
+
+        <table class="items">
+            <thead>
+                <tr>
+                    <th>Descripción</th>
+                    <th>Cant.</th>
+                    <th>P. Unit.</th>
+                    <th>Importe</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                <tr>
+                    <td>{{ item.description }}</td>
+                    <td class="number">{{ item.quantity }}</td>
+                    <td class="number">${{ "%.2f"|format(item.unit_price) }}</td>
+                    <td class="number">${{ "%.2f"|format(item.amount) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <table class="summary">
+            <tr>
+                <td>Subtotal:</td>
+                <td align="right">${{ "%.2f"|format(subtotal) }}</td>
+            </tr>
+            <tr>
+                <td>IVA 16%:</td>
+                <td align="right">${{ "%.2f"|format(iva) }}</td>
+            </tr>
+            <tr class="grand-total">
+                <td>TOTAL:</td>
+                <td align="right">${{ "%.2f"|format(total) }}</td>
+            </tr>
+        </table>
+    </div>
+</body>
+</html>

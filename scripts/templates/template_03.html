@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Factura {{ folio }}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Helvetica, Arial, sans-serif; font-size: 11px; color: #444; padding: 20px; }
+        .invoice { max-width: 800px; margin: 0 auto; }
+        .header { background: linear-gradient(135deg, #059669 0%, #10b981 100%); color: white; padding: 30px; margin-bottom: 20px; }
+        .header-content { display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-size: 22px; font-weight: bold; }
+        .invoice-title { text-align: right; }
+        .invoice-title h1 { font-size: 36px; font-weight: 300; }
+        .invoice-meta { margin-top: 10px; }
+        .parties { display: flex; gap: 20px; margin-bottom: 25px; }
+        .party { flex: 1; background: #f0fdf4; padding: 15px; border-left: 4px solid #059669; }
+        .party h3 { color: #059669; margin-bottom: 10px; font-size: 14px; }
+        .party .rfc { font-family: monospace; background: #dcfce7; padding: 2px 6px; }
+        .items-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        .items-table th { background: #059669; color: white; padding: 12px; text-align: left; font-weight: 500; }
+        .items-table td { padding: 12px; border-bottom: 1px solid #e5e7eb; }
+        .items-table tbody tr:hover { background: #f0fdf4; }
+        .items-table .amount { text-align: right; font-family: monospace; }
+        .totals-section { display: flex; justify-content: flex-end; }
+        .totals { background: #f0fdf4; padding: 15px; min-width: 280px; }
+        .totals-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #d1fae5; }
+        .totals-row.total { background: #059669; color: white; margin: 10px -15px -15px; padding: 15px; font-size: 16px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="invoice">
+        <div class="header">
+            <div class="header-content">
+                <div class="logo">{{ emisor.name }}</div>
+                <div class="invoice-title">
+                    <h1>Factura</h1>
+                    <div class="invoice-meta">
+                        <div>Folio: {{ folio }}</div>
+                        <div>Fecha: {{ date }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="parties">
+            <div class="party">
+                <h3>DATOS DEL EMISOR</h3>
+                <p><strong>{{ emisor.name }}</strong></p>
+                <p>RFC: <span class="rfc">{{ emisor.rfc }}</span></p>
+                <p>{{ emisor.address }}</p>
+            </div>
+            <div class="party">
+                <h3>DATOS DEL RECEPTOR</h3>
+                <p><strong>{{ receptor.name }}</strong></p>
+                <p>RFC: <span class="rfc">{{ receptor.rfc }}</span></p>
+                <p>{{ receptor.address }}</p>
+            </div>
+        </div>
+
+        <table class="items-table">
+            <thead>
+                <tr>
+                    <th>Concepto</th>
+                    <th>Cantidad</th>
+                    <th>Precio Unitario</th>
+                    <th>Importe</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                <tr>
+                    <td>{{ item.description }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td class="amount">${{ "%.2f"|format(item.unit_price) }}</td>
+                    <td class="amount">${{ "%.2f"|format(item.amount) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="totals-section">
+            <div class="totals">
+                <div class="totals-row">
+                    <span>Subtotal</span>
+                    <span>${{ "%.2f"|format(subtotal) }}</span>
+                </div>
+                <div class="totals-row">
+                    <span>IVA (16%)</span>
+                    <span>${{ "%.2f"|format(iva) }}</span>
+                </div>
+                <div class="totals-row total">
+                    <span>Total {{ currency }}</span>
+                    <span>${{ "%.2f"|format(total) }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

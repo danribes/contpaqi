@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Factura {{ folio }}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Georgia, serif; font-size: 12px; color: #374151; padding: 20px; }
+        .invoice { max-width: 800px; margin: 0 auto; }
+        .header { background: #dc2626; color: white; padding: 25px; display: flex; justify-content: space-between; align-items: center; }
+        .logo-area { display: flex; align-items: center; gap: 15px; }
+        .logo-placeholder { width: 60px; height: 60px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #dc2626; font-weight: bold; }
+        .company-name { font-size: 20px; font-weight: bold; }
+        .invoice-label { font-size: 28px; font-style: italic; }
+        .meta-strip { background: #fef2f2; padding: 15px 25px; display: flex; justify-content: space-around; border-bottom: 3px solid #dc2626; }
+        .meta-item { text-align: center; }
+        .meta-item label { display: block; font-size: 10px; color: #dc2626; text-transform: uppercase; }
+        .meta-item value { font-weight: bold; font-size: 14px; }
+        .content { padding: 25px; }
+        .parties { display: flex; gap: 30px; margin-bottom: 25px; }
+        .party { flex: 1; }
+        .party h3 { color: #dc2626; border-bottom: 2px solid #dc2626; padding-bottom: 5px; margin-bottom: 10px; }
+        .party .rfc { background: #fef2f2; padding: 3px 8px; font-family: monospace; }
+        .items { width: 100%; border-collapse: collapse; }
+        .items th { background: #dc2626; color: white; padding: 12px; text-align: left; }
+        .items td { padding: 12px; border-bottom: 1px solid #fecaca; }
+        .items .num { text-align: right; }
+        .summary { margin-top: 20px; display: flex; justify-content: flex-end; }
+        .summary-box { border: 2px solid #dc2626; width: 300px; }
+        .summary-row { display: flex; justify-content: space-between; padding: 10px 15px; border-bottom: 1px solid #fecaca; }
+        .summary-row.total { background: #dc2626; color: white; font-weight: bold; font-size: 16px; border: none; }
+    </style>
+</head>
+<body>
+    <div class="invoice">
+        <div class="header">
+            <div class="logo-area">
+                <div class="logo-placeholder">LOGO</div>
+                <div class="company-name">{{ emisor.name }}</div>
+            </div>
+            <div class="invoice-label">Factura</div>
+        </div>
+
+        <div class="meta-strip">
+            <div class="meta-item">
+                <label>Folio</label>
+                <value>{{ folio }}</value>
+            </div>
+            <div class="meta-item">
+                <label>Fecha</label>
+                <value>{{ date }}</value>
+            </div>
+            <div class="meta-item">
+                <label>Moneda</label>
+                <value>{{ currency }}</value>
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="parties">
+                <div class="party">
+                    <h3>Emisor</h3>
+                    <p><strong>{{ emisor.name }}</strong></p>
+                    <p>RFC: <span class="rfc">{{ emisor.rfc }}</span></p>
+                    <p>{{ emisor.address }}</p>
+                </div>
+                <div class="party">
+                    <h3>Receptor</h3>
+                    <p><strong>{{ receptor.name }}</strong></p>
+                    <p>RFC: <span class="rfc">{{ receptor.rfc }}</span></p>
+                    <p>{{ receptor.address }}</p>
+                </div>
+            </div>
+
+            <table class="items">
+                <thead>
+                    <tr>
+                        <th>Descripción</th>
+                        <th>Cantidad</th>
+                        <th>Precio Unit.</th>
+                        <th>Importe</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items %}
+                    <tr>
+                        <td>{{ item.description }}</td>
+                        <td class="num">{{ item.quantity }}</td>
+                        <td class="num">${{ "%.2f"|format(item.unit_price) }}</td>
+                        <td class="num">${{ "%.2f"|format(item.amount) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <div class="summary">
+                <div class="summary-box">
+                    <div class="summary-row">
+                        <span>Subtotal</span>
+                        <span>${{ "%.2f"|format(subtotal) }}</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>IVA (16%)</span>
+                        <span>${{ "%.2f"|format(iva) }}</span>
+                    </div>
+                    <div class="summary-row total">
+                        <span>Total</span>
+                        <span>${{ "%.2f"|format(total) }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
