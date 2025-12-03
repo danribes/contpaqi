@@ -1,0 +1,239 @@
+# Contpaqi AI Bridge - Product Requirements Document
+
+## Project Overview
+
+Build an AI-powered invoice processing system that automatically extracts data from Mexican PDF invoices (CFDI) and posts them to Contpaqi accounting software, eliminating manual data entry for accountants.
+
+## Target Users
+
+- Mexican accountants and bookkeepers
+- Small to medium businesses using Contpaqi
+- Accounting firms processing high volumes of invoices
+
+## Technical Architecture
+
+### Component 1: MCP Container (Python/Docker)
+- AI models for PDF extraction using TATR (Table Transformer) + LayoutLMv3
+- FastAPI REST API on port 8000
+- Tesseract OCR with Spanish language support
+- Runs in Docker for dependency isolation
+
+### Component 2: Windows Bridge (C#/.NET)
+- ASP.NET Core service on port 5000 (localhost only)
+- COM interop with Contpaqi MGW_SDK.dll
+- Sequential job queue (SDK limitation)
+- x86 (32-bit) requirement for SDK compatibility
+
+### Component 3: Desktop App (Electron/React)
+- User interface for upload, review, and submission
+- PDF viewer with react-pdf
+- Docker container management
+- Split-screen layout: PDF + editable form
+
+### Component 4: Licensing System
+- Hardware-bound licenses (UUID fingerprint)
+- Cloud license server (AWS Lambda/Firebase)
+- JWT tokens with expiration
+- 7-day offline grace period
+
+## Feature Requirements
+
+### Phase 1: Data Preparation & Synthetic Generation
+
+#### Feature 1.1: Synthetic Invoice Generator
+Create a Python script that generates thousands of unique PDF invoices and their corresponding "Ground Truth" JSON labels for training AI models.
+
+Requirements:
+- Python environment with Faker and WeasyPrint libraries
+- Faker configured for Mexican locale (Names, RFCs, Addresses)
+- 10-20 distinct HTML/CSS invoice templates with varied layouts
+- Data randomization for company names, dates, prices, line items
+- Bounding box calculation for all fields (total, date, RFC, line items)
+- JSON sidecar file generator for ground truth labels
+- Generate 5,000+ synthetic invoice samples
+- Organized output folder structure (data/train with PDF/JSON pairs)
+
+#### Feature 1.2: Dataset Formatting
+Convert the raw PDF/JSON pairs into the specific formats required by Hugging Face Transformers library.
+
+Requirements:
+- prepare_datasets.py script
+- TATR data preparation: normalize bounding boxes to 0-1000 scale, COCO detection format
+- LayoutLMv3 data preparation: pytesseract tokens, BIO tags, label mapping
+- Train/validation/test splits (80/10/10)
+- Validate format compatibility with Hugging Face
+
+### Phase 2: The MCP Container (The "Brain")
+
+#### Feature 2.1: Docker Environment
+Create a highly optimized Dockerfile for Python AI inference.
+
+Requirements:
+- Base: python:3.9-slim-bullseye
+- System deps: tesseract-ocr, tesseract-ocr-spa, libpoppler-dev
+- Python deps: torch, transformers, detectron2, fastapi, uvicorn, python-multipart
+- Multi-stage build for optimization
+- Target size: under 3GB
+- docker-compose.yml for local development
+
+#### Feature 2.2: Inference Pipeline
+The core logic that orchestrates the two AI models.
+
+Requirements:
+- InvoiceInferenceEngine class
+- OCR method using Tesseract (extract words with coordinates, Spanish support)
+- TATR model integration (image → row bounding boxes)
+- LayoutLM model integration (image + OCR words → word labels)
+- Intersection logic (words inside TATR rows → Line Items vs Header)
+- predict(image) method combining all steps
+- Confidence scoring for predictions
+- Unit tests for inference pipeline
+
+#### Feature 2.3: API & Sanitization Layer
+FastAPI interface that receives files and enforces data strictness.
+
+Requirements:
+- FastAPI application structure
+- Pydantic models: Invoice, LineItem, Response (Success/Warning/Error)
+- POST /process_pdf endpoint (file upload, PDF validation, inference call)
+- Validation: math verification, RFC regex, date format, required fields
+- /health endpoint for container monitoring
+- Error handling and logging
+- OpenAPI/Swagger documentation
+- Integration tests
+
+### Phase 3: The Windows Bridge (The "Hands")
+
+#### Feature 3.1: .NET Project & SDK Integration
+C# ASP.NET Core Web API that references Contpaqi COM libraries.
+
+Requirements:
+- ASP.NET Core Web API project (.NET 6.0 or 8.0)
+- Platform Target: x86 (32-bit requirement)
+- COM reference to MGW_SDK.dll
+- SdkInterop.cs wrapper class with DllImport/COM instantiation
+- Map functions: fInicializaSDK, fCreaPoliza, fTerminaSDK
+- Abstraction layer for SDK operations
+- Error handling for SDK calls
+- Unit tests with mocked SDK
+
+#### Feature 3.2: Concurrency Queue
+Background service that forces requests to be processed one-by-one.
+
+Requirements:
+- JobQueueService as IHostedService
+- Queue using System.Threading.Channels or ConcurrentQueue
+- Processing loop: check cancellation, dequeue, init SDK, write poliza, close SDK, 500ms delay
+- Job status tracking
+- Retry logic for failed operations
+- Graceful shutdown handling
+- Logging for queue operations
+
+#### Feature 3.3: Network Locking (Security)
+Ensure API listens only to local machine.
+
+Requirements:
+- Kestrel configured to listen on 127.0.0.1:5000 only
+- Localhost validation middleware (check RemoteIpAddress, return 403 for non-localhost)
+- Security headers
+- Request logging for audit trail
+- Security tests to verify isolation
+
+### Phase 4: Commercialization & Protection
+
+#### Feature 4.1: Hardware-Locked Licensing
+Validate that user has paid before adding jobs to queue.
+
+Requirements:
+- Hardware fingerprint collection (wmic csproduct get uuid, fallback to MAC)
+- Cloud licensing server (AWS Lambda/Firebase function)
+- License validation endpoint with subscription database
+- License verification flow: UUID → server → signed JWT → local storage
+- Pre-processing license check (verify JWT signature, check expiration)
+- Offline grace period (7 days)
+- License management UI
+- Trial period logic
+
+#### Feature 4.2: Code Obfuscation
+Scramble code so it cannot be read if decompiled.
+
+Requirements:
+- Python: PyArmor obfuscation for inference.py, main.py; modify Dockerfile for dist/
+- C#: Dotfuscator Community with class/method renaming, string encryption
+- Add to build pipeline
+- Test obfuscated code functionality
+- Verify decompilation produces unreadable code
+
+### Phase 5: The Frontend & Orchestration
+
+#### Feature 5.1: Electron Shell & Docker Management
+Desktop app wrapper that manages Docker background process.
+
+Requirements:
+- Electron + React project setup (Webpack/Vite)
+- Docker status checking (docker ps for mcp-container)
+- Docker lifecycle management (start if not running, stop on exit)
+- Handle Docker daemon not running
+- Health check polling (GET http://localhost:8000/health with retry)
+- Status indicators: "Starting...", "Ready", "Error"
+- Optional: auto-start on Windows boot
+
+#### Feature 5.2: Human-in-the-Loop UI
+Verification screen where users confirm extracted data.
+
+Requirements:
+- Split-screen layout: PDF viewer (react-pdf) + editable form
+- PDF viewer: zoom, page navigation, highlight extracted regions
+- Form auto-population from JSON
+- Confidence-based highlighting (orange for <0.90, red for math fail)
+- Validation blocking (disable Submit if critical errors)
+- Manual correction interface
+- Submission confirmation flow
+- Batch processing view for multiple invoices
+- Keyboard shortcuts for efficiency
+
+### Phase 6: Deployment
+
+#### Feature 6.1: Inno Setup Installer
+Script to compile final .exe installer.
+
+Requirements:
+- Inno Setup script structure
+- Docker Desktop prerequisite check (Registry, error message, download link)
+- Windows Service installation (sc create "ContpaqiBridge")
+- Bundle Docker image (docker save -o mcp_image.tar)
+- Silent Docker image loading (docker load -i)
+- Uninstaller logic (stop service, remove container/image, clean files)
+- Desktop shortcut creation
+- First-run wizard (license activation, Contpaqi setup)
+- Code sign the installer
+- Test on clean Windows 10 and 11 machines
+
+## Success Metrics
+
+- Invoice extraction completes in under 30 seconds
+- Extraction accuracy exceeds 95% for standard Mexican invoice formats
+- System handles batch of 100 invoices without memory issues
+- Zero data corruption in Contpaqi
+- Installation completes in under 10 minutes
+- 90% of users successfully process first invoice without support
+
+## Dependencies
+
+Task 1.1 → Task 1.2 (need synthetic data before formatting)
+Task 1.2 → Task 2.2 (need formatted data for inference)
+Task 2.1 → Task 2.2 → Task 2.3 (sequential container development)
+Task 3.1 → Task 3.2 → Task 3.3 (sequential bridge development)
+Task 2.3 + Task 3.3 → Task 5.1 (both services needed for frontend)
+Task 4.1 → Task 5.2 (licensing before UI)
+All Phase 1-5 → Task 6.1 (deployment last)
+
+## Estimated Effort
+
+Phase 1 (Data Prep): 5-7 days
+Phase 2 (MCP Container): 8-12 days
+Phase 3 (Windows Bridge): 6-8 days
+Phase 4 (Commercialization): 4-6 days
+Phase 5 (Frontend): 8-10 days
+Phase 6 (Deployment): 3-5 days
+TOTAL: 34-48 days (senior developer)
