@@ -356,8 +356,9 @@ Create a Python script that generates thousands of unique PDF invoices and their
 ## Task 3: Format Data for TATR & LayoutLM
 
 **Priority**: High | **Dependencies**: Task 2 | **Tags**: data-prep, phase-1, ml
-**Status**: Not Started
+**Status**: Completed
 **Estimated Effort**: 3-4 days
+**Completed Date**: 2025-12-04
 
 ### Description
 Convert the raw PDF/JSON pairs into the specific formats required by Hugging Face Transformers library.
@@ -454,7 +455,7 @@ Convert the raw PDF/JSON pairs into the specific formats required by Hugging Fac
   ```
   **Completed**: 2025-12-04 | create_splits, split_dataset, copy_split_files, CLI options, 23 tests passing
 
-- [ ] 3.5 Validate dataset format compatibility with Hugging Face
+- [x] 3.5 Validate dataset format compatibility with Hugging Face
   ```python
   <!-- IMPLEMENTATION STEPS:
   1. For TATR (COCO format):
@@ -472,16 +473,42 @@ Convert the raw PDF/JSON pairs into the specific formats required by Hugging Fac
   3. Create validation script that loads and checks all splits
   -->
   ```
+  **Completed**: 2025-12-04 | validate_coco_format, validate_layoutlm_format, validate_dataset, CLI --validate, 27 tests passing
 
 ### Implementation Notes
-<!-- Add notes here after completing the task -->
+
+**Task 3 Completed**: 2025-12-04
+
+**Summary**: Built complete data preparation pipeline for converting synthetic invoices to TATR (COCO format) and LayoutLM (BIO tags) formats, with dataset splitting and Hugging Face validation.
+
+**Components Created**:
+- `scripts/prepare_datasets.py` - Main CLI with all formatting, splitting, and validation functions
+- `tests/test_task003_1_prepare_datasets.py` - 31 tests for CLI/module
+- `tests/test_task003_2_tatr_format.py` - 37 tests for COCO format
+- `tests/test_task003_3_layoutlm_format.py` - 38 tests for LayoutLM format
+- `tests/test_task003_4_dataset_splits.py` - 23 tests for dataset splits
+- `tests/test_task003_5_huggingface_validation.py` - 27 tests for HF validation
+
+**Key Functions**:
+- `format_tatr()` / `format_layoutlm()` - Format conversion
+- `normalize_bbox()` / `pdf_to_image()` - Image processing
+- `create_bio_tags()` / `match_token_to_field()` - BIO tagging
+- `create_splits()` / `split_dataset()` - Dataset splitting (80/10/10)
+- `validate_coco_format()` / `validate_layoutlm_format()` - HF validation
+
+**Total Tests**: 688 passing
+
+**Log Files**:
+- `log_files/T003.1-5_*_Log.md` - Implementation logs
+- `log_tests/T003.1-5_*_TestLog.md` - Test logs
+- `log_learn/T003.1-5_*_Guide.md` - Learning guides
 
 ### Test Checklist
-- [ ] COCO JSON is valid
-- [ ] All bounding boxes are within image bounds
-- [ ] BIO tags are correctly assigned
-- [ ] Train/val/test splits are disjoint
-- [ ] Hugging Face datasets load without errors
+- [x] COCO JSON is valid
+- [x] All bounding boxes are within image bounds
+- [x] BIO tags are correctly assigned
+- [x] Train/val/test splits are disjoint
+- [x] Hugging Face datasets load without errors
 
 ---
 
@@ -1995,7 +2022,7 @@ Tasks 13, 14, 15, 16 ──────────────────→ T
 
 ## Progress Tracking
 
-- [ ] **Phase 1**: Setup & Data (Tasks 1-3) — 18/19 subtasks
+- [x] **Phase 1**: Setup & Data (Tasks 1-3) — 19/19 subtasks ✓
 - [ ] **Phase 2**: MCP Container (Tasks 4-9) — 0/38 subtasks
 - [ ] **Phase 3**: Windows Bridge (Tasks 10-12) — 0/22 subtasks
 - [ ] **Phase 4**: Licensing & Protection (Tasks 15-16) — 0/14 subtasks
@@ -2022,3 +2049,5 @@ Tasks 13, 14, 15, 16 ──────────────────→ T
 | Subtask 3.2: TATR Format | 2025-12-04 | COCO format, normalize_bbox, pdf_to_image, 37 tests passing |
 | Subtask 3.3: LayoutLM Format | 2025-12-04 | BIO tagging, OCR tokens, create_layoutlm_sample, 38 tests passing |
 | Subtask 3.4: Dataset Splits | 2025-12-04 | create_splits, split_dataset, 80/10/10 ratio, 23 tests passing |
+| Subtask 3.5: HF Validation | 2025-12-04 | validate_coco_format, validate_layoutlm_format, CLI --validate, 27 tests passing |
+| **Task 3 Complete** | 2025-12-04 | All 5 subtasks done, 688 total tests passing |
