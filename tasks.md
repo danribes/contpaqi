@@ -550,7 +550,7 @@ Create a highly optimized Dockerfile for Python AI inference with all required d
   ```
   **Completed**: 2025-12-04 | Multi-stage build with builder/runtime stages, 36 tests passing
 
-- [ ] 4.2 Install system deps (tesseract-ocr, tesseract-ocr-spa, poppler)
+- [x] 4.2 Install system deps (tesseract-ocr, tesseract-ocr-spa, poppler)
   ```dockerfile
   <!-- IMPLEMENTATION STEPS:
   Add to Dockerfile runtime stage:
@@ -569,6 +569,7 @@ Create a highly optimized Dockerfile for Python AI inference with all required d
   RUN tesseract --version && tesseract --list-langs
   -->
   ```
+  **Completed**: 2025-12-04 | All system deps in Dockerfile runtime stage, verification step, 29 tests passing
 
 - [ ] 4.3 Create requirements.txt with pinned versions
   ```
@@ -2024,7 +2025,7 @@ Tasks 13, 14, 15, 16 ──────────────────→ T
 ## Progress Tracking
 
 - [x] **Phase 1**: Setup & Data (Tasks 1-3) — 19/19 subtasks ✓
-- [ ] **Phase 2**: MCP Container (Tasks 4-9) — 1/38 subtasks
+- [ ] **Phase 2**: MCP Container (Tasks 4-9) — 2/38 subtasks
 - [ ] **Phase 3**: Windows Bridge (Tasks 10-12) — 0/22 subtasks
 - [ ] **Phase 4**: Licensing & Protection (Tasks 15-16) — 0/14 subtasks
 - [ ] **Phase 5**: Desktop App (Tasks 13-14) — 0/17 subtasks
@@ -2053,3 +2054,4 @@ Tasks 13, 14, 15, 16 ──────────────────→ T
 | Subtask 3.5: HF Validation | 2025-12-04 | validate_coco_format, validate_layoutlm_format, CLI --validate, 27 tests passing |
 | **Task 3 Complete** | 2025-12-04 | All 5 subtasks done, 688 total tests passing |
 | Subtask 4.1: Dockerfile Base | 2025-12-04 | Multi-stage build, python:3.9-slim-bullseye, 36 tests passing |
+| Subtask 4.2: System Dependencies | 2025-12-04 | tesseract-ocr, poppler, verification step, 29 tests passing |
