@@ -698,6 +698,203 @@ def _split_layoutlm_dataset(
     return results
 
 
+# =============================================================================
+# Dataset Validation Utilities
+# =============================================================================
+
+def validate_coco_format(coco_data: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Validate COCO format dataset structure.
+
+    Args:
+        coco_data: Dictionary with COCO format data
+
+    Returns:
+        Dict with 'valid' bool, 'errors' list, and stats
+    """
+    errors = []
+    warnings = []
+
+    # Check required top-level keys
+    required_keys = ['images', 'annotations', 'categories']
+    for key in required_keys:
+        if key not in coco_data:
+            errors.append(f"Missing required key: '{key}'")
+
+    if errors:
+        return {'valid': False, 'errors': errors, 'warnings': warnings}
+
+    images = coco_data.get('images', [])
+    annotations = coco_data.get('annotations', [])
+    categories = coco_data.get('categories', [])
+
+    # Validate images
+    image_ids = set()
+    for i, img in enumerate(images):
+        if 'id' not in img:
+            errors.append(f"Image {i}: missing 'id' field")
+        else:
+            image_ids.add(img['id'])
+
+        if 'file_name' not in img:
+            errors.append(f"Image {i}: missing 'file_name' field")
+        if 'width' not in img:
+            errors.append(f"Image {i}: missing 'width' field")
+        if 'height' not in img:
+            errors.append(f"Image {i}: missing 'height' field")
+
+    # Validate annotations
+    for i, ann in enumerate(annotations):
+        if 'id' not in ann:
+            errors.append(f"Annotation {i}: missing 'id' field")
+        if 'image_id' not in ann:
+            errors.append(f"Annotation {i}: missing 'image_id' field")
+        elif ann['image_id'] not in image_ids:
+            warnings.append(f"Annotation {i}: image_id {ann['image_id']} not in images")
+        if 'category_id' not in ann:
+            errors.append(f"Annotation {i}: missing 'category_id' field")
+        if 'bbox' not in ann:
+            errors.append(f"Annotation {i}: missing 'bbox' field")
+        elif not isinstance(ann['bbox'], list) or len(ann['bbox']) != 4:
+            errors.append(f"Annotation {i}: 'bbox' must be list of 4 values")
+
+    # Validate categories
+    for i, cat in enumerate(categories):
+        if 'id' not in cat:
+            errors.append(f"Category {i}: missing 'id' field")
+        if 'name' not in cat:
+            errors.append(f"Category {i}: missing 'name' field")
+
+    return {
+        'valid': len(errors) == 0,
+        'errors': errors,
+        'warnings': warnings,
+        'num_images': len(images),
+        'num_annotations': len(annotations),
+        'num_categories': len(categories)
+    }
+
+
+def validate_layoutlm_format(
+    samples: List[Dict[str, Any]],
+    labels: List[str]
+) -> Dict[str, Any]:
+    """
+    Validate LayoutLM format dataset structure.
+
+    Args:
+        samples: List of sample dictionaries
+        labels: List of label strings
+
+    Returns:
+        Dict with 'valid' bool, 'errors' list, and stats
+    """
+    errors = []
+    warnings = []
+    total_tokens = 0
+
+    required_keys = ['tokens', 'bboxes', 'ner_tags', 'image_path']
+
+    for i, sample in enumerate(samples):
+        # Check required keys
+        for key in required_keys:
+            if key not in sample:
+                errors.append(f"Sample {i}: missing '{key}' field")
+
+        if errors:
+            continue
+
+        tokens = sample.get('tokens', [])
+        bboxes = sample.get('bboxes', [])
+        ner_tags = sample.get('ner_tags', [])
+
+        total_tokens += len(tokens)
+
+        # Check length consistency
+        if len(tokens) != len(bboxes):
+            errors.append(f"Sample {i}: tokens ({len(tokens)}) and bboxes ({len(bboxes)}) length mismatch")
+        if len(tokens) != len(ner_tags):
+            errors.append(f"Sample {i}: tokens ({len(tokens)}) and ner_tags ({len(ner_tags)}) length mismatch")
+
+        # Validate bboxes
+        for j, bbox in enumerate(bboxes):
+            if not isinstance(bbox, list) or len(bbox) != 4:
+                errors.append(f"Sample {i}, bbox {j}: must be list of 4 values")
+
+        # Validate ner_tags
+        num_labels = len(labels)
+        for j, tag in enumerate(ner_tags):
+            if not isinstance(tag, int):
+                errors.append(f"Sample {i}, tag {j}: must be integer")
+            elif tag < 0 or tag >= num_labels:
+                errors.append(f"Sample {i}, tag {j}: value {tag} out of range [0, {num_labels-1}]")
+
+    return {
+        'valid': len(errors) == 0,
+        'errors': errors,
+        'warnings': warnings,
+        'num_samples': len(samples),
+        'total_tokens': total_tokens,
+        'num_labels': len(labels)
+    }
+
+
+def validate_dataset(
+    dataset_dir: str,
+    format_type: str
+) -> Dict[str, Any]:
+    """
+    Validate a formatted dataset directory.
+
+    Args:
+        dataset_dir: Path to dataset directory
+        format_type: Either 'tatr' or 'layoutlm'
+
+    Returns:
+        Dict with validation results for each split
+    """
+    format_dir = os.path.join(dataset_dir, format_type)
+    results = {'valid': True}
+
+    splits = ['train', 'val', 'test']
+
+    for split in splits:
+        split_dir = os.path.join(format_dir, split)
+
+        if not os.path.isdir(split_dir):
+            continue
+
+        if format_type == 'tatr':
+            ann_path = os.path.join(split_dir, 'annotations.json')
+            if os.path.exists(ann_path):
+                with open(ann_path, 'r') as f:
+                    coco_data = json.load(f)
+                split_result = validate_coco_format(coco_data)
+                results[split] = split_result
+                if not split_result['valid']:
+                    results['valid'] = False
+
+        elif format_type == 'layoutlm':
+            samples_path = os.path.join(split_dir, 'samples.json')
+            labels_path = os.path.join(split_dir, 'labels.json')
+
+            if os.path.exists(samples_path):
+                with open(samples_path, 'r') as f:
+                    samples = json.load(f)
+
+                labels = ['O']  # Default
+                if os.path.exists(labels_path):
+                    with open(labels_path, 'r') as f:
+                        labels = json.load(f)
+
+                split_result = validate_layoutlm_format(samples, labels)
+                results[split] = split_result
+                if not split_result['valid']:
+                    results['valid'] = False
+
+    return results
+
+
 def create_argument_parser() -> argparse.ArgumentParser:
     """
     Create and configure the argument parser.
@@ -765,6 +962,13 @@ def create_argument_parser() -> argparse.ArgumentParser:
         type=float,
         default=0.1,
         help='Fraction of data for test set'
+    )
+
+    parser.add_argument(
+        '--validate',
+        action='store_true',
+        default=False,
+        help='Validate dataset format after processing'
     )
 
     return parser
