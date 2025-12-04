@@ -429,6 +429,275 @@ def create_layoutlm_sample(
     }
 
 
+# =============================================================================
+# Dataset Split Utilities
+# =============================================================================
+
+def create_splits(
+    indices: List[int],
+    train_ratio: float = 0.8,
+    val_ratio: float = 0.1,
+    test_ratio: float = 0.1,
+    seed: int = 42
+) -> Dict[str, List[int]]:
+    """
+    Split indices into train/val/test sets.
+
+    Args:
+        indices: List of sample indices to split
+        train_ratio: Fraction for training set (default 0.8)
+        val_ratio: Fraction for validation set (default 0.1)
+        test_ratio: Fraction for test set (default 0.1)
+        seed: Random seed for reproducibility
+
+    Returns:
+        Dict with 'train', 'val', 'test' keys containing index lists
+    """
+    import random
+
+    if not indices:
+        return {'train': [], 'val': [], 'test': []}
+
+    # Set seed for reproducibility
+    random.seed(seed)
+
+    # Shuffle indices
+    shuffled = indices.copy()
+    random.shuffle(shuffled)
+
+    # Calculate split points
+    n = len(shuffled)
+    train_end = int(n * train_ratio)
+    val_end = train_end + int(n * val_ratio)
+
+    return {
+        'train': shuffled[:train_end],
+        'val': shuffled[train_end:val_end],
+        'test': shuffled[val_end:]
+    }
+
+
+def copy_split_files(
+    src_dir: str,
+    dst_dir: str,
+    filenames: List[str],
+    indices: List[int]
+) -> int:
+    """
+    Copy files at given indices from source to destination.
+
+    Args:
+        src_dir: Source directory
+        dst_dir: Destination directory
+        filenames: List of all filenames
+        indices: Indices of files to copy
+
+    Returns:
+        Number of files successfully copied
+    """
+    import shutil
+
+    os.makedirs(dst_dir, exist_ok=True)
+    copied = 0
+
+    for idx in indices:
+        if idx < len(filenames):
+            filename = filenames[idx]
+            src_path = os.path.join(src_dir, filename)
+            dst_path = os.path.join(dst_dir, filename)
+
+            if os.path.exists(src_path):
+                shutil.copy2(src_path, dst_path)
+                copied += 1
+
+    return copied
+
+
+def split_dataset(
+    input_dir: str,
+    output_dir: str,
+    format_type: str,
+    train_ratio: float = 0.8,
+    val_ratio: float = 0.1,
+    test_ratio: float = 0.1,
+    seed: int = 42
+) -> Dict[str, Any]:
+    """
+    Split a formatted dataset into train/val/test sets.
+
+    Args:
+        input_dir: Directory containing formatted data (with tatr/ or layoutlm/ subdirs)
+        output_dir: Output directory for split datasets
+        format_type: Either 'tatr' or 'layoutlm'
+        train_ratio: Fraction for training set
+        val_ratio: Fraction for validation set
+        test_ratio: Fraction for test set
+        seed: Random seed for reproducibility
+
+    Returns:
+        Statistics dict with split counts
+    """
+    import shutil
+
+    format_input = os.path.join(input_dir, format_type)
+    format_output = os.path.join(output_dir, format_type)
+
+    # Create split directories
+    for split in ['train', 'val', 'test']:
+        split_dir = os.path.join(format_output, split)
+        os.makedirs(split_dir, exist_ok=True)
+        os.makedirs(os.path.join(split_dir, 'images'), exist_ok=True)
+
+    if format_type == 'tatr':
+        return _split_tatr_dataset(
+            format_input, format_output,
+            train_ratio, val_ratio, test_ratio, seed
+        )
+    elif format_type == 'layoutlm':
+        return _split_layoutlm_dataset(
+            format_input, format_output,
+            train_ratio, val_ratio, test_ratio, seed
+        )
+    else:
+        return {'error': f'Unknown format: {format_type}'}
+
+
+def _split_tatr_dataset(
+    input_dir: str,
+    output_dir: str,
+    train_ratio: float,
+    val_ratio: float,
+    test_ratio: float,
+    seed: int
+) -> Dict[str, Any]:
+    """Split TATR (COCO format) dataset."""
+    import shutil
+
+    ann_path = os.path.join(input_dir, 'annotations.json')
+    images_dir = os.path.join(input_dir, 'images')
+
+    if not os.path.exists(ann_path):
+        return {'error': 'annotations.json not found', 'train_count': 0, 'val_count': 0, 'test_count': 0}
+
+    with open(ann_path, 'r') as f:
+        coco_data = json.load(f)
+
+    images = coco_data.get('images', [])
+    annotations = coco_data.get('annotations', [])
+    categories = coco_data.get('categories', [])
+
+    # Create index mapping
+    indices = list(range(len(images)))
+    splits = create_splits(indices, train_ratio, val_ratio, test_ratio, seed)
+
+    # Build image_id to annotations mapping
+    img_to_anns = {}
+    for ann in annotations:
+        img_id = ann['image_id']
+        if img_id not in img_to_anns:
+            img_to_anns[img_id] = []
+        img_to_anns[img_id].append(ann)
+
+    results = {}
+
+    for split_name, split_indices in splits.items():
+        split_dir = os.path.join(output_dir, split_name)
+
+        # Get images and annotations for this split
+        split_images = [images[i] for i in split_indices]
+        split_image_ids = {img['id'] for img in split_images}
+
+        split_annotations = []
+        for img in split_images:
+            split_annotations.extend(img_to_anns.get(img['id'], []))
+
+        # Save split annotations
+        split_coco = {
+            'images': split_images,
+            'annotations': split_annotations,
+            'categories': categories
+        }
+
+        with open(os.path.join(split_dir, 'annotations.json'), 'w') as f:
+            json.dump(split_coco, f, indent=2)
+
+        # Copy images
+        filenames = [img['file_name'] for img in images]
+        copy_split_files(
+            images_dir,
+            os.path.join(split_dir, 'images'),
+            filenames,
+            split_indices
+        )
+
+        results[f'{split_name}_count'] = len(split_indices)
+
+    return results
+
+
+def _split_layoutlm_dataset(
+    input_dir: str,
+    output_dir: str,
+    train_ratio: float,
+    val_ratio: float,
+    test_ratio: float,
+    seed: int
+) -> Dict[str, Any]:
+    """Split LayoutLM dataset."""
+    import shutil
+
+    samples_path = os.path.join(input_dir, 'samples.json')
+    labels_path = os.path.join(input_dir, 'labels.json')
+    images_dir = os.path.join(input_dir, 'images')
+
+    if not os.path.exists(samples_path):
+        return {'error': 'samples.json not found', 'train_count': 0, 'val_count': 0, 'test_count': 0}
+
+    with open(samples_path, 'r') as f:
+        samples = json.load(f)
+
+    # Load labels if exists
+    labels = []
+    if os.path.exists(labels_path):
+        with open(labels_path, 'r') as f:
+            labels = json.load(f)
+
+    # Create splits
+    indices = list(range(len(samples)))
+    splits = create_splits(indices, train_ratio, val_ratio, test_ratio, seed)
+
+    results = {}
+
+    for split_name, split_indices in splits.items():
+        split_dir = os.path.join(output_dir, split_name)
+
+        # Get samples for this split
+        split_samples = [samples[i] for i in split_indices]
+
+        # Save split samples
+        with open(os.path.join(split_dir, 'samples.json'), 'w') as f:
+            json.dump(split_samples, f, indent=2)
+
+        # Copy labels to each split
+        if labels:
+            with open(os.path.join(split_dir, 'labels.json'), 'w') as f:
+                json.dump(labels, f, indent=2)
+
+        # Copy images
+        if os.path.isdir(images_dir):
+            all_image_paths = [s.get('image_path', '') for s in samples]
+            copy_split_files(
+                images_dir,
+                os.path.join(split_dir, 'images'),
+                all_image_paths,
+                split_indices
+            )
+
+        results[f'{split_name}_count'] = len(split_indices)
+
+    return results
+
+
 def create_argument_parser() -> argparse.ArgumentParser:
     """
     Create and configure the argument parser.
@@ -468,6 +737,34 @@ def create_argument_parser() -> argparse.ArgumentParser:
         type=int,
         default=42,
         help='Random seed for reproducibility'
+    )
+
+    parser.add_argument(
+        '--split',
+        action='store_true',
+        default=False,
+        help='Create train/val/test splits after formatting'
+    )
+
+    parser.add_argument(
+        '--train-ratio',
+        type=float,
+        default=0.8,
+        help='Fraction of data for training set'
+    )
+
+    parser.add_argument(
+        '--val-ratio',
+        type=float,
+        default=0.1,
+        help='Fraction of data for validation set'
+    )
+
+    parser.add_argument(
+        '--test-ratio',
+        type=float,
+        default=0.1,
+        help='Fraction of data for test set'
     )
 
     return parser

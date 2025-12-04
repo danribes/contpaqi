@@ -434,7 +434,7 @@ Convert the raw PDF/JSON pairs into the specific formats required by Hugging Fac
   ```
   **Completed**: 2025-12-04 | BIO tagging, OCR tokens, match_token_to_field, create_layoutlm_sample, 38 tests passing
 
-- [ ] 3.4 Create train/validation/test splits (80/10/10)
+- [x] 3.4 Create train/validation/test splits (80/10/10)
   ```python
   <!-- IMPLEMENTATION STEPS:
   1. Use sklearn train_test_split:
@@ -452,6 +452,7 @@ Convert the raw PDF/JSON pairs into the specific formats required by Hugging Fac
      data/formatted/layoutlm/test/
   -->
   ```
+  **Completed**: 2025-12-04 | create_splits, split_dataset, copy_split_files, CLI options, 23 tests passing
 
 - [ ] 3.5 Validate dataset format compatibility with Hugging Face
   ```python
@@ -1994,7 +1995,7 @@ Tasks 13, 14, 15, 16 ──────────────────→ T
 
 ## Progress Tracking
 
-- [ ] **Phase 1**: Setup & Data (Tasks 1-3) — 17/19 subtasks
+- [ ] **Phase 1**: Setup & Data (Tasks 1-3) — 18/19 subtasks
 - [ ] **Phase 2**: MCP Container (Tasks 4-9) — 0/38 subtasks
 - [ ] **Phase 3**: Windows Bridge (Tasks 10-12) — 0/22 subtasks
 - [ ] **Phase 4**: Licensing & Protection (Tasks 15-16) — 0/14 subtasks
@@ -2020,3 +2021,4 @@ Tasks 13, 14, 15, 16 ──────────────────→ T
 | Subtask 3.1: Prepare Datasets | 2025-12-04 | prepare_datasets.py, CLI with argparse, 31 tests passing |
 | Subtask 3.2: TATR Format | 2025-12-04 | COCO format, normalize_bbox, pdf_to_image, 37 tests passing |
 | Subtask 3.3: LayoutLM Format | 2025-12-04 | BIO tagging, OCR tokens, create_layoutlm_sample, 38 tests passing |
+| Subtask 3.4: Dataset Splits | 2025-12-04 | create_splits, split_dataset, 80/10/10 ratio, 23 tests passing |
