@@ -25,6 +25,13 @@ try:
 except ImportError:
     PIL_AVAILABLE = False
 
+# Optional import for OCR
+try:
+    import pytesseract
+    TESSERACT_AVAILABLE = True
+except ImportError:
+    TESSERACT_AVAILABLE = False
+
 
 # =============================================================================
 # COCO Format Utilities for TATR
@@ -203,6 +210,223 @@ def pdf_to_image(pdf_path: str, dpi: int = 150) -> 'Image.Image':
             img = img.convert('RGB')
         return img
     raise ValueError(f"Could not convert PDF: {pdf_path}")
+
+
+# =============================================================================
+# LayoutLM Format Utilities
+# =============================================================================
+
+def get_label_list() -> List[str]:
+    """
+    Get the list of BIO labels for LayoutLM token classification.
+
+    Returns:
+        List of label strings in BIO format
+    """
+    # Define entity types for Mexican invoices
+    entity_types = [
+        'RFC_EMISOR',
+        'RFC_RECEPTOR',
+        'TOTAL',
+        'SUBTOTAL',
+        'IVA',
+        'DATE',
+        'INVOICE_NUMBER',
+        'COMPANY_NAME',
+    ]
+
+    # Build BIO labels: O, B-*, I-* for each entity type
+    labels = ['O']  # Outside tag first
+    for entity in entity_types:
+        labels.append(f'B-{entity}')
+        labels.append(f'I-{entity}')
+
+    return labels
+
+
+def normalize_bbox_layoutlm(bbox: List[int], width: int, height: int) -> List[int]:
+    """
+    Normalize bounding box to 0-1000 scale for LayoutLM.
+
+    Args:
+        bbox: [x1, y1, x2, y2] in original image coordinates
+        width: Original image width
+        height: Original image height
+
+    Returns:
+        [x1, y1, x2, y2] normalized to 0-1000 scale
+    """
+    return [
+        int(bbox[0] * 1000 / width),
+        int(bbox[1] * 1000 / height),
+        int(bbox[2] * 1000 / width),
+        int(bbox[3] * 1000 / height)
+    ]
+
+
+def get_ocr_tokens(image: 'Image.Image') -> List[Dict[str, Any]]:
+    """
+    Extract tokens from image using OCR.
+
+    Args:
+        image: PIL Image object
+
+    Returns:
+        List of token dicts with 'text' and 'bbox' fields
+    """
+    if not TESSERACT_AVAILABLE:
+        raise ImportError("pytesseract is required for OCR")
+
+    # Get OCR data with bounding boxes
+    ocr_data = pytesseract.image_to_data(image, output_type=pytesseract.Output.DICT)
+
+    tokens = []
+    n_boxes = len(ocr_data['text'])
+
+    for i in range(n_boxes):
+        text = ocr_data['text'][i].strip()
+        if text:  # Only include non-empty tokens
+            x = ocr_data['left'][i]
+            y = ocr_data['top'][i]
+            w = ocr_data['width'][i]
+            h = ocr_data['height'][i]
+
+            # Convert to [x1, y1, x2, y2] format
+            bbox = [x, y, x + w, y + h]
+
+            tokens.append({
+                'text': text,
+                'bbox': bbox
+            })
+
+    return tokens
+
+
+def match_token_to_field(token_text: str, ground_truth: Dict[str, Any]) -> Optional[str]:
+    """
+    Match a token's text to a ground truth field.
+
+    Args:
+        token_text: The text of the token
+        ground_truth: Ground truth data with 'fields' dict
+
+    Returns:
+        Field name (uppercase) or None if no match
+    """
+    fields = ground_truth.get('fields', {})
+
+    # Define field name mappings
+    field_mappings = {
+        'rfc_emisor': 'RFC_EMISOR',
+        'rfc_receptor': 'RFC_RECEPTOR',
+        'total': 'TOTAL',
+        'subtotal': 'SUBTOTAL',
+        'iva': 'IVA',
+        'date': 'DATE',
+        'invoice_number': 'INVOICE_NUMBER',
+        'company_name': 'COMPANY_NAME',
+    }
+
+    for field_key, label_name in field_mappings.items():
+        if field_key in fields:
+            field_value = fields[field_key]
+
+            # Handle exact string match
+            if isinstance(field_value, str) and field_value == token_text:
+                return label_name
+
+            # Handle numeric values - try various formats
+            if isinstance(field_value, (int, float)):
+                # Clean token text of formatting
+                clean_token = token_text.replace(',', '').replace('$', '').strip()
+
+                # Try exact match with formatted value
+                formatted_values = [
+                    str(field_value),
+                    f"{field_value:.2f}",
+                    f"{field_value:,.2f}",
+                ]
+
+                for fmt_val in formatted_values:
+                    if clean_token == fmt_val or clean_token == fmt_val.replace(',', ''):
+                        return label_name
+
+    return None
+
+
+def create_bio_tags(
+    tokens: List[Dict[str, Any]],
+    ground_truth: Dict[str, Any]
+) -> List[str]:
+    """
+    Create BIO tags for a list of tokens based on ground truth.
+
+    Args:
+        tokens: List of token dicts with 'text' field
+        ground_truth: Ground truth data with 'fields' dict
+
+    Returns:
+        List of BIO tag strings
+    """
+    tags = []
+    prev_field = None
+
+    for token in tokens:
+        token_text = token.get('text', '')
+        field = match_token_to_field(token_text, ground_truth)
+
+        if field is None:
+            tags.append('O')
+            prev_field = None
+        elif field == prev_field:
+            # Continuation of previous entity
+            tags.append(f'I-{field}')
+        else:
+            # Beginning of new entity
+            tags.append(f'B-{field}')
+            prev_field = field
+
+    return tags
+
+
+def create_layoutlm_sample(
+    tokens: List[Dict[str, Any]],
+    ground_truth: Dict[str, Any],
+    image_path: str,
+    image_width: int = 1000,
+    image_height: int = 1000
+) -> Dict[str, Any]:
+    """
+    Create a LayoutLM format sample.
+
+    Args:
+        tokens: List of token dicts with 'text' and 'bbox' fields
+        ground_truth: Ground truth data
+        image_path: Path to the image file
+        image_width: Image width for bbox normalization
+        image_height: Image height for bbox normalization
+
+    Returns:
+        Dict with tokens, bboxes, ner_tags, and image_path
+    """
+    # Get label list for converting tags to integers
+    label_list = get_label_list()
+    label_to_id = {label: idx for idx, label in enumerate(label_list)}
+
+    # Extract token texts and bboxes
+    token_texts = [t['text'] for t in tokens]
+    bboxes = [normalize_bbox_layoutlm(t['bbox'], image_width, image_height) for t in tokens]
+
+    # Create BIO tags and convert to integers
+    bio_tags = create_bio_tags(tokens, ground_truth)
+    ner_tags = [label_to_id.get(tag, 0) for tag in bio_tags]
+
+    return {
+        'tokens': token_texts,
+        'bboxes': bboxes,
+        'ner_tags': ner_tags,
+        'image_path': image_path
+    }
 
 
 def create_argument_parser() -> argparse.ArgumentParser:
@@ -398,8 +622,6 @@ def format_layoutlm(input_dir: str, output_dir: str, seed: int = 42) -> Dict[str
     """
     Convert data to LayoutLM format (BIO-tagged tokens).
 
-    This is a stub that will be fully implemented in subtask 3.3.
-
     Args:
         input_dir: Directory containing input PDFs and labels
         output_dir: Directory for output LayoutLM format data
@@ -408,30 +630,109 @@ def format_layoutlm(input_dir: str, output_dir: str, seed: int = 42) -> Dict[str
     Returns:
         Statistics dict with processing results
     """
-    # Create output directory
+    # Create output directories
     layoutlm_output = os.path.join(output_dir, 'layoutlm')
+    images_output = os.path.join(layoutlm_output, 'images')
     prepare_output_dir(layoutlm_output)
+    prepare_output_dir(images_output)
 
-    # Count available files
+    # Get input directories
     labels_dir = os.path.join(input_dir, 'labels')
     pdfs_dir = os.path.join(input_dir, 'pdfs')
 
-    num_labels = 0
-    num_pdfs = 0
+    # Check if directories exist
+    if not os.path.isdir(labels_dir) or not os.path.isdir(pdfs_dir):
+        return {
+            'status': 'error',
+            'processed': 0,
+            'message': 'Input directories not found'
+        }
 
-    if os.path.isdir(labels_dir):
-        num_labels = len([f for f in os.listdir(labels_dir) if f.endswith('.json')])
-    if os.path.isdir(pdfs_dir):
-        num_pdfs = len([f for f in os.listdir(pdfs_dir) if f.endswith('.pdf')])
+    # Check dependencies
+    if not PIL_AVAILABLE:
+        return {
+            'status': 'error',
+            'processed': 0,
+            'message': 'pdf2image/PIL not available - install with: pip install pdf2image Pillow'
+        }
 
-    # Stub: actual LayoutLM conversion will be in subtask 3.3
+    if not TESSERACT_AVAILABLE:
+        return {
+            'status': 'error',
+            'processed': 0,
+            'message': 'pytesseract not available - install with: pip install pytesseract'
+        }
+
+    # Get list of label files
+    label_files = sorted([f for f in os.listdir(labels_dir) if f.endswith('.json')])
+
+    samples = []
+    processed = 0
+    failed = 0
+
+    for label_file in label_files:
+        try:
+            # Get matching PDF
+            base_name = os.path.splitext(label_file)[0]
+            pdf_file = base_name + '.pdf'
+            pdf_path = os.path.join(pdfs_dir, pdf_file)
+
+            if not os.path.exists(pdf_path):
+                failed += 1
+                continue
+
+            # Load ground truth
+            label_path = os.path.join(labels_dir, label_file)
+            with open(label_path, 'r') as f:
+                ground_truth = json.load(f)
+
+            # Convert PDF to image
+            image = pdf_to_image(pdf_path)
+            img_width, img_height = image.size
+
+            # Save image as PNG
+            image_filename = base_name + '.png'
+            image_path = os.path.join(images_output, image_filename)
+            image.save(image_path, 'PNG')
+
+            # Extract OCR tokens
+            tokens = get_ocr_tokens(image)
+
+            if tokens:
+                # Create LayoutLM sample
+                sample = create_layoutlm_sample(
+                    tokens,
+                    ground_truth,
+                    image_filename,
+                    img_width,
+                    img_height
+                )
+                samples.append(sample)
+
+            processed += 1
+
+        except Exception as e:
+            print(f"Error processing {label_file}: {e}", file=sys.stderr)
+            failed += 1
+
+    # Save samples JSON
+    samples_path = os.path.join(layoutlm_output, 'samples.json')
+    with open(samples_path, 'w') as f:
+        json.dump(samples, f, indent=2)
+
+    # Save labels JSON
+    labels_path = os.path.join(layoutlm_output, 'labels.json')
+    label_list = get_label_list()
+    with open(labels_path, 'w') as f:
+        json.dump(label_list, f, indent=2)
+
     return {
-        'status': 'stub',
-        'processed': 0,
-        'available_labels': num_labels,
-        'available_pdfs': num_pdfs,
+        'status': 'success',
+        'processed': processed,
+        'failed': failed,
+        'total_samples': len(samples),
         'output_dir': layoutlm_output,
-        'message': 'LayoutLM formatting will be implemented in subtask 3.3'
+        'message': f'Processed {processed} invoices to LayoutLM format'
     }
 
 
