@@ -364,7 +364,7 @@ Convert the raw PDF/JSON pairs into the specific formats required by Hugging Fac
 
 ### Subtasks
 
-- [ ] 3.1 Create prepare_datasets.py script
+- [x] 3.1 Create prepare_datasets.py script
   ```python
   <!-- IMPLEMENTATION STEPS:
   1. Create scripts/prepare_datasets.py
@@ -376,6 +376,7 @@ Convert the raw PDF/JSON pairs into the specific formats required by Hugging Fac
   4. Create main() function that calls appropriate formatters
   -->
   ```
+  **Completed**: 2025-12-04 | CLI script with argparse, format_tatr/format_layoutlm stubs, 31 tests passing
 
 - [ ] 3.2 Implement TATR data preparation (COCO format, normalized boxes)
   ```python
@@ -1991,7 +1992,7 @@ Tasks 13, 14, 15, 16 ──────────────────→ T
 
 ## Progress Tracking
 
-- [ ] **Phase 1**: Setup & Data (Tasks 1-3) — 14/19 subtasks
+- [ ] **Phase 1**: Setup & Data (Tasks 1-3) — 15/19 subtasks
 - [ ] **Phase 2**: MCP Container (Tasks 4-9) — 0/38 subtasks
 - [ ] **Phase 3**: Windows Bridge (Tasks 10-12) — 0/22 subtasks
 - [ ] **Phase 4**: Licensing & Protection (Tasks 15-16) — 0/14 subtasks
@@ -2014,3 +2015,4 @@ Tasks 13, 14, 15, 16 ──────────────────→ T
 | Subtask 2.7: Ground Truth JSON | 2025-12-03 | ground_truth.py, JSON sidecar files, 33 tests passing |
 | Subtask 2.8: Dataset Generation | 2025-12-03 | Full pipeline, 20 templates, PDF+JSON output, 36 tests passing |
 | **Task 2 Complete** | 2025-12-03 | All 8 subtasks done, 532 total tests passing |
+| Subtask 3.1: Prepare Datasets | 2025-12-04 | prepare_datasets.py, CLI with argparse, 31 tests passing |
