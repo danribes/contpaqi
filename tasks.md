@@ -404,7 +404,7 @@ Convert the raw PDF/JSON pairs into the specific formats required by Hugging Fac
   ```
   **Completed**: 2025-12-04 | COCO format with normalize_bbox, pdf_to_image, table/row extraction, 37 tests passing
 
-- [ ] 3.3 Implement LayoutLMv3 data preparation (BIO tags, tokens)
+- [x] 3.3 Implement LayoutLMv3 data preparation (BIO tags, tokens)
   ```python
   <!-- IMPLEMENTATION STEPS:
   1. Run OCR on each image to get word-level tokens:
@@ -432,6 +432,7 @@ Convert the raw PDF/JSON pairs into the specific formats required by Hugging Fac
      }
   -->
   ```
+  **Completed**: 2025-12-04 | BIO tagging, OCR tokens, match_token_to_field, create_layoutlm_sample, 38 tests passing
 
 - [ ] 3.4 Create train/validation/test splits (80/10/10)
   ```python
@@ -1993,7 +1994,7 @@ Tasks 13, 14, 15, 16 ──────────────────→ T
 
 ## Progress Tracking
 
-- [ ] **Phase 1**: Setup & Data (Tasks 1-3) — 16/19 subtasks
+- [ ] **Phase 1**: Setup & Data (Tasks 1-3) — 17/19 subtasks
 - [ ] **Phase 2**: MCP Container (Tasks 4-9) — 0/38 subtasks
 - [ ] **Phase 3**: Windows Bridge (Tasks 10-12) — 0/22 subtasks
 - [ ] **Phase 4**: Licensing & Protection (Tasks 15-16) — 0/14 subtasks
@@ -2018,3 +2019,4 @@ Tasks 13, 14, 15, 16 ──────────────────→ T
 | **Task 2 Complete** | 2025-12-03 | All 8 subtasks done, 532 total tests passing |
 | Subtask 3.1: Prepare Datasets | 2025-12-04 | prepare_datasets.py, CLI with argparse, 31 tests passing |
 | Subtask 3.2: TATR Format | 2025-12-04 | COCO format, normalize_bbox, pdf_to_image, 37 tests passing |
+| Subtask 3.3: LayoutLM Format | 2025-12-04 | BIO tagging, OCR tokens, create_layoutlm_sample, 38 tests passing |
