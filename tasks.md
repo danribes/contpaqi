@@ -523,7 +523,7 @@ Create a highly optimized Dockerfile for Python AI inference with all required d
 
 ### Subtasks
 
-- [ ] 4.1 Create Dockerfile with python:3.9-slim-bullseye base
+- [x] 4.1 Create Dockerfile with python:3.9-slim-bullseye base
   ```dockerfile
   <!-- IMPLEMENTATION STEPS:
   Create mcp-container/Dockerfile:
@@ -548,6 +548,7 @@ Create a highly optimized Dockerfile for Python AI inference with all required d
   WORKDIR /app
   -->
   ```
+  **Completed**: 2025-12-04 | Multi-stage build with builder/runtime stages, 36 tests passing
 
 - [ ] 4.2 Install system deps (tesseract-ocr, tesseract-ocr-spa, poppler)
   ```dockerfile
@@ -2023,7 +2024,7 @@ Tasks 13, 14, 15, 16 ──────────────────→ T
 ## Progress Tracking
 
 - [x] **Phase 1**: Setup & Data (Tasks 1-3) — 19/19 subtasks ✓
-- [ ] **Phase 2**: MCP Container (Tasks 4-9) — 0/38 subtasks
+- [ ] **Phase 2**: MCP Container (Tasks 4-9) — 1/38 subtasks
 - [ ] **Phase 3**: Windows Bridge (Tasks 10-12) — 0/22 subtasks
 - [ ] **Phase 4**: Licensing & Protection (Tasks 15-16) — 0/14 subtasks
 - [ ] **Phase 5**: Desktop App (Tasks 13-14) — 0/17 subtasks
@@ -2051,3 +2052,4 @@ Tasks 13, 14, 15, 16 ──────────────────→ T
 | Subtask 3.4: Dataset Splits | 2025-12-04 | create_splits, split_dataset, 80/10/10 ratio, 23 tests passing |
 | Subtask 3.5: HF Validation | 2025-12-04 | validate_coco_format, validate_layoutlm_format, CLI --validate, 27 tests passing |
 | **Task 3 Complete** | 2025-12-04 | All 5 subtasks done, 688 total tests passing |
+| Subtask 4.1: Dockerfile Base | 2025-12-04 | Multi-stage build, python:3.9-slim-bullseye, 36 tests passing |
