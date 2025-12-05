@@ -736,15 +736,16 @@ Create a highly optimized Dockerfile for Python AI inference with all required d
 ## Task 5: OCR Layer Implementation
 
 **Priority**: High | **Dependencies**: Task 4 | **Tags**: mcp-container, phase-2, ocr
-**Status**: Not Started
+**Status**: Completed
 **Estimated Effort**: 1-2 days
+**Completed Date**: 2025-12-05
 
 ### Description
 Implement Tesseract OCR wrapper with Spanish support and coordinate extraction.
 
 ### Subtasks
 
-- [ ] 5.1 Create mcp-container/src/utils/ocr.py
+- [x] 5.1 Create mcp-container/src/utils/ocr.py
   ```python
   <!-- IMPLEMENTATION STEPS:
   Create file with structure:
@@ -775,7 +776,7 @@ Implement Tesseract OCR wrapper with Spanish support and coordinate extraction.
   -->
   ```
 
-- [ ] 5.2 Implement Tesseract wrapper with Spanish support
+- [x] 5.2 Implement Tesseract wrapper with Spanish support
   ```python
   <!-- IMPLEMENTATION STEPS:
   Add to OCREngine class:
@@ -797,7 +798,7 @@ Implement Tesseract OCR wrapper with Spanish support and coordinate extraction.
   -->
   ```
 
-- [ ] 5.3 Extract words with coordinates (bounding boxes)
+- [x] 5.3 Extract words with coordinates (bounding boxes)
   ```python
   <!-- IMPLEMENTATION STEPS:
   Add to OCREngine class:
@@ -832,7 +833,7 @@ Implement Tesseract OCR wrapper with Spanish support and coordinate extraction.
   -->
   ```
 
-- [ ] 5.4 Handle Spanish characters properly (UTF-8)
+- [x] 5.4 Handle Spanish characters properly (UTF-8)
   ```python
   <!-- IMPLEMENTATION STEPS:
   Add encoding handling:
@@ -862,14 +863,40 @@ Implement Tesseract OCR wrapper with Spanish support and coordinate extraction.
   ```
 
 ### Implementation Notes
-<!-- Add notes here after completing the task -->
+
+**Task 5 Completed**: 2025-12-05
+
+**Summary**: Implemented Tesseract OCR wrapper with Spanish language support, word-level bounding box extraction, and Unicode NFC normalization for Spanish characters.
+
+**Components Created**:
+- `mcp-container/src/utils/ocr.py` - Main OCR module with OCRWord and OCREngine
+- `mcp-container/src/utils/__init__.py` - Updated exports
+- `tests/test_task005_1_ocr_module.py` - 27 tests for module structure
+- `tests/test_task005_2_tesseract_wrapper.py` - 29 tests for Tesseract config
+- `tests/test_task005_3_word_extraction.py` - 26 tests for word extraction
+- `tests/test_task005_4_spanish_characters.py` - 24 tests for Spanish characters
+
+**Key Features**:
+- OCRWord dataclass with text, confidence (0-1), bbox (x1, y1, x2, y2)
+- OCREngine with lang='spa+eng', config='--oem 3 --psm 6'
+- Language verification on initialization
+- Unicode NFC normalization for Spanish accents (á, é, í, ó, ú, ñ, ü)
+- Conditional imports for PIL and pytesseract
+- extract_words, extract_text, extract_words_by_line methods
+
+**Total Task 5 Tests**: 106 (all passing)
+
+**Log Files**:
+- `log_files/T005_OCRLayer_Log.md` - Implementation log
+- `log_tests/T005_OCRLayer_TestLog.md` - Test log
+- `log_learn/T005_OCRLayer_Guide.md` - Learning guide
 
 ### Test Checklist
-- [ ] OCR extracts text from sample invoice
-- [ ] Spanish characters (ñ, á, é, í, ó, ú) are correct
-- [ ] Bounding boxes are accurate
-- [ ] Confidence scores are between 0 and 1
-- [ ] Empty/whitespace text is filtered out
+- [x] OCR extracts text from sample invoice
+- [x] Spanish characters (ñ, á, é, í, ó, ú) are correct
+- [x] Bounding boxes are accurate
+- [x] Confidence scores are between 0 and 1
+- [x] Empty/whitespace text is filtered out
 
 ---
 
@@ -2063,7 +2090,7 @@ Tasks 13, 14, 15, 16 ──────────────────→ T
 ## Progress Tracking
 
 - [x] **Phase 1**: Setup & Data (Tasks 1-3) — 19/19 subtasks ✓
-- [ ] **Phase 2**: MCP Container (Tasks 4-9) — 6/38 subtasks
+- [ ] **Phase 2**: MCP Container (Tasks 4-9) — 10/38 subtasks
 - [ ] **Phase 3**: Windows Bridge (Tasks 10-12) — 0/22 subtasks
 - [ ] **Phase 4**: Licensing & Protection (Tasks 15-16) — 0/14 subtasks
 - [ ] **Phase 5**: Desktop App (Tasks 13-14) — 0/17 subtasks
@@ -2098,3 +2125,8 @@ Tasks 13, 14, 15, 16 ──────────────────→ T
 | Subtask 4.5: Docker Compose | 2025-12-05 | Full docker-compose.yml, ports, volumes, environment, health check, 50 tests passing |
 | Subtask 4.6: Container Build | 2025-12-05 | Build prerequisites verified, 46 tests passing (9 skipped), config validated |
 | **Task 4 Complete** | 2025-12-05 | All 6 subtasks done, 261 total tests (252 pass, 9 skip) |
+| Subtask 5.1: OCR Module | 2025-12-05 | ocr.py structure, OCRWord dataclass, OCREngine class, 27 tests passing |
+| Subtask 5.2: Tesseract Wrapper | 2025-12-05 | Spanish support, language verification, config options, 29 tests passing |
+| Subtask 5.3: Word Extraction | 2025-12-05 | extract_words, bounding boxes, confidence scores, 26 tests passing |
+| Subtask 5.4: Spanish Characters | 2025-12-05 | Unicode NFC normalization, accent handling (á, é, í, ó, ú, ñ, ü), 24 tests passing |
+| **Task 5 Complete** | 2025-12-05 | All 4 subtasks done, 106 total tests passing |
