@@ -600,7 +600,7 @@ Create a highly optimized Dockerfile for Python AI inference with all required d
   ```
   **Completed**: 2025-12-04 | 10 packages pinned with exact versions, organized by category, 40 tests passing
 
-- [ ] 4.4 Implement multi-stage build for optimization
+- [x] 4.4 Implement multi-stage build for optimization
   ```dockerfile
   <!-- IMPLEMENTATION STEPS:
   Complete Dockerfile with multi-stage:
@@ -627,6 +627,7 @@ Create a highly optimized Dockerfile for Python AI inference with all required d
   CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
   -->
   ```
+  **Completed**: 2025-12-05 | Builder/runtime stages, wheel install, non-root user, health check, 51 tests passing
 
 - [ ] 4.5 Create docker-compose.yml for local development
   ```yaml
@@ -2026,7 +2027,7 @@ Tasks 13, 14, 15, 16 ──────────────────→ T
 ## Progress Tracking
 
 - [x] **Phase 1**: Setup & Data (Tasks 1-3) — 19/19 subtasks ✓
-- [ ] **Phase 2**: MCP Container (Tasks 4-9) — 3/38 subtasks
+- [ ] **Phase 2**: MCP Container (Tasks 4-9) — 4/38 subtasks
 - [ ] **Phase 3**: Windows Bridge (Tasks 10-12) — 0/22 subtasks
 - [ ] **Phase 4**: Licensing & Protection (Tasks 15-16) — 0/14 subtasks
 - [ ] **Phase 5**: Desktop App (Tasks 13-14) — 0/17 subtasks
@@ -2057,3 +2058,4 @@ Tasks 13, 14, 15, 16 ──────────────────→ T
 | Subtask 4.1: Dockerfile Base | 2025-12-04 | Multi-stage build, python:3.9-slim-bullseye, 36 tests passing |
 | Subtask 4.2: System Dependencies | 2025-12-04 | tesseract-ocr, poppler, verification step, 29 tests passing |
 | Subtask 4.3: Requirements Pinned | 2025-12-04 | 10 packages pinned, organized by category, 40 tests passing |
+| Subtask 4.4: Multi-Stage Build | 2025-12-05 | Builder/runtime stages, wheels, non-root user, health check, 51 tests passing |
