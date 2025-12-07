@@ -225,3 +225,125 @@ class InvoiceInferenceEngine:
                 })
 
         return line_items
+
+    def _get_field_value(
+        self,
+        fields: Dict,
+        field_name: str,
+        default: str = ''
+    ) -> str:
+        """
+        Extract value from a field, with default fallback.
+
+        Args:
+            fields: Dictionary of field name to ExtractedField objects
+            field_name: Name of the field to extract
+            default: Default value if field missing or value is None
+
+        Returns:
+            The field value as string, or default if not available
+        """
+        if field_name not in fields:
+            return default
+
+        field = fields[field_name]
+        if field.value is None:
+            return default
+
+        return field.value
+
+    def _parse_amount(self, fields: Dict, field_name: str) -> float:
+        """
+        Parse a currency amount from a field.
+
+        Handles common formats like "$1,234.56" or "1234.56".
+
+        Args:
+            fields: Dictionary of field name to ExtractedField objects
+            field_name: Name of the amount field to parse
+
+        Returns:
+            The parsed amount as float, or 0.0 if parsing fails
+        """
+        if field_name not in fields:
+            return 0.0
+
+        field = fields[field_name]
+        if field.value is None:
+            return 0.0
+
+        try:
+            # Remove currency symbol and thousand separators
+            cleaned = field.value.replace('$', '').replace(',', '').strip()
+            return float(cleaned)
+        except (ValueError, AttributeError):
+            return 0.0
+
+    def _parse_line_item(self, row_words: List[Dict]) -> Dict:
+        """
+        Parse row words into a line item dictionary.
+
+        Args:
+            row_words: List of word dictionaries with 'word' and 'bbox' keys
+
+        Returns:
+            Dictionary with:
+            - 'description': Joined words as string
+            - 'raw_words': Original row_words list
+        """
+        words = [w['word'] for w in row_words]
+        description = ' '.join(words)
+
+        return {
+            'description': description,
+            'raw_words': row_words
+        }
+
+    def predict(self, image: Any) -> InvoiceResult:
+        """
+        Run complete invoice extraction pipeline.
+
+        Combines OCR, table detection, field extraction, and row assignment
+        to extract structured data from an invoice image.
+
+        Args:
+            image: PIL Image to process
+
+        Returns:
+            InvoiceResult with extracted invoice data
+        """
+        logger.info("Starting invoice extraction...")
+        warnings = []
+
+        # Step 1: OCR - extract text and bounding boxes
+        words, boxes, ocr_conf = self._run_ocr(image)
+
+        # Step 2: Table detection - find table and row boundaries
+        table_structure = self._detect_table_structure(image)
+
+        # Step 3: Field extraction - classify tokens into fields
+        fields = self._extract_fields(image, words, boxes)
+
+        # Step 4: Assign words to rows - build line items
+        rows = self._assign_words_to_rows(words, boxes, table_structure['rows'])
+
+        # Step 5: Calculate confidence from OCR scores
+        confidence = 0.0
+        if ocr_conf:
+            confidence = sum(ocr_conf) / len(ocr_conf)
+
+        # Step 6: Build result
+        result = InvoiceResult(
+            rfc_emisor=self._get_field_value(fields, 'RFC_EMISOR', ''),
+            rfc_receptor=self._get_field_value(fields, 'RFC_RECEPTOR', ''),
+            date=self._get_field_value(fields, 'DATE', ''),
+            subtotal=self._parse_amount(fields, 'SUBTOTAL'),
+            iva=self._parse_amount(fields, 'IVA'),
+            total=self._parse_amount(fields, 'TOTAL'),
+            line_items=[self._parse_line_item(r['words']) for r in rows],
+            confidence=confidence,
+            warnings=warnings
+        )
+
+        logger.info("Invoice extraction complete")
+        return result
