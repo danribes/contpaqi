@@ -181,3 +181,47 @@ class InvoiceInferenceEngine:
 
         logger.debug(f"Extracted fields: {list(fields.keys())}")
         return fields
+
+    def _assign_words_to_rows(
+        self,
+        words: List[str],
+        boxes: List[tuple],
+        rows: List[Dict]
+    ) -> List[Dict]:
+        """
+        Assign words to table rows based on bbox intersection.
+
+        Uses the center Y coordinate of each word to determine which row
+        it belongs to.
+
+        Args:
+            words: List of word strings from OCR
+            boxes: List of bounding box tuples (x1, y1, x2, y2)
+            rows: List of row dictionaries with 'bbox' and 'index' keys
+
+        Returns:
+            List of line item dictionaries, each containing:
+            - 'row_index': Index of the row
+            - 'words': List of word dictionaries with 'word' and 'bbox'
+            - 'bbox': Bounding box of the row
+        """
+        line_items = []
+
+        for row in rows:
+            row_bbox = row['bbox']
+            row_words = []
+
+            for word, box in zip(words, boxes):
+                # Check if word center is inside row
+                word_center_y = (box[1] + box[3]) / 2
+                if row_bbox[1] <= word_center_y <= row_bbox[3]:
+                    row_words.append({'word': word, 'bbox': box})
+
+            if row_words:
+                line_items.append({
+                    'row_index': row['index'],
+                    'words': row_words,
+                    'bbox': row_bbox
+                })
+
+        return line_items
