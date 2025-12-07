@@ -2,6 +2,7 @@
  * Electron Main Process
  * Subtask 13.2: Configure Electron main process
  * Subtask 13.3: Docker status checking
+ * Subtask 13.5: Handle Docker daemon not running scenario
  *
  * Handles:
  * - Window creation and lifecycle
@@ -359,6 +360,11 @@ function registerIpcHandlers(): void {
 
   ipcMain.handle('docker:restart', async () => {
     return restartContainer();
+  });
+
+  // Get Docker daemon error (user-friendly format)
+  ipcMain.handle('docker:getDaemonError', async () => {
+    return dockerManager.getDaemonError();
   });
 
   // Health check

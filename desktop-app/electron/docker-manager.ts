@@ -2,6 +2,7 @@
  * Docker Manager Module
  * Subtask 13.3: Implement Docker status checking (docker ps)
  * Subtask 13.4: Implement container lifecycle management (start/stop)
+ * Subtask 13.5: Handle Docker daemon not running scenario
  *
  * Provides comprehensive Docker management including:
  * - Docker daemon status
@@ -9,6 +10,7 @@
  * - Container health status
  * - Container details
  * - Container lifecycle (start/stop/restart)
+ * - Docker daemon error detection and handling
  */
 
 import { spawn, ChildProcess } from 'child_process';
@@ -100,6 +102,38 @@ export interface StopContainerOptions {
 export interface BuildImageOptions {
   /** Don't use cache when building */
   noCache?: boolean;
+}
+
+/**
+ * Docker daemon error codes
+ */
+export type DockerErrorCode =
+  | 'DAEMON_NOT_RUNNING'
+  | 'DOCKER_NOT_INSTALLED'
+  | 'PERMISSION_DENIED'
+  | 'UNKNOWN_ERROR';
+
+/**
+ * User-friendly Docker error information
+ */
+export interface DockerError {
+  /** Error code for programmatic handling */
+  code: DockerErrorCode;
+  /** User-friendly error message */
+  message: string;
+  /** Suggestion to fix the error */
+  suggestion: string;
+  /** Original error message from Docker */
+  originalError?: string;
+}
+
+/**
+ * Result from waiting for daemon
+ */
+export interface WaitForDaemonResult {
+  success: boolean;
+  error?: string;
+  retryCount?: number;
 }
 
 /**
@@ -746,6 +780,156 @@ export class DockerManager {
         });
       });
     });
+  }
+
+  // ===========================================================================
+  // Docker Daemon Error Handling (Subtask 13.5)
+  // ===========================================================================
+
+  /**
+   * Classify Docker error from error message
+   */
+  private classifyError(errorMessage: string): DockerErrorCode {
+    const lowerError = errorMessage.toLowerCase();
+
+    if (lowerError.includes('enoent') || lowerError.includes('not found')) {
+      return 'DOCKER_NOT_INSTALLED';
+    }
+
+    if (lowerError.includes('permission denied')) {
+      return 'PERMISSION_DENIED';
+    }
+
+    if (
+      lowerError.includes('cannot connect') ||
+      lowerError.includes('daemon') ||
+      lowerError.includes('is the docker daemon running')
+    ) {
+      return 'DAEMON_NOT_RUNNING';
+    }
+
+    return 'UNKNOWN_ERROR';
+  }
+
+  /**
+   * Get user-friendly error message based on error code
+   */
+  private getErrorDetails(code: DockerErrorCode, originalError?: string): DockerError {
+    const errors: Record<DockerErrorCode, Omit<DockerError, 'code' | 'originalError'>> = {
+      DOCKER_NOT_INSTALLED: {
+        message: 'Docker is not installed on this system',
+        suggestion: 'Please install Docker Desktop from https://www.docker.com/products/docker-desktop',
+      },
+      DAEMON_NOT_RUNNING: {
+        message: 'Docker daemon is not running',
+        suggestion: 'Please start Docker Desktop and wait for it to fully initialize',
+      },
+      PERMISSION_DENIED: {
+        message: 'Permission denied when accessing Docker',
+        suggestion: 'Please ensure your user has permission to access Docker. You may need to add your user to the "docker" group or run as administrator.',
+      },
+      UNKNOWN_ERROR: {
+        message: 'An unknown Docker error occurred',
+        suggestion: 'Please check that Docker is properly installed and running',
+      },
+    };
+
+    return {
+      code,
+      ...errors[code],
+      originalError,
+    };
+  }
+
+  /**
+   * Get detailed Docker daemon error if daemon is not running
+   * Returns null if daemon is running properly
+   */
+  async getDaemonError(): Promise<DockerError | null> {
+    const status = await this.checkDaemonStatus();
+
+    if (status.isDaemonRunning) {
+      return null;
+    }
+
+    const errorCode = this.classifyError(status.error || '');
+    return this.getErrorDetails(errorCode, status.error);
+  }
+
+  /**
+   * Wait for Docker daemon to become available
+   * @param timeoutMs - Maximum time to wait in milliseconds
+   * @param intervalMs - Time between checks in milliseconds
+   * @param onRetry - Optional callback called on each retry with (attempt, error)
+   */
+  async waitForDaemon(
+    timeoutMs: number = 30000,
+    intervalMs: number = 2000,
+    onRetry?: (attempt: number, error: string) => void
+  ): Promise<WaitForDaemonResult> {
+    const startTime = Date.now();
+    let attempt = 0;
+
+    while (Date.now() - startTime < timeoutMs) {
+      const status = await this.checkDaemonStatus();
+
+      if (status.isDaemonRunning) {
+        return { success: true, retryCount: attempt };
+      }
+
+      attempt++;
+
+      if (onRetry && status.error) {
+        onRetry(attempt, status.error);
+      }
+
+      // Wait before next check
+      await new Promise((resolve) => setTimeout(resolve, intervalMs));
+    }
+
+    return {
+      success: false,
+      error: `Docker daemon did not start within ${timeoutMs / 1000} seconds (timeout)`,
+      retryCount: attempt,
+    };
+  }
+
+  /**
+   * Check Docker availability and return detailed status
+   * Useful for startup checks in the UI
+   */
+  async getStartupStatus(): Promise<{
+    dockerInstalled: boolean;
+    daemonRunning: boolean;
+    error?: DockerError;
+  }> {
+    // First check if Docker CLI is installed
+    const isInstalled = await this.isDockerAvailable();
+
+    if (!isInstalled) {
+      return {
+        dockerInstalled: false,
+        daemonRunning: false,
+        error: this.getErrorDetails('DOCKER_NOT_INSTALLED'),
+      };
+    }
+
+    // Check if daemon is running
+    const daemonStatus = await this.checkDaemonStatus();
+
+    if (!daemonStatus.isDaemonRunning) {
+      const errorCode = this.classifyError(daemonStatus.error || '');
+      return {
+        dockerInstalled: true,
+        daemonRunning: false,
+        error: this.getErrorDetails(errorCode, daemonStatus.error),
+      };
+    }
+
+    return {
+      dockerInstalled: true,
+      daemonRunning: true,
+    };
   }
 }
 

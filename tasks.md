@@ -2066,7 +2066,7 @@ Desktop app wrapper that manages the Docker background process.
 - [x] 13.2 Configure Electron main process
 - [x] 13.3 Implement Docker status checking (docker ps)
 - [x] 13.4 Implement container lifecycle management (start/stop)
-- [ ] 13.5 Handle Docker daemon not running scenario
+- [x] 13.5 Handle Docker daemon not running scenario
 - [ ] 13.6 Implement health check polling with retry
 - [ ] 13.7 Create status indicators (Starting/Ready/Error)
 
@@ -2142,6 +2142,36 @@ Desktop app wrapper that manages the Docker background process.
 - `log_files/T013.4_ContainerLifecycle_Log.md`
 - `log_tests/T013.4_ContainerLifecycle_TestLog.md`
 - `log_learn/T013.4_ContainerLifecycle_Guide.md`
+
+**Subtask 13.5 Completed**: 2025-12-07
+
+**Summary**: Implemented comprehensive Docker daemon error handling with user-friendly messages and recovery options.
+
+**Components Created/Updated**:
+- `electron/docker-manager.ts` - Added daemon error detection methods
+- `electron/main.ts` - Added getDaemonError IPC handler
+- `electron/preload.ts` - Added DockerError types and IPC bridge
+- `src/components/DockerStatusAlert.tsx` - New React component (307 lines)
+- `src/App.tsx` - Updated to use DockerErrorOverlay
+- `tests/docker-daemon-detection.test.ts` - 25+ unit tests
+
+**Key Features**:
+- Error classification: DAEMON_NOT_RUNNING, DOCKER_NOT_INSTALLED, PERMISSION_DENIED, UNKNOWN_ERROR
+- User-friendly error messages with suggestions
+- classifyError() - Pattern matching on stderr
+- getDaemonError() - Returns DockerError or null
+- waitForDaemon() - Polling with timeout and retry callback
+- getStartupStatus() - Quick Docker availability check
+- DockerStatusAlert component with retry button
+- DockerErrorOverlay - Full-page blocker for critical errors
+- Context-sensitive icons and color coding
+- Technical details toggle
+- Download Docker link for installation errors
+
+**Log Files**:
+- `log_files/T013.5_DockerDaemonHandling_Log.md`
+- `log_tests/T013.5_DockerDaemonHandling_TestLog.md`
+- `log_learn/T013.5_DockerDaemonHandling_Guide.md`
 
 ---
 
