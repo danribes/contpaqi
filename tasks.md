@@ -1078,8 +1078,9 @@ Implement Table Transformer model for detecting table structures in invoices.
 ## Task 7: LayoutLM Model Integration
 
 **Priority**: High | **Dependencies**: Tasks 3, 4 | **Tags**: mcp-container, phase-2, ml, us1
-**Status**: Not Started
+**Status**: Completed
 **Estimated Effort**: 2-3 days
+**Completed Date**: 2025-12-07
 
 ### Description
 Implement LayoutLMv3 model for token classification and field extraction.
@@ -1203,7 +1204,7 @@ Implement LayoutLMv3 model for token classification and field extraction.
   -->
   ```
 
-- [ ] 7.4 Map tokens to field labels (RFC, date, total, etc.)
+- [x] 7.4 Map tokens to field labels (RFC, date, total, etc.)
   ```python
   <!-- IMPLEMENTATION STEPS:
   Add field extraction method:
@@ -1263,14 +1264,41 @@ Implement LayoutLMv3 model for token classification and field extraction.
   ```
 
 ### Implementation Notes
-<!-- Add notes here after completing the task -->
+
+**Task 7 Completed**: 2025-12-07
+
+**Summary**: Implemented LayoutLMv3 model wrapper for token classification on invoice images, with BIO tagging for field extraction.
+
+**Components Created**:
+- `mcp-container/src/models/layoutlm.py` - Main LayoutLM module (308 lines)
+- `mcp-container/src/models/__init__.py` - Updated exports
+- `tests/test_task007_1_layoutlm_module.py` - 43 tests for module structure
+- `tests/test_task007_2_layoutlm_loading.py` - 23 tests for model loading
+- `tests/test_task007_3_layoutlm_inference.py` - 18 tests for inference
+- `tests/test_task007_4_layoutlm_field_extraction.py` - 34 tests for field extraction
+
+**Key Features**:
+- ExtractedField dataclass with label, value, confidence, bbox
+- LayoutLMModel with 21 BIO labels (10 field types)
+- Auto device selection (CUDA/CPU)
+- Box normalization to 0-1000 scale
+- Subword tokenization handling via word_ids()
+- BIO tag grouping into complete fields
+- Confidence averaging and bounding box union
+
+**Total Task 7 Tests**: 118 (all passing)
+
+**Log Files**:
+- `log_files/T007.1-4_*_Log.md` - Implementation logs
+- `log_tests/T007.1-4_*_TestLog.md` - Test logs
+- `log_learn/T007.1-4_*_Guide.md` - Learning guides
 
 ### Test Checklist
-- [ ] Model loads without errors
-- [ ] Inference runs on sample OCR output
-- [ ] BIO tags are correctly merged
-- [ ] All field types are extracted
-- [ ] Confidence scores are reasonable
+- [x] Model loads without errors
+- [x] Inference runs on sample OCR output
+- [x] BIO tags are correctly merged
+- [x] All field types are extracted
+- [x] Confidence scores are reasonable
 
 ---
 
@@ -2118,7 +2146,7 @@ Tasks 13, 14, 15, 16 ──────────────────→ T
 ## Progress Tracking
 
 - [x] **Phase 1**: Setup & Data (Tasks 1-3) — 19/19 subtasks ✓
-- [ ] **Phase 2**: MCP Container (Tasks 4-9) — 17/38 subtasks
+- [ ] **Phase 2**: MCP Container (Tasks 4-9) — 18/38 subtasks
 - [ ] **Phase 3**: Windows Bridge (Tasks 10-12) — 0/22 subtasks
 - [ ] **Phase 4**: Licensing & Protection (Tasks 15-16) — 0/14 subtasks
 - [ ] **Phase 5**: Desktop App (Tasks 13-14) — 0/17 subtasks
@@ -2166,3 +2194,5 @@ Tasks 13, 14, 15, 16 ──────────────────→ T
 | Subtask 7.1: LayoutLM Module | 2025-12-07 | layoutlm.py structure, ExtractedField dataclass, LayoutLMModel class, 21 BIO labels, 43 tests passing |
 | Subtask 7.2: Model Loading | 2025-12-07 | LayoutLMv3Processor, LayoutLMv3ForTokenClassification, num_labels=21, label2id/id2label mappings, 23 tests passing |
 | Subtask 7.3: Inference | 2025-12-07 | predict() method, box normalization 0-1000, word_ids() handling, softmax confidence, 18 tests passing |
+| Subtask 7.4: Field Extraction | 2025-12-07 | extract_fields(), _merge_tokens(), BIO tag grouping, bbox union, confidence averaging, 34 tests passing |
+| **Task 7 Complete** | 2025-12-07 | All 4 subtasks done, 118 total tests passing |
