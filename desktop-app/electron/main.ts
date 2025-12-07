@@ -27,8 +27,8 @@ let mainWindow: BrowserWindow | null = null;
 let dockerProcess: ChildProcess | null = null;
 let isQuitting = false;
 
-// Docker Manager instance
-const dockerManager = new DockerManager(CONTAINER_NAME);
+// Docker Manager instance with compose path
+const dockerManager = new DockerManager(CONTAINER_NAME, 30000, MCP_CONTAINER_PATH);
 
 /**
  * Request single instance lock to prevent multiple app instances
@@ -250,64 +250,37 @@ async function checkDockerStatusLegacy(): Promise<{ running: boolean; containerS
 }
 
 /**
- * Start the MCP container
+ * Start the MCP container using DockerManager
  */
 async function startContainer(): Promise<{ success: boolean; error?: string }> {
-  return new Promise((resolve) => {
-    dockerProcess = spawn('docker-compose', ['up', '-d'], {
-      cwd: MCP_CONTAINER_PATH,
-      shell: true,
-    });
-
-    let errorOutput = '';
-
-    dockerProcess.stderr?.on('data', (data) => {
-      errorOutput += data.toString();
-    });
-
-    dockerProcess.on('close', (code) => {
-      if (code === 0) {
-        resolve({ success: true });
-      } else {
-        resolve({ success: false, error: errorOutput || 'Failed to start container' });
-      }
-    });
-
-    dockerProcess.on('error', (err) => {
-      resolve({ success: false, error: err.message });
-    });
-  });
+  const result = await dockerManager.startContainer();
+  return {
+    success: result.success,
+    error: result.error,
+  };
 }
 
 /**
- * Stop the MCP container
+ * Stop the MCP container using DockerManager
  */
 async function stopContainer(): Promise<{ success: boolean; error?: string }> {
-  return new Promise((resolve) => {
-    const process = spawn('docker-compose', ['down'], {
-      cwd: MCP_CONTAINER_PATH,
-      shell: true,
-    });
+  const result = await dockerManager.stopContainer();
+  dockerProcess = null; // Clear the process reference
+  return {
+    success: result.success,
+    error: result.error,
+  };
+}
 
-    let errorOutput = '';
-
-    process.stderr?.on('data', (data) => {
-      errorOutput += data.toString();
-    });
-
-    process.on('close', (code) => {
-      dockerProcess = null;
-      if (code === 0) {
-        resolve({ success: true });
-      } else {
-        resolve({ success: false, error: errorOutput || 'Failed to stop container' });
-      }
-    });
-
-    process.on('error', (err) => {
-      resolve({ success: false, error: err.message });
-    });
-  });
+/**
+ * Restart the MCP container
+ */
+async function restartContainer(): Promise<{ success: boolean; error?: string }> {
+  const result = await dockerManager.restartContainer();
+  return {
+    success: result.success,
+    error: result.error,
+  };
 }
 
 // =============================================================================
@@ -382,6 +355,10 @@ function registerIpcHandlers(): void {
 
   ipcMain.handle('docker:stop', async () => {
     return stopContainer();
+  });
+
+  ipcMain.handle('docker:restart', async () => {
+    return restartContainer();
   });
 
   // Health check

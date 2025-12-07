@@ -1,12 +1,14 @@
 /**
  * Docker Manager Module
  * Subtask 13.3: Implement Docker status checking (docker ps)
+ * Subtask 13.4: Implement container lifecycle management (start/stop)
  *
- * Provides comprehensive Docker status checking including:
+ * Provides comprehensive Docker management including:
  * - Docker daemon status
  * - Container status (running/stopped)
  * - Container health status
  * - Container details
+ * - Container lifecycle (start/stop/restart)
  */
 
 import { spawn, ChildProcess } from 'child_process';
@@ -62,20 +64,80 @@ interface ContainerStatusResult {
 }
 
 /**
+ * Result from container lifecycle operations (start/stop/restart)
+ */
+export interface ContainerLifecycleResult {
+  success: boolean;
+  message?: string;
+  error?: string;
+}
+
+/**
+ * Options for starting a container
+ */
+export interface StartContainerOptions {
+  /** Rebuild images before starting */
+  build?: boolean;
+  /** Force recreation of containers */
+  forceRecreate?: boolean;
+  /** Environment variables to pass */
+  env?: Record<string, string>;
+}
+
+/**
+ * Options for stopping a container
+ */
+export interface StopContainerOptions {
+  /** Remove volumes when stopping */
+  removeVolumes?: boolean;
+  /** Remove orphan containers */
+  removeOrphans?: boolean;
+}
+
+/**
+ * Options for building images
+ */
+export interface BuildImageOptions {
+  /** Don't use cache when building */
+  noCache?: boolean;
+}
+
+/**
  * Docker Manager class for checking Docker and container status
  */
 export class DockerManager {
   private containerName: string;
   private timeout: number;
+  private composePath: string;
+  private useComposeV2: boolean;
 
   /**
    * Create a new DockerManager instance
    * @param containerName - Name of the container to monitor
    * @param timeout - Timeout for Docker commands in milliseconds (default: 10000)
+   * @param composePath - Path to docker-compose.yml directory
+   * @param useComposeV2 - Use 'docker compose' (v2) instead of 'docker-compose' (default: false)
    */
-  constructor(containerName: string, timeout: number = 10000) {
+  constructor(
+    containerName: string,
+    timeout: number = 10000,
+    composePath: string = process.cwd(),
+    useComposeV2: boolean = false
+  ) {
     this.containerName = containerName;
     this.timeout = timeout;
+    this.composePath = composePath;
+    this.useComposeV2 = useComposeV2;
+  }
+
+  /**
+   * Get the compose command based on version setting
+   */
+  private getComposeCommand(): { cmd: string; baseArgs: string[] } {
+    if (this.useComposeV2) {
+      return { cmd: 'docker', baseArgs: ['compose'] };
+    }
+    return { cmd: 'docker-compose', baseArgs: [] };
   }
 
   /**
@@ -410,6 +472,278 @@ export class DockerManager {
       process.on('error', () => {
         clearTimeout(timeoutId);
         resolve('');
+      });
+    });
+  }
+
+  // ===========================================================================
+  // Container Lifecycle Management (Subtask 13.4)
+  // ===========================================================================
+
+  /**
+   * Start the container using docker-compose up -d
+   * @param options - Start options (build, forceRecreate, env)
+   */
+  async startContainer(options: StartContainerOptions = {}): Promise<ContainerLifecycleResult> {
+    return new Promise((resolve) => {
+      const timeoutId = setTimeout(() => {
+        resolve({
+          success: false,
+          error: 'Timeout waiting for container to start',
+        });
+      }, this.timeout);
+
+      const { cmd, baseArgs } = this.getComposeCommand();
+      const args = [...baseArgs, 'up', '-d'];
+
+      if (options.build) {
+        args.push('--build');
+      }
+      if (options.forceRecreate) {
+        args.push('--force-recreate');
+      }
+
+      const env = options.env
+        ? { ...process.env, ...options.env }
+        : process.env;
+
+      const childProcess = spawn(cmd, args, {
+        cwd: this.composePath,
+        shell: true,
+        env,
+      });
+
+      let stdout = '';
+      let stderr = '';
+
+      childProcess.stdout?.on('data', (data) => {
+        stdout += data.toString();
+      });
+
+      childProcess.stderr?.on('data', (data) => {
+        stderr += data.toString();
+      });
+
+      childProcess.on('close', (code) => {
+        clearTimeout(timeoutId);
+
+        if (code === 0) {
+          resolve({
+            success: true,
+            message: stdout.trim() || stderr.trim() || 'Container started successfully',
+          });
+        } else {
+          resolve({
+            success: false,
+            error: stderr.trim() || 'Failed to start container',
+          });
+        }
+      });
+
+      childProcess.on('error', (err) => {
+        clearTimeout(timeoutId);
+        resolve({
+          success: false,
+          error: err.message,
+        });
+      });
+    });
+  }
+
+  /**
+   * Stop the container using docker-compose down
+   * @param options - Stop options (removeVolumes, removeOrphans)
+   */
+  async stopContainer(options: StopContainerOptions = {}): Promise<ContainerLifecycleResult> {
+    return new Promise((resolve) => {
+      const timeoutId = setTimeout(() => {
+        resolve({
+          success: false,
+          error: 'Timeout waiting for container to stop',
+        });
+      }, this.timeout);
+
+      const { cmd, baseArgs } = this.getComposeCommand();
+      const args = [...baseArgs, 'down'];
+
+      if (options.removeVolumes) {
+        args.push('--volumes');
+      }
+      if (options.removeOrphans) {
+        args.push('--remove-orphans');
+      }
+
+      const childProcess = spawn(cmd, args, {
+        cwd: this.composePath,
+        shell: true,
+      });
+
+      let stdout = '';
+      let stderr = '';
+
+      childProcess.stdout?.on('data', (data) => {
+        stdout += data.toString();
+      });
+
+      childProcess.stderr?.on('data', (data) => {
+        stderr += data.toString();
+      });
+
+      childProcess.on('close', (code) => {
+        clearTimeout(timeoutId);
+
+        if (code === 0) {
+          resolve({
+            success: true,
+            message: stdout.trim() || stderr.trim() || 'Container stopped successfully',
+          });
+        } else {
+          resolve({
+            success: false,
+            error: stderr.trim() || 'Failed to stop container',
+          });
+        }
+      });
+
+      childProcess.on('error', (err) => {
+        clearTimeout(timeoutId);
+        resolve({
+          success: false,
+          error: err.message,
+        });
+      });
+    });
+  }
+
+  /**
+   * Restart the container (stop then start)
+   */
+  async restartContainer(): Promise<ContainerLifecycleResult> {
+    // First stop
+    const stopResult = await this.stopContainer();
+    if (!stopResult.success) {
+      return stopResult;
+    }
+
+    // Then start
+    return this.startContainer();
+  }
+
+  /**
+   * Pull the latest images using docker-compose pull
+   */
+  async pullImages(): Promise<ContainerLifecycleResult> {
+    return new Promise((resolve) => {
+      const timeoutId = setTimeout(() => {
+        resolve({
+          success: false,
+          error: 'Timeout waiting for image pull',
+        });
+      }, this.timeout);
+
+      const { cmd, baseArgs } = this.getComposeCommand();
+      const args = [...baseArgs, 'pull'];
+
+      const childProcess = spawn(cmd, args, {
+        cwd: this.composePath,
+        shell: true,
+      });
+
+      let stdout = '';
+      let stderr = '';
+
+      childProcess.stdout?.on('data', (data) => {
+        stdout += data.toString();
+      });
+
+      childProcess.stderr?.on('data', (data) => {
+        stderr += data.toString();
+      });
+
+      childProcess.on('close', (code) => {
+        clearTimeout(timeoutId);
+
+        if (code === 0) {
+          resolve({
+            success: true,
+            message: stdout.trim() || stderr.trim() || 'Images pulled successfully',
+          });
+        } else {
+          resolve({
+            success: false,
+            error: stderr.trim() || 'Failed to pull images',
+          });
+        }
+      });
+
+      childProcess.on('error', (err) => {
+        clearTimeout(timeoutId);
+        resolve({
+          success: false,
+          error: err.message,
+        });
+      });
+    });
+  }
+
+  /**
+   * Build images using docker-compose build
+   * @param options - Build options (noCache)
+   */
+  async buildImages(options: BuildImageOptions = {}): Promise<ContainerLifecycleResult> {
+    return new Promise((resolve) => {
+      const timeoutId = setTimeout(() => {
+        resolve({
+          success: false,
+          error: 'Timeout waiting for image build',
+        });
+      }, this.timeout);
+
+      const { cmd, baseArgs } = this.getComposeCommand();
+      const args = [...baseArgs, 'build'];
+
+      if (options.noCache) {
+        args.push('--no-cache');
+      }
+
+      const childProcess = spawn(cmd, args, {
+        cwd: this.composePath,
+        shell: true,
+      });
+
+      let stdout = '';
+      let stderr = '';
+
+      childProcess.stdout?.on('data', (data) => {
+        stdout += data.toString();
+      });
+
+      childProcess.stderr?.on('data', (data) => {
+        stderr += data.toString();
+      });
+
+      childProcess.on('close', (code) => {
+        clearTimeout(timeoutId);
+
+        if (code === 0) {
+          resolve({
+            success: true,
+            message: stdout.trim() || stderr.trim() || 'Images built successfully',
+          });
+        } else {
+          resolve({
+            success: false,
+            error: stderr.trim() || 'Failed to build images',
+          });
+        }
+      });
+
+      childProcess.on('error', (err) => {
+        clearTimeout(timeoutId);
+        resolve({
+          success: false,
+          error: err.message,
+        });
       });
     });
   }
