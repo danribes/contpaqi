@@ -191,6 +191,11 @@ class LayoutLMModel:
             padding="max_length",
             max_length=512
         )
+
+        # Get word_ids before converting to dict (dict loses method)
+        word_ids = encoding.word_ids()
+
+        # Move tensors to device
         encoding = {k: v.to(self.device) for k, v in encoding.items()}
 
         # Run inference
@@ -208,7 +213,6 @@ class LayoutLMModel:
 
         # Map back to words (handle subword tokenization)
         results = []
-        word_ids = encoding.word_ids()
         prev_word_id = None
 
         for idx, word_id in enumerate(word_ids):
