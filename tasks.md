@@ -1758,7 +1758,7 @@ FastAPI interface that receives PDF files and enforces data validation.
   -->
   ```
 
-- [ ] 9.5 Implement math verification (subtotal + IVA = total)
+- [x] 9.5 Implement math verification (subtotal + IVA = total)
   ```python
   <!-- IMPLEMENTATION STEPS:
   Add validation function:
@@ -2146,7 +2146,7 @@ Tasks 13, 14, 15, 16 ──────────────────→ T
 ## Progress Tracking
 
 - [x] **Phase 1**: Setup & Data (Tasks 1-3) — 19/19 subtasks ✓
-- [ ] **Phase 2**: MCP Container (Tasks 4-9) — 30/38 subtasks
+- [ ] **Phase 2**: MCP Container (Tasks 4-9) — 31/38 subtasks
 - [ ] **Phase 3**: Windows Bridge (Tasks 10-12) — 0/22 subtasks
 - [ ] **Phase 4**: Licensing & Protection (Tasks 15-16) — 0/14 subtasks
 - [ ] **Phase 5**: Desktop App (Tasks 13-14) — 0/17 subtasks
@@ -2209,3 +2209,4 @@ Tasks 13, 14, 15, 16 ──────────────────→ T
 | Subtask 9.2: Pydantic Schemas | 2025-12-07 | LineItem, Invoice, ValidationResult, InvoiceResponse, ErrorResponse, 22 tests passing |
 | Subtask 9.3: Process PDF Endpoint | 2025-12-07 | POST /process_pdf, file validation, PDF to image, engine integration, 14 tests passing |
 | Subtask 9.4: RFC Validation | 2025-12-07 | validators.py, RFC_PATTERN regex, validate_rfc, normalize_rfc, 28 tests passing |
+| Subtask 9.5: Math Verification | 2025-12-07 | validate_math, validate_iva_rate, validate_line_items_sum, 0.01 tolerance, 25 tests passing |
