@@ -903,15 +903,16 @@ Implement Tesseract OCR wrapper with Spanish support and coordinate extraction.
 ## Task 6: TATR Model Integration
 
 **Priority**: High | **Dependencies**: Tasks 3, 4 | **Tags**: mcp-container, phase-2, ml, us1
-**Status**: Not Started
+**Status**: Completed
 **Estimated Effort**: 2-3 days
+**Completed Date**: 2025-12-07
 
 ### Description
 Implement Table Transformer model for detecting table structures in invoices.
 
 ### Subtasks
 
-- [ ] 6.1 Create mcp-container/src/models/tatr.py
+- [x] 6.1 Create mcp-container/src/models/tatr.py
   ```python
   <!-- IMPLEMENTATION STEPS:
   Create file structure:
@@ -941,7 +942,7 @@ Implement Table Transformer model for detecting table structures in invoices.
   -->
   ```
 
-- [ ] 6.2 Implement TATR model loading (Table Transformer)
+- [x] 6.2 Implement TATR model loading (Table Transformer)
   ```python
   <!-- IMPLEMENTATION STEPS:
   Add to TATRModel class:
@@ -964,7 +965,7 @@ Implement Table Transformer model for detecting table structures in invoices.
   -->
   ```
 
-- [ ] 6.3 Implement table/row detection inference
+- [x] 6.3 Implement table/row detection inference
   ```python
   <!-- IMPLEMENTATION STEPS:
   Add detection method:
@@ -997,7 +998,7 @@ Implement Table Transformer model for detecting table structures in invoices.
   -->
   ```
 
-- [ ] 6.4 Return bounding boxes for detected rows
+- [x] 6.4 Return bounding boxes for detected rows
   ```python
   <!-- IMPLEMENTATION STEPS:
   Add row extraction method:
@@ -1036,14 +1037,41 @@ Implement Table Transformer model for detecting table structures in invoices.
   ```
 
 ### Implementation Notes
-<!-- Add notes here after completing the task -->
+
+**Task 6 Completed**: 2025-12-07
+
+**Summary**: Implemented Table Transformer (TATR) model wrapper for detecting tables and rows in invoice images using Microsoft's table-transformer-detection model.
+
+**Components Created**:
+- `mcp-container/src/models/tatr.py` - Main TATR module (220 lines)
+- `mcp-container/src/models/__init__.py` - Updated exports
+- `tests/test_task006_1_tatr_module.py` - 35 tests for module structure
+- `tests/test_task006_2_tatr_loading.py` - 25 tests for model loading
+- `tests/test_task006_3_tatr_inference.py` - 10 tests for detection inference
+- `tests/test_task006_4_tatr_row_extraction.py` - 15 tests for row extraction
+
+**Key Features**:
+- TableDetection dataclass with label, confidence (0-1), bbox (x1, y1, x2, y2)
+- TATRModel with default model `microsoft/table-transformer-detection`
+- Auto device selection (CUDA/CPU)
+- Default threshold 0.7, configurable per call
+- get_table_rows: filters and sorts rows by y-coordinate
+- get_table_bounds: returns highest confidence table
+- Conditional imports for torch and transformers
+
+**Total Task 6 Tests**: 85 (all passing)
+
+**Log Files**:
+- `log_files/T006_TATRModel_Log.md` - Implementation log
+- `log_tests/T006_TATRModel_TestLog.md` - Test log
+- `log_learn/T006_TATRModel_Guide.md` - Learning guide
 
 ### Test Checklist
-- [ ] Model loads without errors
-- [ ] Inference runs on sample invoice
-- [ ] Tables are detected correctly
-- [ ] Rows are sorted top-to-bottom
-- [ ] Bounding boxes are in correct format
+- [x] Model loads without errors
+- [x] Inference runs on sample invoice
+- [x] Tables are detected correctly
+- [x] Rows are sorted top-to-bottom
+- [x] Bounding boxes are in correct format
 
 ---
 
@@ -2090,7 +2118,7 @@ Tasks 13, 14, 15, 16 ──────────────────→ T
 ## Progress Tracking
 
 - [x] **Phase 1**: Setup & Data (Tasks 1-3) — 19/19 subtasks ✓
-- [ ] **Phase 2**: MCP Container (Tasks 4-9) — 10/38 subtasks
+- [ ] **Phase 2**: MCP Container (Tasks 4-9) — 14/38 subtasks
 - [ ] **Phase 3**: Windows Bridge (Tasks 10-12) — 0/22 subtasks
 - [ ] **Phase 4**: Licensing & Protection (Tasks 15-16) — 0/14 subtasks
 - [ ] **Phase 5**: Desktop App (Tasks 13-14) — 0/17 subtasks
@@ -2130,3 +2158,8 @@ Tasks 13, 14, 15, 16 ──────────────────→ T
 | Subtask 5.3: Word Extraction | 2025-12-05 | extract_words, bounding boxes, confidence scores, 26 tests passing |
 | Subtask 5.4: Spanish Characters | 2025-12-05 | Unicode NFC normalization, accent handling (á, é, í, ó, ú, ñ, ü), 24 tests passing |
 | **Task 5 Complete** | 2025-12-05 | All 4 subtasks done, 106 total tests passing |
+| Subtask 6.1: TATR Module | 2025-12-07 | tatr.py structure, TableDetection dataclass, TATRModel class, 35 tests passing |
+| Subtask 6.2: Model Loading | 2025-12-07 | AutoImageProcessor, AutoModelForObjectDetection, device selection, 25 tests passing |
+| Subtask 6.3: Detection Inference | 2025-12-07 | detect method, no_grad context, post-processing, 10 tests passing |
+| Subtask 6.4: Row Extraction | 2025-12-07 | get_table_rows, get_table_bounds, y-coordinate sorting, 15 tests passing |
+| **Task 6 Complete** | 2025-12-07 | All 4 subtasks done, 85 total tests passing |
