@@ -1149,7 +1149,7 @@ Implement LayoutLMv3 model for token classification and field extraction.
   -->
   ```
 
-- [ ] 7.3 Implement token classification inference
+- [x] 7.3 Implement token classification inference
   ```python
   <!-- IMPLEMENTATION STEPS:
   Add inference method:
@@ -2118,7 +2118,7 @@ Tasks 13, 14, 15, 16 ──────────────────→ T
 ## Progress Tracking
 
 - [x] **Phase 1**: Setup & Data (Tasks 1-3) — 19/19 subtasks ✓
-- [ ] **Phase 2**: MCP Container (Tasks 4-9) — 16/38 subtasks
+- [ ] **Phase 2**: MCP Container (Tasks 4-9) — 17/38 subtasks
 - [ ] **Phase 3**: Windows Bridge (Tasks 10-12) — 0/22 subtasks
 - [ ] **Phase 4**: Licensing & Protection (Tasks 15-16) — 0/14 subtasks
 - [ ] **Phase 5**: Desktop App (Tasks 13-14) — 0/17 subtasks
@@ -2165,3 +2165,4 @@ Tasks 13, 14, 15, 16 ──────────────────→ T
 | **Task 6 Complete** | 2025-12-07 | All 4 subtasks done, 85 total tests passing |
 | Subtask 7.1: LayoutLM Module | 2025-12-07 | layoutlm.py structure, ExtractedField dataclass, LayoutLMModel class, 21 BIO labels, 43 tests passing |
 | Subtask 7.2: Model Loading | 2025-12-07 | LayoutLMv3Processor, LayoutLMv3ForTokenClassification, num_labels=21, label2id/id2label mappings, 23 tests passing |
+| Subtask 7.3: Inference | 2025-12-07 | predict() method, box normalization 0-1000, word_ids() handling, softmax confidence, 18 tests passing |
