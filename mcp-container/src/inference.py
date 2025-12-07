@@ -133,3 +133,26 @@ class InvoiceInferenceEngine:
 
         logger.debug(f"OCR extracted {len(words)} words")
         return texts, boxes, confidences
+
+    def _detect_table_structure(self, image: Any) -> Dict:
+        """
+        Detect table and row bounding boxes.
+
+        Args:
+            image: PIL Image to process
+
+        Returns:
+            Dictionary with:
+            - 'table': Bounding box tuple (x1, y1, x2, y2) or None
+            - 'rows': List of row bounding box tuples
+        """
+        logger.debug("Detecting table structure...")
+
+        table_bounds = self.tatr.get_table_bounds(image)
+        rows = self.tatr.get_table_rows(image)
+
+        logger.debug(f"Found table with {len(rows)} rows")
+        return {
+            'table': table_bounds,
+            'rows': rows
+        }

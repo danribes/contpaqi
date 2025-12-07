@@ -1373,7 +1373,7 @@ The core logic that orchestrates OCR and both AI models for complete invoice ext
   -->
   ```
 
-- [ ] 8.3 Implement TATR integration for row detection
+- [x] 8.3 Implement TATR integration for row detection
   ```python
   <!-- IMPLEMENTATION STEPS:
   Add to InvoiceInferenceEngine:
@@ -2146,7 +2146,7 @@ Tasks 13, 14, 15, 16 ──────────────────→ T
 ## Progress Tracking
 
 - [x] **Phase 1**: Setup & Data (Tasks 1-3) — 19/19 subtasks ✓
-- [ ] **Phase 2**: MCP Container (Tasks 4-9) — 20/38 subtasks
+- [ ] **Phase 2**: MCP Container (Tasks 4-9) — 21/38 subtasks
 - [ ] **Phase 3**: Windows Bridge (Tasks 10-12) — 0/22 subtasks
 - [ ] **Phase 4**: Licensing & Protection (Tasks 15-16) — 0/14 subtasks
 - [ ] **Phase 5**: Desktop App (Tasks 13-14) — 0/17 subtasks
@@ -2198,3 +2198,4 @@ Tasks 13, 14, 15, 16 ──────────────────→ T
 | **Task 7 Complete** | 2025-12-07 | All 4 subtasks done, 118 total tests passing |
 | Subtask 8.1: Inference Engine | 2025-12-07 | inference.py, InvoiceResult dataclass, InvoiceInferenceEngine class, lazy loading, 31 tests passing |
 | Subtask 8.2: OCR Integration | 2025-12-07 | _run_ocr() method, extracts texts/boxes/confidences from OCREngine, 15 tests passing |
+| Subtask 8.3: TATR Integration | 2025-12-07 | _detect_table_structure() method, table bounds and rows from TATRModel, 16 tests passing |
