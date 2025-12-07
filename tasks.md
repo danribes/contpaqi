@@ -1996,7 +1996,7 @@ Desktop app wrapper that manages the Docker background process.
 
 ### Subtasks
 
-- [ ] 13.1 Initialize Electron + React project with Vite
+- [x] 13.1 Initialize Electron + React project with Vite
 - [ ] 13.2 Configure Electron main process
 - [ ] 13.3 Implement Docker status checking (docker ps)
 - [ ] 13.4 Implement container lifecycle management (start/stop)
@@ -2151,7 +2151,7 @@ Tasks 13, 14, 15, 16 ──────────────────→ T
 - [x] **Phase 2**: MCP Container (Tasks 4-9) — 34/34 subtasks ✓
 - [ ] **Phase 3**: Windows Bridge (Tasks 10-12) — 0/22 subtasks
 - [ ] **Phase 4**: Licensing & Protection (Tasks 15-16) — 0/14 subtasks
-- [ ] **Phase 5**: Desktop App (Tasks 13-14) — 0/17 subtasks
+- [ ] **Phase 5**: Desktop App (Tasks 13-14) — 1/17 subtasks
 - [ ] **Phase 6**: Deployment (Task 17) — 0/10 subtasks
 
 ---
@@ -2216,3 +2216,4 @@ Tasks 13, 14, 15, 16 ──────────────────→ T
 | Subtask 9.7: Error Handling | 2025-12-07 | Exception handlers, request logging middleware, JSONResponse errors, 16 tests passing |
 | Subtask 9.8: API Integration Tests | 2025-12-07 | Comprehensive endpoint tests, file upload, mocking, CORS, 19 tests passing |
 | **Task 9 Complete** | 2025-12-07 | All 8 subtasks done, 134 tests passing for Task 9 |
+| Subtask 13.1: Electron Init | 2025-12-07 | Vite config, preload.ts, main.tsx, index.css, Tailwind setup, 26 tests passing |
