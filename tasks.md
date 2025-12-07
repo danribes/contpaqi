@@ -2063,15 +2063,61 @@ Desktop app wrapper that manages the Docker background process.
 ### Subtasks
 
 - [x] 13.1 Initialize Electron + React project with Vite
-- [ ] 13.2 Configure Electron main process
-- [ ] 13.3 Implement Docker status checking (docker ps)
+- [x] 13.2 Configure Electron main process
+- [x] 13.3 Implement Docker status checking (docker ps)
 - [ ] 13.4 Implement container lifecycle management (start/stop)
 - [ ] 13.5 Handle Docker daemon not running scenario
 - [ ] 13.6 Implement health check polling with retry
 - [ ] 13.7 Create status indicators (Starting/Ready/Error)
 
 ### Implementation Notes
-<!-- Add notes here after completing the task -->
+
+**Subtask 13.2 Completed**: 2025-12-07
+
+**Summary**: Configured complete Electron main process with window management, IPC handlers, application menu, and security settings.
+
+**Components Created**:
+- `electron/main.ts` - Complete main process (465 lines)
+- `electron/preload.ts` - Updated IPC bridge with types
+- `tests/main.test.ts` - 22 unit tests
+- `jest.config.js` - Jest configuration
+
+**Key Features**:
+- Single instance lock (prevents multiple windows)
+- BrowserWindow with security settings (contextIsolation, sandbox)
+- Application menu (File, Edit, View, Help)
+- IPC handlers: docker:*, health:*, dialog:*, app:*, window:*
+- Ready-to-show pattern (no white flash)
+- Graceful shutdown with confirmation dialog
+- Navigation restricted to localhost/file://
+
+**Log Files**:
+- `log_files/T013.2_ElectronMainProcess_Log.md`
+- `log_tests/T013.2_ElectronMainProcess_TestLog.md`
+- `log_learn/T013.2_ElectronMainProcess_Guide.md`
+
+**Subtask 13.3 Completed**: 2025-12-07
+
+**Summary**: Implemented comprehensive Docker status checking with dedicated DockerManager class.
+
+**Components Created**:
+- `electron/docker-manager.ts` - Docker manager module (310 lines)
+- `electron/main.ts` - Updated to use DockerManager
+- `electron/preload.ts` - Updated DockerStatusInfo type
+- `tests/docker-status.test.ts` - 35 unit tests
+
+**Key Features**:
+- DockerManager class with checkDaemonStatus, checkContainerStatus, getContainerDetails
+- Uses `docker info`, `docker ps`, `docker inspect` commands
+- 10-second timeout protection on all commands
+- Comprehensive DockerStatus interface with state, version, health
+- Exact container name matching to prevent false positives
+- ISO timestamps in status responses
+
+**Log Files**:
+- `log_files/T013.3_DockerStatusChecking_Log.md`
+- `log_tests/T013.3_DockerStatusChecking_TestLog.md`
+- `log_learn/T013.3_DockerStatusChecking_Guide.md`
 
 ---
 
@@ -2217,7 +2263,7 @@ Tasks 13, 14, 15, 16 ──────────────────→ T
 - [x] **Phase 2**: MCP Container (Tasks 4-9) — 34/34 subtasks ✓
 - [x] **Phase 3**: Windows Bridge (Tasks 10-12) — 22/22 subtasks ✓
 - [ ] **Phase 4**: Licensing & Protection (Tasks 15-16) — 0/14 subtasks
-- [ ] **Phase 5**: Desktop App (Tasks 13-14) — 1/17 subtasks
+- [ ] **Phase 5**: Desktop App (Tasks 13-14) — 3/17 subtasks
 - [ ] **Phase 6**: Deployment (Task 17) — 0/10 subtasks
 
 ---
@@ -2283,6 +2329,8 @@ Tasks 13, 14, 15, 16 ──────────────────→ T
 | Subtask 9.8: API Integration Tests | 2025-12-07 | Comprehensive endpoint tests, file upload, mocking, CORS, 19 tests passing |
 | **Task 9 Complete** | 2025-12-07 | All 8 subtasks done, 134 tests passing for Task 9 |
 | Subtask 13.1: Electron Init | 2025-12-07 | Vite config, preload.ts, main.tsx, index.css, Tailwind setup, 26 tests passing |
+| Subtask 13.2: Main Process | 2025-12-07 | Window management, IPC handlers, menu, security, 22 tests |
+| Subtask 13.3: Docker Status | 2025-12-07 | DockerManager class, docker ps/info/inspect, timeout handling, 35 tests |
 | Subtask 10.1-10.8: SDK Interop | 2025-12-07 | ISdkInterop, SdkInterop, MockSdkInterop, SdkResult<T>, 14 tests |
 | **Task 10 Complete** | 2025-12-07 | All 8 subtasks done, interface abstraction for testability |
 | Subtask 11.1-11.7: Job Queue | 2025-12-07 | JobQueueService with SDK lifecycle, retry logic, graceful shutdown, 9 tests |
