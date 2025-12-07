@@ -1313,7 +1313,7 @@ The core logic that orchestrates OCR and both AI models for complete invoice ext
 
 ### Subtasks
 
-- [ ] 8.1 Create InvoiceInferenceEngine class in inference.py
+- [x] 8.1 Create InvoiceInferenceEngine class in inference.py
   ```python
   <!-- IMPLEMENTATION STEPS:
   Create mcp-container/src/inference.py:
@@ -2146,7 +2146,7 @@ Tasks 13, 14, 15, 16 ──────────────────→ T
 ## Progress Tracking
 
 - [x] **Phase 1**: Setup & Data (Tasks 1-3) — 19/19 subtasks ✓
-- [ ] **Phase 2**: MCP Container (Tasks 4-9) — 18/38 subtasks
+- [ ] **Phase 2**: MCP Container (Tasks 4-9) — 19/38 subtasks
 - [ ] **Phase 3**: Windows Bridge (Tasks 10-12) — 0/22 subtasks
 - [ ] **Phase 4**: Licensing & Protection (Tasks 15-16) — 0/14 subtasks
 - [ ] **Phase 5**: Desktop App (Tasks 13-14) — 0/17 subtasks
@@ -2196,3 +2196,4 @@ Tasks 13, 14, 15, 16 ──────────────────→ T
 | Subtask 7.3: Inference | 2025-12-07 | predict() method, box normalization 0-1000, word_ids() handling, softmax confidence, 18 tests passing |
 | Subtask 7.4: Field Extraction | 2025-12-07 | extract_fields(), _merge_tokens(), BIO tag grouping, bbox union, confidence averaging, 34 tests passing |
 | **Task 7 Complete** | 2025-12-07 | All 4 subtasks done, 118 total tests passing |
+| Subtask 8.1: Inference Engine | 2025-12-07 | inference.py, InvoiceResult dataclass, InvoiceInferenceEngine class, lazy loading, 31 tests passing |
