@@ -156,3 +156,28 @@ class InvoiceInferenceEngine:
             'table': table_bounds,
             'rows': rows
         }
+
+    def _extract_fields(
+        self,
+        image: Any,
+        words: List[str],
+        boxes: List[tuple]
+    ) -> Dict:
+        """
+        Extract labeled fields using LayoutLM.
+
+        Args:
+            image: PIL Image to process
+            words: List of word strings from OCR
+            boxes: List of bounding box tuples (x1, y1, x2, y2)
+
+        Returns:
+            Dictionary mapping field names to ExtractedField objects
+        """
+        logger.debug("Extracting fields with LayoutLM...")
+
+        predictions = self.layoutlm.predict(image, words, boxes)
+        fields = self.layoutlm.extract_fields(predictions)
+
+        logger.debug(f"Extracted fields: {list(fields.keys())}")
+        return fields
