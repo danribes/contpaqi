@@ -4,6 +4,7 @@
  * Subtask 13.3: Docker status checking
  * Subtask 13.4: Container lifecycle management
  * Subtask 13.5: Handle Docker daemon not running scenario
+ * Subtask 13.6: Implement health check polling with retry
  *
  * Exposes safe APIs to the renderer process via contextBridge.
  * This is the only way for the renderer to communicate with the main process
@@ -44,6 +45,39 @@ export interface DockerError {
   originalError?: string;
 }
 
+/**
+ * Health status values
+ */
+export type HealthStatus = 'healthy' | 'unhealthy' | 'error' | 'unknown';
+
+/**
+ * Health check result
+ */
+export interface HealthCheckResult {
+  healthy: boolean;
+  status?: string;
+  error?: string;
+  retryCount?: number;
+  timestamp: string;
+}
+
+/**
+ * Health status info from the manager
+ */
+export interface HealthStatusInfo {
+  status: HealthStatus;
+  isPolling: boolean;
+  lastCheckTime: string | null;
+}
+
+/**
+ * Health status change event
+ */
+export interface HealthStatusChangeEvent {
+  status: HealthStatus;
+  error?: string;
+}
+
 // Expose protected methods to the renderer process
 contextBridge.exposeInMainWorld('electronAPI', {
   // Docker management
@@ -55,6 +89,23 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   // Health check
   healthCheck: () => ipcRenderer.invoke('health:check'),
+  healthCheckWithRetry: (options?: object) => ipcRenderer.invoke('health:checkWithRetry', options),
+  waitForHealthy: (options?: object) => ipcRenderer.invoke('health:waitForHealthy', options),
+  startHealthPolling: (intervalMs?: number) => ipcRenderer.invoke('health:startPolling', intervalMs),
+  stopHealthPolling: () => ipcRenderer.invoke('health:stopPolling'),
+  getHealthStatus: () => ipcRenderer.invoke('health:getStatus'),
+
+  // Health status change listener
+  onHealthStatusChange: (callback: (event: { status: string; error?: string }) => void) => {
+    ipcRenderer.on('health:statusChanged', (_event, data) => callback(data));
+  },
+  onHealthError: (callback: (event: { error: string }) => void) => {
+    ipcRenderer.on('health:error', (_event, data) => callback(data));
+  },
+  removeHealthListeners: () => {
+    ipcRenderer.removeAllListeners('health:statusChanged');
+    ipcRenderer.removeAllListeners('health:error');
+  },
 
   // File handling
   selectFiles: () => ipcRenderer.invoke('dialog:selectFiles'),
@@ -90,7 +141,17 @@ declare global {
       getDaemonError: () => Promise<DockerError | null>;
 
       // Health check
-      healthCheck: () => Promise<{ healthy: boolean; status?: string; error?: string }>;
+      healthCheck: () => Promise<HealthCheckResult>;
+      healthCheckWithRetry: (options?: object) => Promise<HealthCheckResult>;
+      waitForHealthy: (options?: object) => Promise<{ success: boolean; checkCount: number; error?: string }>;
+      startHealthPolling: (intervalMs?: number) => Promise<{ success: boolean }>;
+      stopHealthPolling: () => Promise<{ success: boolean }>;
+      getHealthStatus: () => Promise<HealthStatusInfo>;
+
+      // Health status listeners
+      onHealthStatusChange: (callback: (event: HealthStatusChangeEvent) => void) => void;
+      onHealthError: (callback: (event: { error: string }) => void) => void;
+      removeHealthListeners: () => void;
 
       // File handling
       selectFiles: () => Promise<string[]>;
