@@ -1,9 +1,17 @@
-import { useState, useEffect } from 'react';
+/**
+ * Main Application Component
+ * Subtask 13.5: Handle Docker daemon not running scenario
+ */
 
-type DockerStatus = 'checking' | 'running' | 'stopped' | 'error';
+import { useState, useEffect } from 'react';
+import { DockerErrorOverlay, DockerError } from './components/DockerStatusAlert';
+
+type DockerStatus = 'checking' | 'running' | 'stopped' | 'docker_error';
 
 function App() {
   const [dockerStatus, setDockerStatus] = useState<DockerStatus>('checking');
+  const [dockerError, setDockerError] = useState<DockerError | null>(null);
+  const [isRetrying, setIsRetrying] = useState(false);
 
   useEffect(() => {
     checkDockerStatus();
@@ -11,13 +19,52 @@ function App() {
 
   const checkDockerStatus = async () => {
     setDockerStatus('checking');
+    setDockerError(null);
+
     try {
       // @ts-expect-error - electronAPI is injected by preload
-      const isRunning = await window.electronAPI?.dockerStatus?.();
+      const electronAPI = window.electronAPI;
+
+      if (!electronAPI) {
+        // Running in browser without Electron
+        setDockerError({
+          code: 'UNKNOWN_ERROR',
+          message: 'Electron API not available',
+          suggestion: 'Please run this application using the Electron desktop app.',
+        });
+        setDockerStatus('docker_error');
+        return;
+      }
+
+      // First check if there's a daemon error
+      if (electronAPI.getDaemonError) {
+        const error = await electronAPI.getDaemonError();
+        if (error) {
+          setDockerError(error);
+          setDockerStatus('docker_error');
+          return;
+        }
+      }
+
+      // Check Docker status
+      const isRunning = await electronAPI.dockerStatus?.();
       setDockerStatus(isRunning ? 'running' : 'stopped');
-    } catch {
-      setDockerStatus('error');
+    } catch (err) {
+      // Handle unexpected errors
+      setDockerError({
+        code: 'UNKNOWN_ERROR',
+        message: 'Failed to check Docker status',
+        suggestion: 'Please ensure Docker Desktop is installed and running.',
+        originalError: err instanceof Error ? err.message : String(err),
+      });
+      setDockerStatus('docker_error');
     }
+  };
+
+  const handleRetry = async () => {
+    setIsRetrying(true);
+    await checkDockerStatus();
+    setIsRetrying(false);
   };
 
   const getStatusColor = () => {
@@ -26,12 +73,23 @@ function App() {
         return 'bg-green-500';
       case 'stopped':
         return 'bg-yellow-500';
-      case 'error':
+      case 'docker_error':
         return 'bg-red-500';
       default:
         return 'bg-gray-400';
     }
   };
+
+  // Show full-page error overlay when Docker is not available
+  if (dockerStatus === 'docker_error' && dockerError) {
+    return (
+      <DockerErrorOverlay
+        error={dockerError}
+        onRetry={handleRetry}
+        isRetrying={isRetrying}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -41,7 +99,9 @@ function App() {
           <h1 className="text-2xl font-bold">Contpaqi AI Bridge</h1>
           <div className="flex items-center gap-2">
             <span className={`w-3 h-3 rounded-full ${getStatusColor()}`}></span>
-            <span className="text-sm capitalize">{dockerStatus}</span>
+            <span className="text-sm capitalize">
+              {dockerStatus === 'checking' ? 'Checking...' : dockerStatus}
+            </span>
           </div>
         </div>
       </header>
