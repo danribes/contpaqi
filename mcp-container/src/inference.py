@@ -299,6 +299,47 @@ class InvoiceInferenceEngine:
             'raw_words': row_words
         }
 
+    def _calculate_confidence(
+        self,
+        fields: Dict,
+        ocr_confidences: List[float]
+    ) -> float:
+        """
+        Calculate overall extraction confidence.
+
+        Combines three factors:
+        - OCR confidence: Average of all OCR word confidence scores
+        - Field confidence: Average of extracted field confidence scores
+        - Required fields: Proportion of required fields present
+
+        Args:
+            fields: Dictionary of field name to ExtractedField objects
+            ocr_confidences: List of OCR confidence scores (0.0 to 1.0)
+
+        Returns:
+            Overall confidence score between 0.0 and 1.0
+        """
+        scores = []
+
+        # OCR confidence (average of all word confidences)
+        if ocr_confidences:
+            ocr_avg = sum(ocr_confidences) / len(ocr_confidences)
+            scores.append(ocr_avg)
+
+        # Field extraction confidence (average of field confidences)
+        for field in fields.values():
+            if hasattr(field, 'confidence'):
+                scores.append(field.confidence)
+
+        # Required fields presence score
+        required = ['RFC_EMISOR', 'RFC_RECEPTOR', 'TOTAL']
+        present = sum(1 for r in required if r in fields)
+        required_score = present / len(required)
+        scores.append(required_score)
+
+        # Return average of all scores, or 0.0 if no scores
+        return sum(scores) / len(scores) if scores else 0.0
+
     def predict(self, image: Any) -> InvoiceResult:
         """
         Run complete invoice extraction pipeline.
@@ -327,10 +368,8 @@ class InvoiceInferenceEngine:
         # Step 4: Assign words to rows - build line items
         rows = self._assign_words_to_rows(words, boxes, table_structure['rows'])
 
-        # Step 5: Calculate confidence from OCR scores
-        confidence = 0.0
-        if ocr_conf:
-            confidence = sum(ocr_conf) / len(ocr_conf)
+        # Step 5: Calculate overall confidence
+        confidence = self._calculate_confidence(fields, ocr_conf)
 
         # Step 6: Build result
         result = InvoiceResult(

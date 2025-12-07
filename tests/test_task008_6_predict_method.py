@@ -307,6 +307,7 @@ class TestPredictResultFields:
 
         mock_rfc = Mock()
         mock_rfc.value = 'XAXX010101000'
+        mock_rfc.confidence = 0.9
 
         engine._run_ocr = Mock(return_value=(['RFC'], [(0, 0, 30, 10)], [0.9]))
         engine._detect_table_structure = Mock(return_value={'table': None, 'rows': []})
@@ -323,6 +324,7 @@ class TestPredictResultFields:
 
         mock_rfc = Mock()
         mock_rfc.value = 'CACX7605101P8'
+        mock_rfc.confidence = 0.9
 
         engine._run_ocr = Mock(return_value=(['RFC'], [(0, 0, 30, 10)], [0.9]))
         engine._detect_table_structure = Mock(return_value={'table': None, 'rows': []})
@@ -339,6 +341,7 @@ class TestPredictResultFields:
 
         mock_date = Mock()
         mock_date.value = '01/01/2024'
+        mock_date.confidence = 0.9
 
         engine._run_ocr = Mock(return_value=(['Fecha'], [(0, 0, 40, 10)], [0.9]))
         engine._detect_table_structure = Mock(return_value={'table': None, 'rows': []})
@@ -355,10 +358,13 @@ class TestPredictResultFields:
 
         mock_subtotal = Mock()
         mock_subtotal.value = '1000.00'
+        mock_subtotal.confidence = 0.9
         mock_iva = Mock()
         mock_iva.value = '160.00'
+        mock_iva.confidence = 0.9
         mock_total = Mock()
         mock_total.value = '1160.00'
+        mock_total.confidence = 0.9
 
         engine._run_ocr = Mock(return_value=(['Total'], [(0, 0, 40, 10)], [0.9]))
         engine._detect_table_structure = Mock(return_value={'table': None, 'rows': []})
@@ -497,10 +503,13 @@ class TestPredictIntegration:
         # Mock fields
         mock_rfc = Mock()
         mock_rfc.value = 'XAXX010101000'
+        mock_rfc.confidence = 0.92
         mock_date = Mock()
         mock_date.value = '01/01/2024'
+        mock_date.confidence = 0.90
         mock_total = Mock()
         mock_total.value = '$1,160.00'
+        mock_total.confidence = 0.95
 
         fields = {
             'RFC_EMISOR': mock_rfc,
