@@ -1669,7 +1669,7 @@ FastAPI interface that receives PDF files and enforces data validation.
   -->
   ```
 
-- [ ] 9.3 Implement POST /process_pdf endpoint
+- [x] 9.3 Implement POST /process_pdf endpoint
   ```python
   <!-- IMPLEMENTATION STEPS:
   Add to main.py:
@@ -2146,7 +2146,7 @@ Tasks 13, 14, 15, 16 ──────────────────→ T
 ## Progress Tracking
 
 - [x] **Phase 1**: Setup & Data (Tasks 1-3) — 19/19 subtasks ✓
-- [ ] **Phase 2**: MCP Container (Tasks 4-9) — 28/38 subtasks
+- [ ] **Phase 2**: MCP Container (Tasks 4-9) — 29/38 subtasks
 - [ ] **Phase 3**: Windows Bridge (Tasks 10-12) — 0/22 subtasks
 - [ ] **Phase 4**: Licensing & Protection (Tasks 15-16) — 0/14 subtasks
 - [ ] **Phase 5**: Desktop App (Tasks 13-14) — 0/17 subtasks
@@ -2207,3 +2207,4 @@ Tasks 13, 14, 15, 16 ──────────────────→ T
 | **Task 8 Complete** | 2025-12-07 | All 8 subtasks done, 170 total tests passing |
 | Subtask 9.1: FastAPI App | 2025-12-07 | main.py, CORS, health check, /api/v1/process route, 20 tests passing |
 | Subtask 9.2: Pydantic Schemas | 2025-12-07 | LineItem, Invoice, ValidationResult, InvoiceResponse, ErrorResponse, 22 tests passing |
+| Subtask 9.3: Process PDF Endpoint | 2025-12-07 | POST /process_pdf, file validation, PDF to image, engine integration, 14 tests passing |
