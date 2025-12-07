@@ -9,7 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 import logging
 from typing import Optional
-from datetime import date
+from datetime import date, datetime
 
 # PDF processing imports
 try:
@@ -135,11 +135,32 @@ async def root():
 async def health_check():
     """
     Health check endpoint for container orchestration.
+
+    Returns system health status regardless of model state.
+    Use /ready to check if models are loaded and ready.
     """
     return {
         "status": "healthy",
-        "engine_loaded": engine is not None
+        "timestamp": datetime.utcnow().isoformat(),
+        "version": "1.0.0",
+        "models_loaded": engine is not None
     }
+
+
+@app.get("/ready")
+async def readiness_check():
+    """
+    Readiness check endpoint - confirms models are loaded.
+
+    Returns 503 if the inference engine is not initialized.
+    Use this endpoint for orchestration readiness probes.
+    """
+    if engine is None:
+        raise HTTPException(
+            status_code=503,
+            detail="Inference engine not initialized"
+        )
+    return {"status": "ready"}
 
 
 @app.post("/api/v1/process")
