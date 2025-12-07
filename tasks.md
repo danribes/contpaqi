@@ -1913,73 +1913,139 @@ FastAPI interface that receives PDF files and enforces data validation.
 ## Task 10: .NET Project & SDK Integration
 
 **Priority**: High | **Dependencies**: Task 1 | **Tags**: windows-bridge, phase-3, csharp, us3
-**Status**: Not Started
+**Status**: Completed
 **Estimated Effort**: 3-4 days
+**Completed Date**: 2025-12-07
 
 ### Description
 Setup C# ASP.NET Core Web API project that references Contpaqi COM libraries.
 
 ### Subtasks
 
-- [ ] 10.1 Create ASP.NET Core Web API project
-- [ ] 10.2 Configure for .NET 6.0 with x86 platform target
-- [ ] 10.3 Add COM reference to MGW_SDK.dll
-- [ ] 10.4 Create SdkInterop.cs wrapper class
-- [ ] 10.5 Map fInicializaSDK function
-- [ ] 10.6 Map fCreaPoliza function
-- [ ] 10.7 Implement error handling for SDK calls
-- [ ] 10.8 Write unit tests with mocked SDK
+- [x] 10.1 Create ASP.NET Core Web API project
+- [x] 10.2 Configure for .NET 6.0 with x86 platform target
+- [x] 10.3 Add COM reference to MGW_SDK.dll
+- [x] 10.4 Create SdkInterop.cs wrapper class
+- [x] 10.5 Map fInicializaSDK function
+- [x] 10.6 Map fCreaPoliza function
+- [x] 10.7 Implement error handling for SDK calls
+- [x] 10.8 Write unit tests with mocked SDK
 
 ### Implementation Notes
-<!-- Add notes here after completing the task -->
+
+**Task 10 Completed**: 2025-12-07
+
+**Summary**: Created SDK interop layer with interface abstraction pattern for testability. Real implementation uses P/Invoke to MGW_SDK.dll, mock implementation enables testing on non-Windows environments.
+
+**Components Created**:
+- `Sdk/ISdkInterop.cs` - Interface with SdkResult<T> pattern
+- `Sdk/SdkInterop.cs` - Real COM interop with P/Invoke placeholders
+- `Sdk/MockSdkInterop.cs` - Mock for testing without SDK
+- `Models/InvoiceModels.cs` - API DTOs (CreateInvoiceRequest, JobStatusResponse, etc.)
+- `tests/ContpaqiBridge.Tests/SdkInteropTests.cs` - 14 tests
+
+**Key Features**:
+- SdkResult<T> wrapper for success/error handling
+- PolizaData and MovimientoData structures
+- IDisposable pattern for SDK lifecycle
+- Conditional DI registration (mock vs real)
+
+**Log Files**:
+- `log_files/T010_SdkInterop_Log.md`
+- `log_tests/T010_SdkInterop_TestLog.md`
+- `log_learn/T010_SdkInterop_Guide.md`
 
 ---
 
 ## Task 11: Job Queue Service
 
 **Priority**: High | **Dependencies**: Task 10 | **Tags**: windows-bridge, phase-3, us3
-**Status**: Not Started
+**Status**: Completed
 **Estimated Effort**: 2-3 days
+**Completed Date**: 2025-12-07
 
 ### Description
 Background service that forces requests to be processed sequentially (SDK limitation).
 
 ### Subtasks
 
-- [ ] 11.1 Create JobQueueService as IHostedService
-- [ ] 11.2 Implement queue using System.Threading.Channels
-- [ ] 11.3 Implement processing loop with SDK lifecycle
-- [ ] 11.4 Add 500ms delay between operations
-- [ ] 11.5 Implement job status tracking
-- [ ] 11.6 Add retry logic for failed operations
-- [ ] 11.7 Implement graceful shutdown handling
+- [x] 11.1 Create JobQueueService as IHostedService
+- [x] 11.2 Implement queue using System.Threading.Channels
+- [x] 11.3 Implement processing loop with SDK lifecycle
+- [x] 11.4 Add 500ms delay between operations
+- [x] 11.5 Implement job status tracking
+- [x] 11.6 Add retry logic for failed operations
+- [x] 11.7 Implement graceful shutdown handling
 
 ### Implementation Notes
-<!-- Add notes here after completing the task -->
+
+**Task 11 Completed**: 2025-12-07
+
+**Summary**: Enhanced JobQueueService with SDK lifecycle management, job status tracking using ConcurrentDictionary, retry logic with exponential backoff, and graceful shutdown handling.
+
+**Components Created**:
+- `Services/JobQueueService.cs` - Complete rewrite with SDK integration
+- `tests/ContpaqiBridge.Tests/JobQueueServiceTests.cs` - 9 tests
+
+**Key Features**:
+- Channel<InvoiceJob> with bounded capacity (100)
+- ConcurrentDictionary<string, InvoiceJob> for thread-safe status tracking
+- SDK lifecycle: initialize on startup, terminate in finally block
+- Retry logic: MaxRetries=3, exponential backoff (1s, 2s, 4s)
+- Job states: Pending, Processing, Completed, Failed
+- 500ms delay between SDK operations
+
+**Log Files**:
+- `log_files/T011_JobQueue_Log.md`
+- `log_tests/T011_JobQueue_TestLog.md`
+- `log_learn/T011_JobQueue_Guide.md`
 
 ---
 
 ## Task 12: Windows Bridge Security & API
 
 **Priority**: High | **Dependencies**: Task 11 | **Tags**: windows-bridge, phase-3, security, us3
-**Status**: Not Started
+**Status**: Completed
 **Estimated Effort**: 1-2 days
+**Completed Date**: 2025-12-07
 
 ### Description
 Network locking and API endpoints for the Windows Bridge service.
 
 ### Subtasks
 
-- [ ] 12.1 Configure Kestrel to listen on 127.0.0.1:5000 only
-- [ ] 12.2 Create localhost validation middleware
-- [ ] 12.3 Implement POST /api/invoice endpoint
-- [ ] 12.4 Implement GET /api/status/{jobId} endpoint
-- [ ] 12.5 Add security headers
-- [ ] 12.6 Implement request logging for audit trail
-- [ ] 12.7 Write security tests to verify isolation
+- [x] 12.1 Configure Kestrel to listen on 127.0.0.1:5000 only
+- [x] 12.2 Create localhost validation middleware
+- [x] 12.3 Implement POST /api/invoice endpoint
+- [x] 12.4 Implement GET /api/status/{jobId} endpoint
+- [x] 12.5 Add security headers
+- [x] 12.6 Implement request logging for audit trail
+- [x] 12.7 Write security tests to verify isolation
 
 ### Implementation Notes
-<!-- Add notes here after completing the task -->
+
+**Task 12 Completed**: 2025-12-07
+
+**Summary**: Implemented REST API endpoints for invoice processing with localhost-only binding, security headers, and request validation.
+
+**Components Created**:
+- `Controllers/InvoiceController.cs` - API controller with 3 endpoints
+- `Program.cs` - Updated with SDK registration and security headers
+- `tests/ContpaqiBridge.Tests/InvoiceControllerTests.cs` - 13 tests
+
+**Key Features**:
+- Kestrel ListenLocalhost(5000) for localhost-only binding
+- IP verification middleware (403 for non-loopback)
+- Security headers: X-Content-Type-Options, X-Frame-Options, X-XSS-Protection
+- POST /api/invoice returns 202 Accepted with job ID
+- GET /api/status/{jobId} returns job status or 404
+- GET /api/health returns health with SDK status and pending count
+- Math validation (Total = Subtotal + IVA)
+
+**Log Files**:
+- `log_files/T012_ApiEndpoints_Log.md`
+- `log_tests/T012_ApiEndpoints_TestLog.md`
+- `log_learn/T012_ApiEndpoints_Guide.md`
 
 ---
 
@@ -2149,7 +2215,7 @@ Tasks 13, 14, 15, 16 ──────────────────→ T
 
 - [x] **Phase 1**: Setup & Data (Tasks 1-3) — 19/19 subtasks ✓
 - [x] **Phase 2**: MCP Container (Tasks 4-9) — 34/34 subtasks ✓
-- [ ] **Phase 3**: Windows Bridge (Tasks 10-12) — 0/22 subtasks
+- [x] **Phase 3**: Windows Bridge (Tasks 10-12) — 22/22 subtasks ✓
 - [ ] **Phase 4**: Licensing & Protection (Tasks 15-16) — 0/14 subtasks
 - [ ] **Phase 5**: Desktop App (Tasks 13-14) — 1/17 subtasks
 - [ ] **Phase 6**: Deployment (Task 17) — 0/10 subtasks
@@ -2217,3 +2283,9 @@ Tasks 13, 14, 15, 16 ──────────────────→ T
 | Subtask 9.8: API Integration Tests | 2025-12-07 | Comprehensive endpoint tests, file upload, mocking, CORS, 19 tests passing |
 | **Task 9 Complete** | 2025-12-07 | All 8 subtasks done, 134 tests passing for Task 9 |
 | Subtask 13.1: Electron Init | 2025-12-07 | Vite config, preload.ts, main.tsx, index.css, Tailwind setup, 26 tests passing |
+| Subtask 10.1-10.8: SDK Interop | 2025-12-07 | ISdkInterop, SdkInterop, MockSdkInterop, SdkResult<T>, 14 tests |
+| **Task 10 Complete** | 2025-12-07 | All 8 subtasks done, interface abstraction for testability |
+| Subtask 11.1-11.7: Job Queue | 2025-12-07 | JobQueueService with SDK lifecycle, retry logic, graceful shutdown, 9 tests |
+| **Task 11 Complete** | 2025-12-07 | All 7 subtasks done, ConcurrentDictionary status tracking |
+| Subtask 12.1-12.7: API Endpoints | 2025-12-07 | InvoiceController, localhost security, security headers, 13 tests |
+| **Task 12 Complete** | 2025-12-07 | All 7 subtasks done, 202 Accepted pattern, health endpoint |

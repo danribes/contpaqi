@@ -1,3 +1,4 @@
+using ContpaqiBridge.Sdk;
 using ContpaqiBridge.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -13,7 +14,21 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Register custom services
+// Register SDK interop (use mock for testing/non-Windows environments)
+#if DEBUG
+if (Environment.GetEnvironmentVariable("USE_MOCK_SDK") == "true" || !OperatingSystem.IsWindows())
+{
+    builder.Services.AddSingleton<ISdkInterop, MockSdkInterop>();
+}
+else
+{
+    builder.Services.AddSingleton<ISdkInterop, SdkInterop>();
+}
+#else
+builder.Services.AddSingleton<ISdkInterop, SdkInterop>();
+#endif
+
+// Register job queue service
 builder.Services.AddSingleton<JobQueueService>();
 builder.Services.AddHostedService(sp => sp.GetRequiredService<JobQueueService>());
 
@@ -40,7 +55,19 @@ app.Use(async (context, next) =>
     await next();
 });
 
+// Add security headers
+app.Use(async (context, next) =>
+{
+    context.Response.Headers.Append("X-Content-Type-Options", "nosniff");
+    context.Response.Headers.Append("X-Frame-Options", "DENY");
+    context.Response.Headers.Append("X-XSS-Protection", "1; mode=block");
+    await next();
+});
+
 app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+// Make Program accessible for integration tests
+public partial class Program { }
