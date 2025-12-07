@@ -2065,7 +2065,7 @@ Desktop app wrapper that manages the Docker background process.
 - [x] 13.1 Initialize Electron + React project with Vite
 - [x] 13.2 Configure Electron main process
 - [x] 13.3 Implement Docker status checking (docker ps)
-- [ ] 13.4 Implement container lifecycle management (start/stop)
+- [x] 13.4 Implement container lifecycle management (start/stop)
 - [ ] 13.5 Handle Docker daemon not running scenario
 - [ ] 13.6 Implement health check polling with retry
 - [ ] 13.7 Create status indicators (Starting/Ready/Error)
@@ -2118,6 +2118,30 @@ Desktop app wrapper that manages the Docker background process.
 - `log_files/T013.3_DockerStatusChecking_Log.md`
 - `log_tests/T013.3_DockerStatusChecking_TestLog.md`
 - `log_learn/T013.3_DockerStatusChecking_Guide.md`
+
+**Subtask 13.4 Completed**: 2025-12-07
+
+**Summary**: Implemented container lifecycle management (start/stop/restart) using docker-compose commands.
+
+**Components Created/Updated**:
+- `electron/docker-manager.ts` - Added lifecycle methods (270+ lines)
+- `electron/main.ts` - Updated to use DockerManager lifecycle
+- `electron/preload.ts` - Added dockerRestart IPC bridge
+- `tests/docker-lifecycle.test.ts` - 30 unit tests
+
+**Key Features**:
+- startContainer() with options: build, forceRecreate, env
+- stopContainer() with options: removeVolumes, removeOrphans
+- restartContainer() - stop then start sequence
+- pullImages() and buildImages() helpers
+- Docker Compose v1/v2 support
+- 30-second timeout for lifecycle operations
+- IPC handler for docker:restart
+
+**Log Files**:
+- `log_files/T013.4_ContainerLifecycle_Log.md`
+- `log_tests/T013.4_ContainerLifecycle_TestLog.md`
+- `log_learn/T013.4_ContainerLifecycle_Guide.md`
 
 ---
 
@@ -2263,7 +2287,7 @@ Tasks 13, 14, 15, 16 ──────────────────→ T
 - [x] **Phase 2**: MCP Container (Tasks 4-9) — 34/34 subtasks ✓
 - [x] **Phase 3**: Windows Bridge (Tasks 10-12) — 22/22 subtasks ✓
 - [ ] **Phase 4**: Licensing & Protection (Tasks 15-16) — 0/14 subtasks
-- [ ] **Phase 5**: Desktop App (Tasks 13-14) — 3/17 subtasks
+- [ ] **Phase 5**: Desktop App (Tasks 13-14) — 4/17 subtasks
 - [ ] **Phase 6**: Deployment (Task 17) — 0/10 subtasks
 
 ---
@@ -2331,6 +2355,7 @@ Tasks 13, 14, 15, 16 ──────────────────→ T
 | Subtask 13.1: Electron Init | 2025-12-07 | Vite config, preload.ts, main.tsx, index.css, Tailwind setup, 26 tests passing |
 | Subtask 13.2: Main Process | 2025-12-07 | Window management, IPC handlers, menu, security, 22 tests |
 | Subtask 13.3: Docker Status | 2025-12-07 | DockerManager class, docker ps/info/inspect, timeout handling, 35 tests |
+| Subtask 13.4: Container Lifecycle | 2025-12-07 | start/stop/restart, docker-compose v1/v2, env vars, 30 tests |
 | Subtask 10.1-10.8: SDK Interop | 2025-12-07 | ISdkInterop, SdkInterop, MockSdkInterop, SdkResult<T>, 14 tests |
 | **Task 10 Complete** | 2025-12-07 | All 8 subtasks done, interface abstraction for testability |
 | Subtask 11.1-11.7: Job Queue | 2025-12-07 | JobQueueService with SDK lifecycle, retry logic, graceful shutdown, 9 tests |

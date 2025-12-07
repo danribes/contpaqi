@@ -2,6 +2,7 @@
  * Electron Preload Script
  * Subtask 13.2: Configure Electron main process
  * Subtask 13.3: Docker status checking
+ * Subtask 13.4: Container lifecycle management
  *
  * Exposes safe APIs to the renderer process via contextBridge.
  * This is the only way for the renderer to communicate with the main process
@@ -29,6 +30,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   dockerStatus: () => ipcRenderer.invoke('docker:status'),
   dockerStart: () => ipcRenderer.invoke('docker:start'),
   dockerStop: () => ipcRenderer.invoke('docker:stop'),
+  dockerRestart: () => ipcRenderer.invoke('docker:restart'),
 
   // Health check
   healthCheck: () => ipcRenderer.invoke('health:check'),
@@ -63,6 +65,7 @@ declare global {
       dockerStatus: () => Promise<DockerStatusInfo>;
       dockerStart: () => Promise<{ success: boolean; error?: string }>;
       dockerStop: () => Promise<{ success: boolean; error?: string }>;
+      dockerRestart: () => Promise<{ success: boolean; error?: string }>;
 
       // Health check
       healthCheck: () => Promise<{ healthy: boolean; status?: string; error?: string }>;
