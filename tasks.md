@@ -1305,8 +1305,9 @@ Implement LayoutLMv3 model for token classification and field extraction.
 ## Task 8: Inference Pipeline
 
 **Priority**: High | **Dependencies**: Tasks 5, 6, 7 | **Tags**: mcp-container, phase-2, us1
-**Status**: Not Started
+**Status**: Completed
 **Estimated Effort**: 3-4 days
+**Completed Date**: 2025-12-07
 
 ### Description
 The core logic that orchestrates OCR and both AI models for complete invoice extraction.
@@ -1572,8 +1573,9 @@ The core logic that orchestrates OCR and both AI models for complete invoice ext
 ## Task 9: MCP Container API & Validation
 
 **Priority**: High | **Dependencies**: Task 8 | **Tags**: mcp-container, phase-2, api, us1, us2
-**Status**: Not Started
+**Status**: Completed
 **Estimated Effort**: 2-3 days
+**Completed Date**: 2025-12-07
 
 ### Description
 FastAPI interface that receives PDF files and enforces data validation.
@@ -1855,7 +1857,7 @@ FastAPI interface that receives PDF files and enforces data validation.
   -->
   ```
 
-- [ ] 9.8 Write API integration tests
+- [x] 9.8 Write API integration tests
   ```python
   <!-- IMPLEMENTATION STEPS:
   Create mcp-container/tests/test_api.py:
@@ -2146,7 +2148,7 @@ Tasks 13, 14, 15, 16 ──────────────────→ T
 ## Progress Tracking
 
 - [x] **Phase 1**: Setup & Data (Tasks 1-3) — 19/19 subtasks ✓
-- [ ] **Phase 2**: MCP Container (Tasks 4-9) — 33/38 subtasks
+- [ ] **Phase 2**: MCP Container (Tasks 4-9) — 34/38 subtasks
 - [ ] **Phase 3**: Windows Bridge (Tasks 10-12) — 0/22 subtasks
 - [ ] **Phase 4**: Licensing & Protection (Tasks 15-16) — 0/14 subtasks
 - [ ] **Phase 5**: Desktop App (Tasks 13-14) — 0/17 subtasks
@@ -2212,3 +2214,5 @@ Tasks 13, 14, 15, 16 ──────────────────→ T
 | Subtask 9.5: Math Verification | 2025-12-07 | validate_math, validate_iva_rate, validate_line_items_sum, 0.01 tolerance, 25 tests passing |
 | Subtask 9.6: Health Endpoint | 2025-12-07 | Enhanced /health with timestamp/version, added /ready endpoint, 15 tests passing |
 | Subtask 9.7: Error Handling | 2025-12-07 | Exception handlers, request logging middleware, JSONResponse errors, 16 tests passing |
+| Subtask 9.8: API Integration Tests | 2025-12-07 | Comprehensive endpoint tests, file upload, mocking, CORS, 19 tests passing |
+| **Task 9 Complete** | 2025-12-07 | All 8 subtasks done, 134 tests passing for Task 9 |
