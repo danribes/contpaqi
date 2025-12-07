@@ -3,6 +3,7 @@
  * Subtask 13.2: Configure Electron main process
  * Subtask 13.3: Docker status checking
  * Subtask 13.5: Handle Docker daemon not running scenario
+ * Subtask 13.6: Implement health check polling with retry
  *
  * Handles:
  * - Window creation and lifecycle
@@ -17,6 +18,7 @@ import { app, BrowserWindow, ipcMain, dialog, Menu, shell } from 'electron';
 import * as path from 'path';
 import { spawn, ChildProcess } from 'child_process';
 import { DockerManager, DockerStatus } from './docker-manager';
+import { HealthCheckManager, HealthStatus } from './health-check-manager';
 
 // Constants
 const CONTAINER_NAME = 'mcp-container';
@@ -30,6 +32,9 @@ let isQuitting = false;
 
 // Docker Manager instance with compose path
 const dockerManager = new DockerManager(CONTAINER_NAME, 30000, MCP_CONTAINER_PATH);
+
+// Health Check Manager instance
+const healthCheckManager = new HealthCheckManager(HEALTH_URL, { timeoutMs: 5000 });
 
 /**
  * Request single instance lock to prevent multiple app instances
@@ -369,7 +374,47 @@ function registerIpcHandlers(): void {
 
   // Health check
   ipcMain.handle('health:check', async () => {
-    return checkHealth();
+    return healthCheckManager.checkHealth();
+  });
+
+  // Health check with retry
+  ipcMain.handle('health:checkWithRetry', async (_event, options) => {
+    return healthCheckManager.checkHealthWithRetry(options);
+  });
+
+  // Wait for healthy
+  ipcMain.handle('health:waitForHealthy', async (_event, options) => {
+    return healthCheckManager.waitForHealthy(options);
+  });
+
+  // Start health polling
+  ipcMain.handle('health:startPolling', async (_event, intervalMs) => {
+    healthCheckManager.startPolling({
+      intervalMs: intervalMs || 10000,
+      onStatusChange: (status, error) => {
+        // Send status updates to renderer
+        mainWindow?.webContents.send('health:statusChanged', { status, error });
+      },
+      onError: (error) => {
+        mainWindow?.webContents.send('health:error', { error });
+      },
+    });
+    return { success: true };
+  });
+
+  // Stop health polling
+  ipcMain.handle('health:stopPolling', async () => {
+    healthCheckManager.stopPolling();
+    return { success: true };
+  });
+
+  // Get current health status
+  ipcMain.handle('health:getStatus', async () => {
+    return {
+      status: healthCheckManager.getCurrentStatus(),
+      isPolling: healthCheckManager.isPolling(),
+      lastCheckTime: healthCheckManager.getLastCheckTime()?.toISOString() || null,
+    };
   });
 
   // File dialogs

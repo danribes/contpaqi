@@ -2067,7 +2067,7 @@ Desktop app wrapper that manages the Docker background process.
 - [x] 13.3 Implement Docker status checking (docker ps)
 - [x] 13.4 Implement container lifecycle management (start/stop)
 - [x] 13.5 Handle Docker daemon not running scenario
-- [ ] 13.6 Implement health check polling with retry
+- [x] 13.6 Implement health check polling with retry
 - [ ] 13.7 Create status indicators (Starting/Ready/Error)
 
 ### Implementation Notes
@@ -2172,6 +2172,37 @@ Desktop app wrapper that manages the Docker background process.
 - `log_files/T013.5_DockerDaemonHandling_Log.md`
 - `log_tests/T013.5_DockerDaemonHandling_TestLog.md`
 - `log_learn/T013.5_DockerDaemonHandling_Guide.md`
+
+**Subtask 13.6 Completed**: 2025-12-07
+
+**Summary**: Implemented comprehensive health check polling with retry logic, exponential backoff, and status change notifications.
+
+**Components Created/Updated**:
+- `electron/health-check-manager.ts` - New health check module (280 lines)
+- `electron/main.ts` - Added health check IPC handlers
+- `electron/preload.ts` - Added health check API and types
+- `tests/health-check-polling.test.ts` - 32 unit tests
+
+**Key Features**:
+- Single health check with configurable timeout (AbortController)
+- Retry logic with exponential backoff (configurable multiplier)
+- Continuous polling at configurable intervals
+- Status change deduplication (only notifies on actual changes)
+- Wait for healthy utility with timeout
+- IPC event system for pushing status updates to renderer
+- Methods: checkHealth, checkHealthWithRetry, waitForHealthy
+- Polling: startPolling, stopPolling, isPolling, getCurrentStatus
+- Events: health:statusChanged, health:error
+
+**API Endpoints**:
+- health:check, health:checkWithRetry, health:waitForHealthy
+- health:startPolling, health:stopPolling, health:getStatus
+- health:statusChanged (event), health:error (event)
+
+**Log Files**:
+- `log_files/T013.6_HealthCheckPolling_Log.md`
+- `log_tests/T013.6_HealthCheckPolling_TestLog.md`
+- `log_learn/T013.6_HealthCheckPolling_Guide.md`
 
 ---
 
