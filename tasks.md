@@ -1120,7 +1120,7 @@ Implement LayoutLMv3 model for token classification and field extraction.
   -->
   ```
 
-- [ ] 7.2 Implement LayoutLMv3 model loading
+- [x] 7.2 Implement LayoutLMv3 model loading
   ```python
   <!-- IMPLEMENTATION STEPS:
   Add to LayoutLMModel class:
@@ -2118,7 +2118,7 @@ Tasks 13, 14, 15, 16 ──────────────────→ T
 ## Progress Tracking
 
 - [x] **Phase 1**: Setup & Data (Tasks 1-3) — 19/19 subtasks ✓
-- [ ] **Phase 2**: MCP Container (Tasks 4-9) — 15/38 subtasks
+- [ ] **Phase 2**: MCP Container (Tasks 4-9) — 16/38 subtasks
 - [ ] **Phase 3**: Windows Bridge (Tasks 10-12) — 0/22 subtasks
 - [ ] **Phase 4**: Licensing & Protection (Tasks 15-16) — 0/14 subtasks
 - [ ] **Phase 5**: Desktop App (Tasks 13-14) — 0/17 subtasks
@@ -2164,3 +2164,4 @@ Tasks 13, 14, 15, 16 ──────────────────→ T
 | Subtask 6.4: Row Extraction | 2025-12-07 | get_table_rows, get_table_bounds, y-coordinate sorting, 15 tests passing |
 | **Task 6 Complete** | 2025-12-07 | All 4 subtasks done, 85 total tests passing |
 | Subtask 7.1: LayoutLM Module | 2025-12-07 | layoutlm.py structure, ExtractedField dataclass, LayoutLMModel class, 21 BIO labels, 43 tests passing |
+| Subtask 7.2: Model Loading | 2025-12-07 | LayoutLMv3Processor, LayoutLMv3ForTokenClassification, num_labels=21, label2id/id2label mappings, 23 tests passing |
