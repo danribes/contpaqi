@@ -1580,7 +1580,7 @@ FastAPI interface that receives PDF files and enforces data validation.
 
 ### Subtasks
 
-- [ ] 9.1 Create FastAPI application in main.py
+- [x] 9.1 Create FastAPI application in main.py
   ```python
   <!-- IMPLEMENTATION STEPS:
   Create mcp-container/src/main.py:
@@ -2146,7 +2146,7 @@ Tasks 13, 14, 15, 16 ──────────────────→ T
 ## Progress Tracking
 
 - [x] **Phase 1**: Setup & Data (Tasks 1-3) — 19/19 subtasks ✓
-- [ ] **Phase 2**: MCP Container (Tasks 4-9) — 26/38 subtasks
+- [ ] **Phase 2**: MCP Container (Tasks 4-9) — 27/38 subtasks
 - [ ] **Phase 3**: Windows Bridge (Tasks 10-12) — 0/22 subtasks
 - [ ] **Phase 4**: Licensing & Protection (Tasks 15-16) — 0/14 subtasks
 - [ ] **Phase 5**: Desktop App (Tasks 13-14) — 0/17 subtasks
@@ -2205,3 +2205,4 @@ Tasks 13, 14, 15, 16 ──────────────────→ T
 | Subtask 8.7: Confidence Scoring | 2025-12-07 | _calculate_confidence(), OCR+field+required factors, 20 tests passing |
 | Subtask 8.8: Pipeline Tests | 2025-12-07 | mcp-container/tests/test_inference.py, 18 tests passing, 5 skipped |
 | **Task 8 Complete** | 2025-12-07 | All 8 subtasks done, 170 total tests passing |
+| Subtask 9.1: FastAPI App | 2025-12-07 | main.py, CORS, health check, /api/v1/process route, 20 tests passing |
