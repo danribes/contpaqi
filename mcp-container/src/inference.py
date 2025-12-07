@@ -8,7 +8,7 @@ to extract structured data from invoice images.
 from __future__ import annotations
 
 from dataclasses import dataclass, asdict
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Any, Optional, Tuple
 import logging
 
 # Import model classes - may not be available in all environments
@@ -110,3 +110,26 @@ class InvoiceInferenceEngine:
         if LAYOUTLM_AVAILABLE and LayoutLMModel is not None:
             self.layoutlm = LayoutLMModel()
             logger.debug("LayoutLMModel loaded")
+
+    def _run_ocr(self, image: Any) -> tuple:
+        """
+        Extract words and bounding boxes using OCR.
+
+        Args:
+            image: PIL Image to process
+
+        Returns:
+            Tuple of (texts, boxes, confidences) where:
+            - texts: List of word strings
+            - boxes: List of bounding box tuples (x1, y1, x2, y2)
+            - confidences: List of confidence scores (0.0 to 1.0)
+        """
+        logger.debug("Running OCR...")
+        words = self.ocr.extract_words(image)
+
+        texts = [w.text for w in words]
+        boxes = [w.bbox for w in words]
+        confidences = [w.confidence for w in words]
+
+        logger.debug(f"OCR extracted {len(words)} words")
+        return texts, boxes, confidences
