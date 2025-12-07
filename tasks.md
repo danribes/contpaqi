@@ -1454,7 +1454,7 @@ The core logic that orchestrates OCR and both AI models for complete invoice ext
   -->
   ```
 
-- [ ] 8.6 Create predict(image) method combining all steps
+- [x] 8.6 Create predict(image) method combining all steps
   ```python
   <!-- IMPLEMENTATION STEPS:
   Add main prediction method:
@@ -2146,7 +2146,7 @@ Tasks 13, 14, 15, 16 ──────────────────→ T
 ## Progress Tracking
 
 - [x] **Phase 1**: Setup & Data (Tasks 1-3) — 19/19 subtasks ✓
-- [ ] **Phase 2**: MCP Container (Tasks 4-9) — 23/38 subtasks
+- [ ] **Phase 2**: MCP Container (Tasks 4-9) — 24/38 subtasks
 - [ ] **Phase 3**: Windows Bridge (Tasks 10-12) — 0/22 subtasks
 - [ ] **Phase 4**: Licensing & Protection (Tasks 15-16) — 0/14 subtasks
 - [ ] **Phase 5**: Desktop App (Tasks 13-14) — 0/17 subtasks
@@ -2201,3 +2201,4 @@ Tasks 13, 14, 15, 16 ──────────────────→ T
 | Subtask 8.3: TATR Integration | 2025-12-07 | _detect_table_structure() method, table bounds and rows from TATRModel, 16 tests passing |
 | Subtask 8.4: LayoutLM Integration | 2025-12-07 | _extract_fields() method, predict() and extract_fields() from LayoutLMModel, 14 tests passing |
 | Subtask 8.5: Row Intersection | 2025-12-07 | _assign_words_to_rows() method, center Y algorithm, 21 tests passing |
+| Subtask 8.6: Predict Method | 2025-12-07 | predict() pipeline, _get_field_value, _parse_amount, _parse_line_item, 35 tests passing |
