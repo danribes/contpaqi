@@ -5,9 +5,10 @@
  * Subtask 14.1: Create split-screen layout (PDF + form)
  * Subtask 14.2: Implement PDF viewer with react-pdf
  * Subtask 14.3: Create InvoiceForm component with auto-population
+ * Subtask 14.4: Implement confidence-based highlighting (orange <0.90)
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { DockerErrorOverlay, DockerError } from './components/DockerStatusAlert';
 import {
   StatusBadge,
@@ -24,6 +25,12 @@ import {
 } from './components/SplitScreenLayout';
 import { PDFViewer } from './components/PDFViewer';
 import { InvoiceForm, type InvoiceData } from './components/InvoiceForm';
+import {
+  ConfidenceSummary,
+  calculateHighlightConfig,
+  type FieldConfidence,
+  type HighlightConfig,
+} from './components/ConfidenceHighlighting';
 
 type AppView = 'upload' | 'verification';
 
@@ -48,6 +55,45 @@ function App() {
 
   // Invoice data state for auto-population
   const [extractedInvoiceData, setExtractedInvoiceData] = useState<InvoiceData | undefined>(undefined);
+
+  // Active highlight for PDF viewer (syncs with form field focus)
+  const [activeHighlight, setActiveHighlight] = useState<string | undefined>(undefined);
+
+  // Convert extracted data to field confidence array for highlighting
+  const fieldConfidenceData: FieldConfidence[] = useMemo(() => {
+    if (!extractedInvoiceData) return [];
+
+    const fields: FieldConfidence[] = [];
+    const fieldNames: (keyof InvoiceData)[] = [
+      'rfcEmisor', 'rfcReceptor', 'fecha', 'subtotal', 'iva', 'total'
+    ];
+
+    for (const name of fieldNames) {
+      const field = extractedInvoiceData[name];
+      if (field && typeof field === 'object' && 'value' in field) {
+        fields.push({
+          fieldName: name,
+          confidence: field.confidence ?? 0,
+          bbox: field.bbox ? {
+            x1: field.bbox[0],
+            y1: field.bbox[1],
+            x2: field.bbox[2],
+            y2: field.bbox[3],
+          } : undefined,
+          value: field.value,
+        });
+      }
+    }
+
+    return fields;
+  }, [extractedInvoiceData]);
+
+  // Calculate highlight configs for PDF overlay
+  const pdfHighlights: HighlightConfig[] = useMemo(() => {
+    return fieldConfidenceData
+      .map(field => calculateHighlightConfig(field))
+      .filter((config): config is HighlightConfig => config !== null);
+  }, [fieldConfidenceData]);
 
   // Derive the overall app status from Docker and Health statuses
   const appStatus: AppStatus = deriveAppStatus(dockerStatus, healthStatus);
@@ -250,16 +296,39 @@ function App() {
         {/* Split Screen Layout */}
         <div className="flex-1 overflow-hidden">
           <SplitScreenLayout
-            leftPanel={<PDFViewer file={pdfFile} />}
-            rightPanel={
-              <InvoiceForm
-                extractedData={extractedInvoiceData}
-                onSubmit={handleInvoiceSubmit}
-                onFieldFocus={(fieldName, bbox) => {
-                  console.log('Field focused:', fieldName, bbox);
-                  // Future: Highlight bbox in PDF viewer
-                }}
+            leftPanel={
+              <PDFViewer
+                file={pdfFile}
+                highlights={pdfHighlights}
+                activeHighlight={activeHighlight}
               />
+            }
+            rightPanel={
+              <div className="flex flex-col h-full">
+                {/* Confidence Summary - shown when extracted data has confidence */}
+                {fieldConfidenceData.length > 0 && (
+                  <div className="p-3 border-b border-gray-200 bg-white">
+                    <ConfidenceSummary
+                      fields={fieldConfidenceData}
+                      onFieldClick={(fieldName) => {
+                        setActiveHighlight(fieldName);
+                        // Focus the field in the form (TODO: implement ref forwarding)
+                      }}
+                    />
+                  </div>
+                )}
+                {/* Invoice Form */}
+                <div className="flex-1 overflow-auto">
+                  <InvoiceForm
+                    extractedData={extractedInvoiceData}
+                    onSubmit={handleInvoiceSubmit}
+                    onFieldFocus={(fieldName, bbox) => {
+                      setActiveHighlight(fieldName);
+                      console.log('Field focused:', fieldName, bbox);
+                    }}
+                  />
+                </div>
+              </div>
             }
             mode={layoutMode}
             onModeChange={setLayoutMode}

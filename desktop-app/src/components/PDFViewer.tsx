@@ -1,6 +1,7 @@
 /**
  * PDF Viewer Component
  * Subtask 14.2: Implement PDF viewer with react-pdf (zoom, navigation)
+ * Subtask 14.4: Implement confidence-based highlighting (bounding box overlays)
  *
  * Features:
  * - PDF rendering with react-pdf
@@ -8,10 +9,15 @@
  * - Zoom controls (zoom in/out, fit width/page, presets)
  * - Keyboard shortcuts
  * - Loading and error states
+ * - Bounding box highlight overlays for field confidence
  */
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
+import {
+  PDFHighlightOverlay,
+  type HighlightConfig,
+} from './ConfidenceHighlighting';
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
 import 'react-pdf/dist/esm/Page/TextLayer.css';
 
@@ -39,6 +45,10 @@ export interface PDFViewerProps {
   onError?: (error: Error) => void;
   /** Additional CSS classes */
   className?: string;
+  /** Highlight configurations for bounding box overlays */
+  highlights?: HighlightConfig[];
+  /** Currently active/focused field name */
+  activeHighlight?: string;
 }
 
 interface ZoomOptions {
@@ -349,8 +359,11 @@ export function PDFViewer({
   onDocumentLoad,
   onError,
   className = '',
+  highlights = [],
+  activeHighlight,
 }: PDFViewerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const pageRef = useRef<HTMLDivElement>(null);
   const [loadingState, setLoadingState] = useState<LoadingState>('idle');
   const [currentPage, setCurrentPage] = useState(initialPage);
   const [totalPages, setTotalPages] = useState(0);
@@ -602,14 +615,26 @@ export function PDFViewer({
           error=""
           className={loadingState === 'loaded' ? 'py-4' : 'hidden'}
         >
-          <Page
-            pageNumber={currentPage}
-            scale={scale}
-            onLoadSuccess={handlePageLoadSuccess}
-            renderTextLayer={true}
-            renderAnnotationLayer={true}
-            className="shadow-lg"
-          />
+          <div ref={pageRef} className="relative inline-block">
+            <Page
+              pageNumber={currentPage}
+              scale={scale}
+              onLoadSuccess={handlePageLoadSuccess}
+              renderTextLayer={true}
+              renderAnnotationLayer={true}
+              className="shadow-lg"
+            />
+            {/* Confidence highlight overlays */}
+            {highlights.length > 0 && pageSize.width > 0 && (
+              <PDFHighlightOverlay
+                highlights={highlights}
+                activeField={activeHighlight}
+                pageWidth={pageSize.width}
+                pageHeight={pageSize.height}
+                scale={scale}
+              />
+            )}
+          </div>
         </Document>
       </div>
     </div>

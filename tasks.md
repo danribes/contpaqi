@@ -2245,7 +2245,7 @@ Verification screen where users confirm and correct extracted data.
 - [x] 14.1 Create split-screen layout (PDF + form)
 - [x] 14.2 Implement PDF viewer with react-pdf (zoom, navigation)
 - [x] 14.3 Create InvoiceForm component with auto-population
-- [ ] 14.4 Implement confidence-based highlighting (orange <0.90)
+- [x] 14.4 Implement confidence-based highlighting (orange <0.90)
 - [ ] 14.5 Implement math error highlighting (red)
 - [ ] 14.6 Implement validation blocking (disable Submit)
 - [ ] 14.7 Create manual correction interface
@@ -2309,6 +2309,34 @@ Verification screen where users confirm and correct extracted data.
 - `log_files/T014.3_InvoiceForm_Log.md`
 - `log_tests/T014.3_InvoiceForm_TestLog.md`
 - `log_learn/T014.3_InvoiceForm_Guide.md`
+
+---
+
+**Subtask 14.4 Completed**: 2025-12-08
+
+**Summary**: Implemented confidence-based highlighting with synchronized PDF-form highlighting.
+
+**Components Created**:
+- `src/components/ConfidenceHighlighting.tsx` - Utilities and components (~450 lines)
+- `tests/confidence-highlighting.test.ts` - 38 unit tests
+
+**Key Features**:
+- ConfidenceSummary: Overview of field confidence levels
+- ConfidenceBadge: Individual field confidence indicator
+- PDFHighlightOverlay: Bounding box highlighting over PDF
+- FieldHighlightIndicator: Form field visual indicator
+- Form-to-PDF sync: Focus field → highlight in PDF
+- PDF-to-Form sync: Click summary → highlight field
+
+**Confidence Thresholds**:
+- High (>=0.90): Green, 10% opacity - auto-accept
+- Medium (0.70-0.89): Orange, 25% opacity - needs review
+- Low (<0.70): Red, 40% opacity - requires attention
+
+**Log Files**:
+- `log_files/T014.4_ConfidenceHighlighting_Log.md`
+- `log_tests/T014.4_ConfidenceHighlighting_TestLog.md`
+- `log_learn/T014.4_ConfidenceHighlighting_Guide.md`
 
 ---
 
