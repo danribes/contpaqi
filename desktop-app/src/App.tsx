@@ -4,6 +4,7 @@
  * Subtask 13.7: Create status indicators (Starting/Ready/Error)
  * Subtask 14.1: Create split-screen layout (PDF + form)
  * Subtask 14.2: Implement PDF viewer with react-pdf
+ * Subtask 14.3: Create InvoiceForm component with auto-population
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -19,10 +20,10 @@ import {
 } from './components/StatusIndicator';
 import {
   SplitScreenLayout,
-  FormPanelPlaceholder,
   type LayoutMode,
 } from './components/SplitScreenLayout';
 import { PDFViewer } from './components/PDFViewer';
+import { InvoiceForm, type InvoiceData } from './components/InvoiceForm';
 
 type AppView = 'upload' | 'verification';
 
@@ -44,6 +45,9 @@ function App() {
 
   // PDF file state
   const [pdfFile, setPdfFile] = useState<File | null>(null);
+
+  // Invoice data state for auto-population
+  const [extractedInvoiceData, setExtractedInvoiceData] = useState<InvoiceData | undefined>(undefined);
 
   // Derive the overall app status from Docker and Health statuses
   const appStatus: AppStatus = deriveAppStatus(dockerStatus, healthStatus);
@@ -181,6 +185,23 @@ function App() {
     return 'Starting up...';
   };
 
+  // Handle invoice form submission
+  const handleInvoiceSubmit = async (data: InvoiceData) => {
+    console.log('Invoice submitted:', data);
+    // TODO: Send to backend for processing
+    // Future: Call electronAPI to submit invoice to Contpaqi
+    try {
+      // For now, just log the data and return to upload view
+      alert('Invoice data submitted successfully!');
+      setCurrentView('upload');
+      setPdfFile(null);
+      setExtractedInvoiceData(undefined);
+    } catch (err) {
+      console.error('Failed to submit invoice:', err);
+      alert('Failed to submit invoice. Please try again.');
+    }
+  };
+
   // Show full-page error overlay when Docker is not available
   if (dockerStatus === 'docker_error' && dockerError) {
     return (
@@ -230,7 +251,16 @@ function App() {
         <div className="flex-1 overflow-hidden">
           <SplitScreenLayout
             leftPanel={<PDFViewer file={pdfFile} />}
-            rightPanel={<FormPanelPlaceholder />}
+            rightPanel={
+              <InvoiceForm
+                extractedData={extractedInvoiceData}
+                onSubmit={handleInvoiceSubmit}
+                onFieldFocus={(fieldName, bbox) => {
+                  console.log('Field focused:', fieldName, bbox);
+                  // Future: Highlight bbox in PDF viewer
+                }}
+              />
+            }
             mode={layoutMode}
             onModeChange={setLayoutMode}
             leftTitle="PDF Document"
