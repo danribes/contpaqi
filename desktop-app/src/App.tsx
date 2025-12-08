@@ -3,6 +3,7 @@
  * Subtask 13.5: Handle Docker daemon not running scenario
  * Subtask 13.7: Create status indicators (Starting/Ready/Error)
  * Subtask 14.1: Create split-screen layout (PDF + form)
+ * Subtask 14.2: Implement PDF viewer with react-pdf
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -18,10 +19,10 @@ import {
 } from './components/StatusIndicator';
 import {
   SplitScreenLayout,
-  PDFPanelPlaceholder,
   FormPanelPlaceholder,
   type LayoutMode,
 } from './components/SplitScreenLayout';
+import { PDFViewer } from './components/PDFViewer';
 
 type AppView = 'upload' | 'verification';
 
@@ -40,6 +41,9 @@ function App() {
   // View state for switching between upload and verification
   const [currentView, setCurrentView] = useState<AppView>('upload');
   const [layoutMode, setLayoutMode] = useState<LayoutMode>('split');
+
+  // PDF file state
+  const [pdfFile, setPdfFile] = useState<File | null>(null);
 
   // Derive the overall app status from Docker and Health statuses
   const appStatus: AppStatus = deriveAppStatus(dockerStatus, healthStatus);
@@ -225,7 +229,7 @@ function App() {
         {/* Split Screen Layout */}
         <div className="flex-1 overflow-hidden">
           <SplitScreenLayout
-            leftPanel={<PDFPanelPlaceholder />}
+            leftPanel={<PDFViewer file={pdfFile} />}
             rightPanel={<FormPanelPlaceholder />}
             mode={layoutMode}
             onModeChange={setLayoutMode}
@@ -270,6 +274,22 @@ function App() {
 
           {/* Upload Area */}
           <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-primary-500 transition-colors">
+            <input
+              type="file"
+              id="pdf-upload"
+              accept=".pdf,application/pdf"
+              className="hidden"
+              disabled={appStatus !== 'ready'}
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file && file.type === 'application/pdf') {
+                  setPdfFile(file);
+                  setCurrentView('verification');
+                }
+                // Reset input so same file can be selected again
+                e.target.value = '';
+              }}
+            />
             <svg
               className="mx-auto h-12 w-12 text-gray-400"
               stroke="currentColor"
@@ -286,13 +306,14 @@ function App() {
             <p className="mt-2 text-sm text-gray-600">
               Drag and drop PDF files here, or click to select
             </p>
-            <button
-              onClick={() => setCurrentView('verification')}
-              className="mt-4 px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled={appStatus !== 'ready'}
+            <label
+              htmlFor="pdf-upload"
+              className={`mt-4 px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors inline-block cursor-pointer ${
+                appStatus !== 'ready' ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''
+              }`}
             >
-              Select Files
-            </button>
+              Select PDF File
+            </label>
             {appStatus !== 'ready' && (
               <p className="mt-2 text-xs text-yellow-600">
                 Service must be ready to upload files
@@ -300,14 +321,18 @@ function App() {
             )}
           </div>
 
-          {/* Demo button to test verification view */}
+          {/* Demo button to test verification view with sample PDF */}
           {appStatus === 'ready' && (
             <div className="mt-4 pt-4 border-t border-gray-200">
               <button
-                onClick={() => setCurrentView('verification')}
+                onClick={() => {
+                  // Use a sample PDF for demo (can be replaced with actual file selection)
+                  setPdfFile(null);
+                  setCurrentView('verification');
+                }}
                 className="text-sm text-primary-600 hover:text-primary-700"
               >
-                Demo: Open Verification View
+                Demo: Open PDF Viewer (no file)
               </button>
             </div>
           )}
