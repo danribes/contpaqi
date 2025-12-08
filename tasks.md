@@ -2242,7 +2242,7 @@ Verification screen where users confirm and correct extracted data.
 
 ### Subtasks
 
-- [ ] 14.1 Create split-screen layout (PDF + form)
+- [x] 14.1 Create split-screen layout (PDF + form)
 - [ ] 14.2 Implement PDF viewer with react-pdf (zoom, navigation)
 - [ ] 14.3 Create InvoiceForm component with auto-population
 - [ ] 14.4 Implement confidence-based highlighting (orange <0.90)
@@ -2254,7 +2254,29 @@ Verification screen where users confirm and correct extracted data.
 - [ ] 14.10 Add keyboard shortcuts for efficiency
 
 ### Implementation Notes
-<!-- Add notes here after completing the task -->
+
+**Subtask 14.1 Completed**: 2025-12-08
+
+**Summary**: Created resizable split-screen layout for invoice verification interface.
+
+**Components Created**:
+- `src/components/SplitScreenLayout.tsx` - Split-screen layout with panels (450 lines)
+- `tests/split-screen-layout.test.ts` - 35 unit tests
+
+**Key Features**:
+- SplitScreenLayout: Main container with resizable panels
+- PanelHeader: Headers with collapse/expand buttons
+- ResizeDivider: Draggable divider with visual feedback
+- ModeToggle: Toggle between split, pdf-only, form-only modes
+- PDFPanelPlaceholder/FormPanelPlaceholder: Placeholders for 14.2/14.3
+- Responsive behavior: Auto-switch to single panel on mobile
+
+**Log Files**:
+- `log_files/T014.1_SplitScreenLayout_Log.md`
+- `log_tests/T014.1_SplitScreenLayout_TestLog.md`
+- `log_learn/T014.1_SplitScreenLayout_Guide.md`
+
+---
 
 ---
 
