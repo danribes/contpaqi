@@ -2244,7 +2244,7 @@ Verification screen where users confirm and correct extracted data.
 
 - [x] 14.1 Create split-screen layout (PDF + form)
 - [x] 14.2 Implement PDF viewer with react-pdf (zoom, navigation)
-- [ ] 14.3 Create InvoiceForm component with auto-population
+- [x] 14.3 Create InvoiceForm component with auto-population
 - [ ] 14.4 Implement confidence-based highlighting (orange <0.90)
 - [ ] 14.5 Implement math error highlighting (red)
 - [ ] 14.6 Implement validation blocking (disable Submit)
@@ -2279,6 +2279,36 @@ Verification screen where users confirm and correct extracted data.
 - `log_files/T014.2_PDFViewer_Log.md`
 - `log_tests/T014.2_PDFViewer_TestLog.md`
 - `log_learn/T014.2_PDFViewer_Guide.md`
+
+---
+
+**Subtask 14.3 Completed**: 2025-12-08
+
+**Summary**: Created InvoiceForm component with auto-population from extracted data and confidence-based highlighting.
+
+**Components Created**:
+- `src/components/InvoiceForm.tsx` - Invoice form component (~400 lines)
+- `tests/invoice-form.test.ts` - 33 unit tests
+
+**Key Features**:
+- InvoiceForm: Main form with Mexican invoice fields
+- Auto-population from extracted OCR/ML data
+- Confidence-based highlighting (green >=90%, orange 70-89%, red <70%)
+- RFC validation (Mexican tax ID format)
+- Math validation (IVA 16%, total = subtotal + IVA)
+- Line items table display
+- Form state management with dirty detection
+- Integration with SplitScreenLayout right panel
+
+**Field Types**:
+- RFC Emisor/Receptor: Required text fields with pattern validation
+- Fecha: Date field
+- Subtotal/IVA/Total: Currency fields with math validation
+
+**Log Files**:
+- `log_files/T014.3_InvoiceForm_Log.md`
+- `log_tests/T014.3_InvoiceForm_TestLog.md`
+- `log_learn/T014.3_InvoiceForm_Guide.md`
 
 ---
 
