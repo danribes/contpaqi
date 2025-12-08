@@ -2243,7 +2243,7 @@ Verification screen where users confirm and correct extracted data.
 ### Subtasks
 
 - [x] 14.1 Create split-screen layout (PDF + form)
-- [ ] 14.2 Implement PDF viewer with react-pdf (zoom, navigation)
+- [x] 14.2 Implement PDF viewer with react-pdf (zoom, navigation)
 - [ ] 14.3 Create InvoiceForm component with auto-population
 - [ ] 14.4 Implement confidence-based highlighting (orange <0.90)
 - [ ] 14.5 Implement math error highlighting (red)
@@ -2254,6 +2254,33 @@ Verification screen where users confirm and correct extracted data.
 - [ ] 14.10 Add keyboard shortcuts for efficiency
 
 ### Implementation Notes
+
+**Subtask 14.2 Completed**: 2025-12-08
+
+**Summary**: Implemented PDF viewer with react-pdf library including zoom and navigation.
+
+**Components Created**:
+- `src/components/PDFViewer.tsx` - Full PDF viewer component (500 lines)
+- `tests/pdf-viewer.test.ts` - 43 unit tests
+
+**Key Features**:
+- PDFViewer: Main viewer with react-pdf integration
+- PDFToolbar: Navigation and zoom controls
+- Page navigation: prev/next, go to page, keyboard arrows
+- Zoom controls: in/out (50%-300%), presets, fit width/page
+- Keyboard shortcuts: Arrow keys, Ctrl+/-/0/1
+- Loading states: idle, loading, loaded, error
+- File input integration for PDF selection
+
+**Dependencies Added**:
+- `react-pdf` - PDF rendering library
+
+**Log Files**:
+- `log_files/T014.2_PDFViewer_Log.md`
+- `log_tests/T014.2_PDFViewer_TestLog.md`
+- `log_learn/T014.2_PDFViewer_Guide.md`
+
+---
 
 **Subtask 14.1 Completed**: 2025-12-08
 
