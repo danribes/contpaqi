@@ -2,6 +2,7 @@
  * Main Application Component
  * Subtask 13.5: Handle Docker daemon not running scenario
  * Subtask 13.7: Create status indicators (Starting/Ready/Error)
+ * Subtask 14.1: Create split-screen layout (PDF + form)
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -15,6 +16,14 @@ import {
   type HealthStatus,
   type AppStatus,
 } from './components/StatusIndicator';
+import {
+  SplitScreenLayout,
+  PDFPanelPlaceholder,
+  FormPanelPlaceholder,
+  type LayoutMode,
+} from './components/SplitScreenLayout';
+
+type AppView = 'upload' | 'verification';
 
 function App() {
   const [dockerStatus, setDockerStatus] = useState<DockerStatus>('checking');
@@ -27,6 +36,10 @@ function App() {
     { label: 'Starting container', completed: false },
     { label: 'Waiting for service health', completed: false },
   ]);
+
+  // View state for switching between upload and verification
+  const [currentView, setCurrentView] = useState<AppView>('upload');
+  const [layoutMode, setLayoutMode] = useState<LayoutMode>('split');
 
   // Derive the overall app status from Docker and Health statuses
   const appStatus: AppStatus = deriveAppStatus(dockerStatus, healthStatus);
@@ -186,6 +199,45 @@ function App() {
     );
   }
 
+  // Render verification view with split-screen layout
+  if (currentView === 'verification') {
+    return (
+      <div className="h-screen flex flex-col bg-gray-100">
+        {/* Header */}
+        <header className="bg-primary-700 text-white p-4 shadow-lg flex-shrink-0">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => setCurrentView('upload')}
+                className="flex items-center gap-2 text-sm hover:text-primary-200 transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+                Back to Upload
+              </button>
+              <h1 className="text-xl font-bold">Invoice Verification</h1>
+            </div>
+            <StatusBadge status={appStatus} />
+          </div>
+        </header>
+
+        {/* Split Screen Layout */}
+        <div className="flex-1 overflow-hidden">
+          <SplitScreenLayout
+            leftPanel={<PDFPanelPlaceholder />}
+            rightPanel={<FormPanelPlaceholder />}
+            mode={layoutMode}
+            onModeChange={setLayoutMode}
+            leftTitle="PDF Document"
+            rightTitle="Invoice Data"
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // Render upload view (default)
   return (
     <div className="min-h-screen bg-gray-100">
       {/* Header */}
@@ -235,6 +287,7 @@ function App() {
               Drag and drop PDF files here, or click to select
             </p>
             <button
+              onClick={() => setCurrentView('verification')}
               className="mt-4 px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={appStatus !== 'ready'}
             >
@@ -246,6 +299,18 @@ function App() {
               </p>
             )}
           </div>
+
+          {/* Demo button to test verification view */}
+          {appStatus === 'ready' && (
+            <div className="mt-4 pt-4 border-t border-gray-200">
+              <button
+                onClick={() => setCurrentView('verification')}
+                className="text-sm text-primary-600 hover:text-primary-700"
+              >
+                Demo: Open Verification View
+              </button>
+            </div>
+          )}
         </div>
       </main>
     </div>
