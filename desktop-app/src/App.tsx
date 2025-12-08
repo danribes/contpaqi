@@ -1,28 +1,95 @@
 /**
  * Main Application Component
  * Subtask 13.5: Handle Docker daemon not running scenario
+ * Subtask 13.7: Create status indicators (Starting/Ready/Error)
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { DockerErrorOverlay, DockerError } from './components/DockerStatusAlert';
-
-type DockerStatus = 'checking' | 'running' | 'stopped' | 'docker_error';
+import {
+  StatusBadge,
+  StatusBar,
+  StartupScreen,
+  deriveAppStatus,
+  type DockerStatus,
+  type HealthStatus,
+  type AppStatus,
+} from './components/StatusIndicator';
 
 function App() {
   const [dockerStatus, setDockerStatus] = useState<DockerStatus>('checking');
+  const [healthStatus, setHealthStatus] = useState<HealthStatus>('unknown');
   const [dockerError, setDockerError] = useState<DockerError | null>(null);
   const [isRetrying, setIsRetrying] = useState(false);
+  const [lastCheckTime, setLastCheckTime] = useState<Date | null>(null);
+  const [startupSteps, setStartupSteps] = useState([
+    { label: 'Checking Docker status', completed: false },
+    { label: 'Starting container', completed: false },
+    { label: 'Waiting for service health', completed: false },
+  ]);
+
+  // Derive the overall app status from Docker and Health statuses
+  const appStatus: AppStatus = deriveAppStatus(dockerStatus, healthStatus);
+
+  // Start health polling when Docker is running
+  const startHealthPolling = useCallback(async () => {
+    try {
+      const electronAPI = window.electronAPI;
+      if (!electronAPI?.startHealthPolling) return;
+
+      // Set up status change listener
+      electronAPI.onHealthStatusChange?.((event: { status: string; error?: string }) => {
+        setHealthStatus(event.status as HealthStatus);
+        setLastCheckTime(new Date());
+
+        // Update startup steps when healthy
+        if (event.status === 'healthy') {
+          setStartupSteps(steps => steps.map(s => ({ ...s, completed: true })));
+        }
+      });
+
+      // Start polling
+      await electronAPI.startHealthPolling(10000); // Poll every 10 seconds
+    } catch (err) {
+      console.error('Failed to start health polling:', err);
+    }
+  }, []);
+
+  // Stop health polling
+  const stopHealthPolling = useCallback(async () => {
+    try {
+      const electronAPI = window.electronAPI;
+      if (!electronAPI?.stopHealthPolling) return;
+
+      electronAPI.removeHealthListeners?.();
+      await electronAPI.stopHealthPolling();
+    } catch (err) {
+      console.error('Failed to stop health polling:', err);
+    }
+  }, []);
 
   useEffect(() => {
     checkDockerStatus();
-  }, []);
+
+    // Cleanup on unmount
+    return () => {
+      stopHealthPolling();
+    };
+  }, [stopHealthPolling]);
 
   const checkDockerStatus = async () => {
     setDockerStatus('checking');
     setDockerError(null);
+    setHealthStatus('unknown');
+
+    // Reset startup steps
+    setStartupSteps([
+      { label: 'Checking Docker status', completed: false },
+      { label: 'Starting container', completed: false },
+      { label: 'Waiting for service health', completed: false },
+    ]);
 
     try {
-      // @ts-expect-error - electronAPI is injected by preload
       const electronAPI = window.electronAPI;
 
       if (!electronAPI) {
@@ -46,9 +113,29 @@ function App() {
         }
       }
 
+      // Mark Docker check as complete
+      setStartupSteps(steps =>
+        steps.map((s, i) => (i === 0 ? { ...s, completed: true } : s))
+      );
+
       // Check Docker status
-      const isRunning = await electronAPI.dockerStatus?.();
-      setDockerStatus(isRunning ? 'running' : 'stopped');
+      const status = await electronAPI.dockerStatus?.();
+      // Handle both object response and legacy boolean response
+      const isRunning = typeof status === 'object'
+        ? status?.containerState === 'running'
+        : Boolean(status);
+
+      if (isRunning) {
+        setDockerStatus('running');
+        // Mark container step as complete
+        setStartupSteps(steps =>
+          steps.map((s, i) => (i <= 1 ? { ...s, completed: true } : s))
+        );
+        // Start health polling
+        await startHealthPolling();
+      } else {
+        setDockerStatus('stopped');
+      }
     } catch (err) {
       // Handle unexpected errors
       setDockerError({
@@ -63,21 +150,18 @@ function App() {
 
   const handleRetry = async () => {
     setIsRetrying(true);
+    await stopHealthPolling();
     await checkDockerStatus();
     setIsRetrying(false);
   };
 
-  const getStatusColor = () => {
-    switch (dockerStatus) {
-      case 'running':
-        return 'bg-green-500';
-      case 'stopped':
-        return 'bg-yellow-500';
-      case 'docker_error':
-        return 'bg-red-500';
-      default:
-        return 'bg-gray-400';
-    }
+  // Get a status message for the startup screen
+  const getStartupMessage = () => {
+    if (dockerStatus === 'checking') return 'Checking Docker status...';
+    if (dockerStatus === 'stopped') return 'Container is not running';
+    if (healthStatus === 'unknown') return 'Waiting for service to be ready...';
+    if (healthStatus === 'unhealthy') return 'Service is starting up...';
+    return 'Starting up...';
   };
 
   // Show full-page error overlay when Docker is not available
@@ -91,23 +175,41 @@ function App() {
     );
   }
 
+  // Show startup screen while starting
+  if (appStatus === 'starting') {
+    return (
+      <StartupScreen
+        status={appStatus}
+        message={getStartupMessage()}
+        steps={startupSteps}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-100">
       {/* Header */}
       <header className="bg-primary-700 text-white p-4 shadow-lg">
         <div className="container mx-auto flex items-center justify-between">
           <h1 className="text-2xl font-bold">Contpaqi AI Bridge</h1>
-          <div className="flex items-center gap-2">
-            <span className={`w-3 h-3 rounded-full ${getStatusColor()}`}></span>
-            <span className="text-sm capitalize">
-              {dockerStatus === 'checking' ? 'Checking...' : dockerStatus}
-            </span>
-          </div>
+          <StatusBadge status={appStatus} />
         </div>
       </header>
 
       {/* Main Content */}
       <main className="container mx-auto p-6">
+        {/* Status Bar - shown when not fully ready or on error */}
+        {(appStatus === 'error' || appStatus === 'offline') && (
+          <StatusBar
+            dockerStatus={dockerStatus}
+            healthStatus={healthStatus}
+            lastCheckTime={lastCheckTime}
+            onRetry={handleRetry}
+            isRetrying={isRetrying}
+            className="mb-6"
+          />
+        )}
+
         <div className="bg-white rounded-lg shadow-md p-6">
           <h2 className="text-xl font-semibold mb-4">Invoice Processing</h2>
           <p className="text-gray-600 mb-4">
@@ -132,9 +234,17 @@ function App() {
             <p className="mt-2 text-sm text-gray-600">
               Drag and drop PDF files here, or click to select
             </p>
-            <button className="mt-4 px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors">
+            <button
+              className="mt-4 px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={appStatus !== 'ready'}
+            >
               Select Files
             </button>
+            {appStatus !== 'ready' && (
+              <p className="mt-2 text-xs text-yellow-600">
+                Service must be ready to upload files
+              </p>
+            )}
           </div>
         </div>
       </main>

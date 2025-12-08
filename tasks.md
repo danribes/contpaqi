@@ -2068,9 +2068,32 @@ Desktop app wrapper that manages the Docker background process.
 - [x] 13.4 Implement container lifecycle management (start/stop)
 - [x] 13.5 Handle Docker daemon not running scenario
 - [x] 13.6 Implement health check polling with retry
-- [ ] 13.7 Create status indicators (Starting/Ready/Error)
+- [x] 13.7 Create status indicators (Starting/Ready/Error)
 
 ### Implementation Notes
+
+**Subtask 13.7 Completed**: 2025-12-08
+
+**Summary**: Created comprehensive status indicator components for visualizing application state based on Docker and health check statuses.
+
+**Components Created**:
+- `src/components/StatusIndicator.tsx` - Multiple status components (590 lines)
+- `tests/status-indicators.test.ts` - 30 unit tests
+
+**Key Features**:
+- StatusIndicator: Simple dot with optional text (sm/md/lg sizes)
+- StatusBadge: Compact badge for header display
+- StatusBar: Full bar with details, expandable, retry action
+- StartupScreen: Full-page startup with progress steps
+- Status derivation: Combines Docker + Health into AppStatus
+- Animation: Pulse effect on 'starting' status
+- Color scheme: Green (ready), Yellow (starting), Red (error), Gray (offline)
+
+**Log Files**:
+- `log_files/T013.7_StatusIndicators_Log.md`
+- `log_tests/T013.7_StatusIndicators_TestLog.md`
+
+---
 
 **Subtask 13.2 Completed**: 2025-12-07
 
