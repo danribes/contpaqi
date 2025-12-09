@@ -2820,7 +2820,7 @@ Protect code from reverse engineering.
 - [x] 16.1 Install and configure PyArmor for Python
 - [x] 16.2 Obfuscate inference.py and main.py
 - [x] 16.3 Modify Dockerfile to use obfuscated dist/
-- [ ] 16.4 Configure Dotfuscator Community for C#
+- [x] 16.4 Configure Dotfuscator Community for C#
 - [ ] 16.5 Enable string encryption
 - [ ] 16.6 Test obfuscated code functionality
 
@@ -2927,6 +2927,45 @@ Protect code from reverse engineering.
 - `log_files/T016.3_DockerfileDist_Log.md`
 - `log_tests/T016.3_DockerfileDist_TestLog.md`
 - `log_learn/T016.3_DockerfileDist_Guide.md`
+
+**Subtask 16.4 Completed**: 2025-12-09
+
+**Summary**: Configured Dotfuscator Community Edition for obfuscating the Windows Bridge C# code with proper exclusion rules and PowerShell automation.
+
+**Files Created**:
+- `windows-bridge/dotfuscator.xml` - Dotfuscator configuration (~160 lines)
+- `windows-bridge/scripts/obfuscate.ps1` - PowerShell automation script (~280 lines)
+- `tests/test_task016_4_dotfuscator_config.py` - 31 unit tests
+
+**Key Features**:
+- XML configuration for Dotfuscator Community Edition
+- Input: ContpaqiBridge.dll from Release build
+- Output: obfuscated/ directory with mapping file
+- Renaming obfuscation with proper exclusions
+
+**Exclusion Rules**:
+- ASP.NET Controllers (routing depends on names)
+- Model classes (JSON serialization)
+- SDK interfaces (COM interop)
+- Program entry point
+- Microsoft.* namespace
+
+**PowerShell Script Features**:
+- Find-Dotfuscator: Searches VS 2019/2022 installations
+- Build-Project: Runs dotnet build -c Release
+- Invoke-Obfuscation: Executes Dotfuscator
+- Test-Output: Verifies obfuscated DLL
+- Supports -DryRun, -Clean, -Verbose flags
+
+**Usage**:
+- `.\scripts\obfuscate.ps1` - Standard obfuscation
+- `.\scripts\obfuscate.ps1 -DryRun` - Preview mode
+- `.\scripts\obfuscate.ps1 -Clean -Verbose` - Clean and verbose
+
+**Log Files**:
+- `log_files/T016.4_DotfuscatorConfig_Log.md`
+- `log_tests/T016.4_DotfuscatorConfig_TestLog.md`
+- `log_learn/T016.4_DotfuscatorConfig_Guide.md`
 
 ---
 
