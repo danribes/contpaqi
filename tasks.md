@@ -2526,7 +2526,7 @@ Validate that user has paid before processing invoices.
 ### Subtasks
 
 - [x] 15.1 Implement hardware fingerprint collection (UUID)
-- [ ] 15.2 Add fallback identifiers (MAC address)
+- [x] 15.2 Add fallback identifiers (MAC address)
 - [ ] 15.3 Set up cloud licensing server (Lambda/Firebase)
 - [ ] 15.4 Create license validation endpoint
 - [ ] 15.5 Implement JWT signing and validation
@@ -2564,6 +2564,37 @@ Validate that user has paid before processing invoices.
 - `log_files/T015.1_HardwareFingerprint_Log.md`
 - `log_tests/T015.1_HardwareFingerprint_TestLog.md`
 - `log_learn/T015.1_HardwareFingerprint_Learnings.md`
+
+---
+
+**Subtask 15.2 Completed**: 2025-12-09
+
+**Summary**: Extended hardware fingerprint system with fallback identifiers (MAC address, disk serial, BIOS serial) for license validation when primary identifiers are unavailable.
+
+**Files Created**:
+- `src/services/FallbackIdentifiers.ts` - Fallback identifiers service (~500 lines)
+- `tests/fallback-identifiers.test.ts` - 60 unit tests
+
+**Key Features**:
+- MAC address collection and validation
+- Virtual MAC detection (locally administered bit, known VM OUIs)
+- Network interface filtering (physical vs virtual)
+- Disk serial, BIOS serial, motherboard serial collection
+- Identifier priority scoring (UUID > MachineID > MAC > Disk > BIOS)
+- EnhancedFingerprintService class with fallback support
+- Strength scoring (0-100) for fingerprint reliability
+
+**Virtual Vendors Detected**:
+- VMware (00:50:56, 00:0C:29)
+- VirtualBox (08:00:27)
+- Hyper-V (00:15:5D)
+- QEMU/KVM (52:54:00)
+- Xen (00:16:3E)
+
+**Log Files**:
+- `log_files/T015.2_FallbackIdentifiers_Log.md`
+- `log_tests/T015.2_FallbackIdentifiers_TestLog.md`
+- `log_learn/T015.2_FallbackIdentifiers_Learnings.md`
 
 ---
 
