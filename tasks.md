@@ -2528,7 +2528,7 @@ Validate that user has paid before processing invoices.
 - [x] 15.1 Implement hardware fingerprint collection (UUID)
 - [x] 15.2 Add fallback identifiers (MAC address)
 - [x] 15.3 Set up cloud licensing server (Lambda/Firebase)
-- [ ] 15.4 Create license validation endpoint
+- [x] 15.4 Create license validation endpoint
 - [ ] 15.5 Implement JWT signing and validation
 - [ ] 15.6 Implement offline grace period (7 days)
 - [ ] 15.7 Integrate license check into JobQueueService
@@ -2627,6 +2627,40 @@ Validate that user has paid before processing invoices.
 - `log_files/T015.3_LicensingServer_Log.md`
 - `log_tests/T015.3_LicensingServer_Test.md`
 - `log_learn/T015.3_LicensingServer_Learn.md`
+
+---
+
+**Subtask 15.4 Completed**: 2025-12-09
+
+**Summary**: Created unified license validation service integrating hardware fingerprint with server-side validation and offline caching support.
+
+**Files Created**:
+- `src/services/LicenseValidator.ts` - License validator service (~500 lines)
+- `tests/license-validator.test.ts` - 55 unit tests
+
+**Key Features**:
+- Unified validation API for online/offline modes
+- ValidationResult with error codes and user messages
+- Cache management with configurable grace period (7 days)
+- Fingerprint binding for cache security
+- Feature access validation (single and multiple)
+- Remaining days calculation and formatting
+- Renewal warning detection
+- Validation summary generation
+- Serialization for cache persistence
+
+**Configuration Options**:
+- serverUrl: Licensing server endpoint
+- apiKey: Authentication key
+- offlineGracePeriodDays: Days to allow offline use
+- cacheValidityMinutes: Cache freshness threshold
+- autoRetryOnFailure: Auto-retry on network errors
+- maxRetries: Maximum retry attempts
+
+**Log Files**:
+- `log_files/T015.4_LicenseValidator_Log.md`
+- `log_tests/T015.4_LicenseValidator_Test.md`
+- `log_learn/T015.4_LicenseValidator_Learn.md`
 
 ---
 
