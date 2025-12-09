@@ -2525,7 +2525,7 @@ Validate that user has paid before processing invoices.
 
 ### Subtasks
 
-- [ ] 15.1 Implement hardware fingerprint collection (UUID)
+- [x] 15.1 Implement hardware fingerprint collection (UUID)
 - [ ] 15.2 Add fallback identifiers (MAC address)
 - [ ] 15.3 Set up cloud licensing server (Lambda/Firebase)
 - [ ] 15.4 Create license validation endpoint
@@ -2535,7 +2535,35 @@ Validate that user has paid before processing invoices.
 - [ ] 15.8 Create license management UI
 
 ### Implementation Notes
-<!-- Add notes here after completing the task -->
+
+**Subtask 15.1 Completed**: 2025-12-09
+
+**Summary**: Created hardware fingerprint service for collecting unique machine identifiers (UUID, Machine GUID) to generate fingerprints for license validation.
+
+**Files Created**:
+- `src/services/HardwareFingerprint.ts` - Hardware fingerprint service (~450 lines)
+- `tests/hardware-fingerprint.test.ts` - 60 unit tests
+
+**Key Features**:
+- UUID extraction: WMIC (Windows), DMI (Linux), ioreg (macOS)
+- Machine GUID from Windows Registry
+- Fingerprint generation with configurable components
+- SHA-256/SHA-512 hashing
+- Fingerprint validation (format, expiry, mismatch)
+- Serialization for persistence
+- Strength scoring (0-100)
+- Caching with 1-hour TTL
+- HardwareFingerprintService class for easy integration
+
+**Platform Support**:
+- Windows: `wmic csproduct get uuid`, Registry MachineGuid
+- Linux: `/sys/class/dmi/id/product_uuid`, `/etc/machine-id`
+- macOS: `ioreg IOPlatformUUID`
+
+**Log Files**:
+- `log_files/T015.1_HardwareFingerprint_Log.md`
+- `log_tests/T015.1_HardwareFingerprint_TestLog.md`
+- `log_learn/T015.1_HardwareFingerprint_Learnings.md`
 
 ---
 
