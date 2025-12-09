@@ -2517,7 +2517,7 @@ Verification screen where users confirm and correct extracted data.
 ## Task 15: Hardware-Locked Licensing
 
 **Priority**: Medium | **Dependencies**: Task 12 | **Tags**: licensing, phase-4, us4
-**Status**: Not Started
+**Status**: Complete
 **Estimated Effort**: 3-4 days
 
 ### Description
@@ -2532,7 +2532,7 @@ Validate that user has paid before processing invoices.
 - [x] 15.5 Implement JWT signing and validation
 - [x] 15.6 Implement offline grace period (7 days)
 - [x] 15.7 Integrate license check into JobQueueService
-- [ ] 15.8 Create license management UI
+- [x] 15.8 Create license management UI
 
 ### Implementation Notes
 
@@ -2762,6 +2762,47 @@ Validate that user has paid before processing invoices.
 - `log_files/T015.7_JobQueueService_Log.md`
 - `log_tests/T015.7_JobQueueService_Test.md`
 - `log_learn/T015.7_JobQueueService_Learn.md`
+
+**Subtask 15.8 Completed**: 2025-12-09
+
+**Summary**: Created a comprehensive license management UI with React components and utility functions for displaying license status, handling key input, showing feature availability, and displaying expiration/offline warnings.
+
+**Files Created**:
+- `src/services/LicenseManagementUtils.ts` - Non-JSX utility functions (~655 lines)
+- `src/components/LicenseManagement.tsx` - React components (~380 lines)
+- `tests/license-management-ui.test.ts` - 64 unit tests
+
+**Key Features**:
+- License key input with auto-formatting (XXXX-XXXX-XXXX-XXXX)
+- License status badges (Active/Expired/Revoked/Suspended)
+- License type badges (Trial/Standard/Professional/Enterprise)
+- Expiration warnings at 30/7 day thresholds
+- Feature availability grid with visual indicators
+- Offline mode indicator with grace period progress bar
+- Button state management for activation/deactivation
+- Form validation with error messages
+
+**Components**:
+- LicenseKeyInput: Formatted input field with validation
+- LicenseStatusBadge: Status indicator with color coding
+- LicenseTypeBadge: License type indicator
+- ExpirationWarningAlert: Warning/Critical/Expired alerts
+- FeatureList: Grid of features with check/x icons
+- OfflineStatusIndicator: Online/Offline with grace period
+- LicenseInfoCard: Complete license information display
+- LicenseActivationForm: Key input and activation form
+- LicenseManagementPanel: Main container component
+
+**Utility Functions**:
+- State management: createEmptyLicenseUIState, updateLicenseUIState
+- License key: formatLicenseKeyInput, validateLicenseKeyFormat
+- Expiration: getExpirationStatus, getExpirationMessage, getExpirationColor
+- Display: getLicenseTypeDisplayName, getLicenseStatusColor, formatActivationCount
+- Offline: getOfflineStatusDisplay, getGracePeriodDisplay
+
+**Log Files**:
+- `log_files/T015.8_LicenseManagementUI_Log.md`
+- `log_tests/T015.8_LicenseManagementUI_Test.md`
 
 ---
 

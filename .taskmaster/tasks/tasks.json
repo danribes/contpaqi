@@ -250,18 +250,18 @@
       "id": 15,
       "title": "Hardware-Locked Licensing",
       "description": "Validate that user has paid before processing invoices",
-      "status": "pending",
+      "status": "done",
       "priority": "medium",
       "dependencies": [12],
       "subtasks": [
-        {"id": "15.1", "title": "Implement hardware fingerprint collection (UUID)", "status": "pending"},
-        {"id": "15.2", "title": "Add fallback identifiers (MAC address)", "status": "pending"},
-        {"id": "15.3", "title": "Set up cloud licensing server (Lambda/Firebase)", "status": "pending"},
-        {"id": "15.4", "title": "Create license validation endpoint", "status": "pending"},
-        {"id": "15.5", "title": "Implement JWT signing and validation", "status": "pending"},
-        {"id": "15.6", "title": "Implement offline grace period (7 days)", "status": "pending"},
-        {"id": "15.7", "title": "Integrate license check into JobQueueService", "status": "pending"},
-        {"id": "15.8", "title": "Create license management UI", "status": "pending"}
+        {"id": "15.1", "title": "Implement hardware fingerprint collection (UUID)", "status": "done"},
+        {"id": "15.2", "title": "Add fallback identifiers (MAC address)", "status": "done"},
+        {"id": "15.3", "title": "Set up cloud licensing server (Lambda/Firebase)", "status": "done"},
+        {"id": "15.4", "title": "Create license validation endpoint", "status": "done"},
+        {"id": "15.5", "title": "Implement JWT signing and validation", "status": "done"},
+        {"id": "15.6", "title": "Implement offline grace period (7 days)", "status": "done"},
+        {"id": "15.7", "title": "Integrate license check into JobQueueService", "status": "done"},
+        {"id": "15.8", "title": "Create license management UI", "status": "done"}
       ],
       "tags": ["licensing", "phase-4", "us4"]
     },
