@@ -2525,8 +2525,8 @@ Validate that user has paid before processing invoices.
 
 ### Subtasks
 
-- [ ] 15.1 Implement hardware fingerprint collection (UUID)
-- [ ] 15.2 Add fallback identifiers (MAC address)
+- [x] 15.1 Implement hardware fingerprint collection (UUID)
+- [x] 15.2 Add fallback identifiers (MAC address)
 - [ ] 15.3 Set up cloud licensing server (Lambda/Firebase)
 - [ ] 15.4 Create license validation endpoint
 - [ ] 15.5 Implement JWT signing and validation
@@ -2535,7 +2535,66 @@ Validate that user has paid before processing invoices.
 - [ ] 15.8 Create license management UI
 
 ### Implementation Notes
-<!-- Add notes here after completing the task -->
+
+**Subtask 15.1 Completed**: 2025-12-09
+
+**Summary**: Created hardware fingerprint service for collecting unique machine identifiers (UUID, Machine GUID) to generate fingerprints for license validation.
+
+**Files Created**:
+- `src/services/HardwareFingerprint.ts` - Hardware fingerprint service (~450 lines)
+- `tests/hardware-fingerprint.test.ts` - 60 unit tests
+
+**Key Features**:
+- UUID extraction: WMIC (Windows), DMI (Linux), ioreg (macOS)
+- Machine GUID from Windows Registry
+- Fingerprint generation with configurable components
+- SHA-256/SHA-512 hashing
+- Fingerprint validation (format, expiry, mismatch)
+- Serialization for persistence
+- Strength scoring (0-100)
+- Caching with 1-hour TTL
+- HardwareFingerprintService class for easy integration
+
+**Platform Support**:
+- Windows: `wmic csproduct get uuid`, Registry MachineGuid
+- Linux: `/sys/class/dmi/id/product_uuid`, `/etc/machine-id`
+- macOS: `ioreg IOPlatformUUID`
+
+**Log Files**:
+- `log_files/T015.1_HardwareFingerprint_Log.md`
+- `log_tests/T015.1_HardwareFingerprint_TestLog.md`
+- `log_learn/T015.1_HardwareFingerprint_Learnings.md`
+
+---
+
+**Subtask 15.2 Completed**: 2025-12-09
+
+**Summary**: Extended hardware fingerprint system with fallback identifiers (MAC address, disk serial, BIOS serial) for license validation when primary identifiers are unavailable.
+
+**Files Created**:
+- `src/services/FallbackIdentifiers.ts` - Fallback identifiers service (~500 lines)
+- `tests/fallback-identifiers.test.ts` - 60 unit tests
+
+**Key Features**:
+- MAC address collection and validation
+- Virtual MAC detection (locally administered bit, known VM OUIs)
+- Network interface filtering (physical vs virtual)
+- Disk serial, BIOS serial, motherboard serial collection
+- Identifier priority scoring (UUID > MachineID > MAC > Disk > BIOS)
+- EnhancedFingerprintService class with fallback support
+- Strength scoring (0-100) for fingerprint reliability
+
+**Virtual Vendors Detected**:
+- VMware (00:50:56, 00:0C:29)
+- VirtualBox (08:00:27)
+- Hyper-V (00:15:5D)
+- QEMU/KVM (52:54:00)
+- Xen (00:16:3E)
+
+**Log Files**:
+- `log_files/T015.2_FallbackIdentifiers_Log.md`
+- `log_tests/T015.2_FallbackIdentifiers_TestLog.md`
+- `log_learn/T015.2_FallbackIdentifiers_Learnings.md`
 
 ---
 
