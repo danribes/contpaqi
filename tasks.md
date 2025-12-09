@@ -2248,7 +2248,7 @@ Verification screen where users confirm and correct extracted data.
 - [x] 14.4 Implement confidence-based highlighting (orange <0.90)
 - [x] 14.5 Implement math error highlighting (red)
 - [x] 14.6 Implement validation blocking (disable Submit)
-- [ ] 14.7 Create manual correction interface
+- [x] 14.7 Create manual correction interface
 - [ ] 14.8 Implement submission confirmation flow
 - [ ] 14.9 Add batch processing view for multiple invoices
 - [ ] 14.10 Add keyboard shortcuts for efficiency
