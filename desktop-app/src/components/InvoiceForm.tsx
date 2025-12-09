@@ -2,6 +2,7 @@
  * InvoiceForm Component
  * Subtask 14.3: Create InvoiceForm component with auto-population
  * Subtask 14.5: Implement math error highlighting (red)
+ * Subtask 14.6: Implement validation blocking (disable Submit)
  *
  * Features:
  * - Form fields for Mexican invoice data (RFC, dates, amounts)
@@ -10,6 +11,7 @@
  * - Line items table
  * - Form validation
  * - Math validation with red highlighting (subtotal + IVA = total, IVA = 16%)
+ * - Validation blocking with submit button disable
  */
 
 import { useState, useCallback, useEffect, useMemo } from 'react';
@@ -22,6 +24,16 @@ import {
   type MathError,
   type LineItemValidation,
 } from './MathValidation';
+import {
+  calculateValidationState,
+  shouldDisableSubmit,
+  getSubmitButtonClasses,
+  getSubmitButtonTooltip,
+  ValidationBlockerBanner,
+  MiniValidationIndicator,
+  type FormValues,
+  type ValidationState,
+} from './ValidationBlocking';
 
 // =============================================================================
 // Types
@@ -509,6 +521,31 @@ export function InvoiceForm({
     ? mathValidation.errors.map(e => e.message).join('; ')
     : null;
 
+  // Validation blocking state (Subtask 14.6)
+  const validationState = useMemo((): ValidationState => {
+    const formValues: FormValues = {
+      rfcEmisor: formState.rfcEmisor.value,
+      rfcReceptor: formState.rfcReceptor.value,
+      fecha: formState.fecha.value,
+      subtotal: formState.subtotal.value,
+      iva: formState.iva.value,
+      total: formState.total.value,
+    };
+    return calculateValidationState(formValues);
+  }, [
+    formState.rfcEmisor.value,
+    formState.rfcReceptor.value,
+    formState.fecha.value,
+    formState.subtotal.value,
+    formState.iva.value,
+    formState.total.value,
+  ]);
+
+  // Submit button state
+  const canSubmit = validationState.canSubmit;
+  const submitButtonClasses = getSubmitButtonClasses(canSubmit);
+  const submitButtonTooltip = getSubmitButtonTooltip(validationState);
+
   // Handle field change
   const handleFieldChange = useCallback(
     (fieldName: keyof FormState, value: string) => {
@@ -776,22 +813,34 @@ export function InvoiceForm({
         onItemRemove={handleRemoveLineItem}
       />
 
+      {/* Validation Blocking Banner (Subtask 14.6) */}
+      {!readOnly && !validationState.canSubmit && (
+        <ValidationBlockerBanner
+          validationState={validationState}
+          className="mt-6"
+        />
+      )}
+
       {/* Submit Button */}
       {!readOnly && (
-        <div className="mt-6 flex justify-end gap-3">
-          <button
-            type="button"
-            className="px-4 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            disabled={!!mathError}
-            className="px-4 py-2 text-sm text-white bg-primary-600 rounded-md hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Submit Invoice
-          </button>
+        <div className="mt-6 flex items-center justify-between">
+          <MiniValidationIndicator validationState={validationState} />
+          <div className="flex gap-3">
+            <button
+              type="button"
+              className="px-4 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={!canSubmit}
+              title={submitButtonTooltip}
+              className={submitButtonClasses}
+            >
+              Submit Invoice
+            </button>
+          </div>
         </div>
       )}
     </form>
