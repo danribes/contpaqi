@@ -2250,7 +2250,7 @@ Verification screen where users confirm and correct extracted data.
 - [x] 14.6 Implement validation blocking (disable Submit)
 - [x] 14.7 Create manual correction interface
 - [x] 14.8 Implement submission confirmation flow
-- [ ] 14.9 Add batch processing view for multiple invoices
+- [x] 14.9 Add batch processing view for multiple invoices
 - [ ] 14.10 Add keyboard shortcuts for efficiency
 
 ### Implementation Notes
@@ -2456,6 +2456,32 @@ Verification screen where users confirm and correct extracted data.
 - `log_files/T014.8_SubmissionConfirmation_Log.md`
 - `log_tests/T014.8_SubmissionConfirmation_TestLog.md`
 - `log_learn/T014.8_SubmissionConfirmation_Guide.md`
+
+---
+
+**Subtask 14.9 Completed**: 2025-12-09
+
+**Summary**: Created batch processing view for uploading and processing multiple PDF invoices.
+
+**Components Created**:
+- `src/components/BatchProcessing.tsx` - Batch processing utilities and components (~700 lines)
+- `tests/batch-processing.test.ts` - 61 unit tests
+
+**Key Features**:
+- Queue management: add, remove, clear files
+- Status tracking: pending, processing, completed, error
+- Progress calculation: percentage, summary text
+- Batch actions: process all, retry failed, clear completed
+- FileDropZone: Drag & drop PDF upload
+- FileListItem: File row with status icon and actions
+- ProgressBar: Dynamic color based on success/failure
+- BatchSummary: Progress overview panel
+- useBatchProcessing hook: Encapsulates all batch logic
+
+**Log Files**:
+- `log_files/T014.9_BatchProcessing_Log.md`
+- `log_tests/T014.9_BatchProcessing_TestLog.md`
+- `log_learn/T014.9_BatchProcessing_Guide.md`
 
 ---
 
