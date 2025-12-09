@@ -2247,7 +2247,7 @@ Verification screen where users confirm and correct extracted data.
 - [x] 14.3 Create InvoiceForm component with auto-population
 - [x] 14.4 Implement confidence-based highlighting (orange <0.90)
 - [x] 14.5 Implement math error highlighting (red)
-- [ ] 14.6 Implement validation blocking (disable Submit)
+- [x] 14.6 Implement validation blocking (disable Submit)
 - [ ] 14.7 Create manual correction interface
 - [ ] 14.8 Implement submission confirmation flow
 - [ ] 14.9 Add batch processing view for multiple invoices
