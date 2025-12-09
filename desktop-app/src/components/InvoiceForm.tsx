@@ -4,6 +4,7 @@
  * Subtask 14.5: Implement math error highlighting (red)
  * Subtask 14.6: Implement validation blocking (disable Submit)
  * Subtask 14.7: Create manual correction interface
+ * Subtask 14.8: Implement submission confirmation flow
  *
  * Features:
  * - Form fields for Mexican invoice data (RFC, dates, amounts)
@@ -14,6 +15,7 @@
  * - Math validation with red highlighting (subtotal + IVA = total, IVA = 16%)
  * - Validation blocking with submit button disable
  * - Manual correction with original value tracking
+ * - Submission confirmation modal with summary and corrections display
  */
 
 import { useState, useCallback, useEffect, useMemo } from 'react';
@@ -46,6 +48,12 @@ import {
   MANUAL_OVERRIDE_CONFIDENCE,
   type CorrectionState,
 } from './ManualCorrection';
+import {
+  ConfirmationModal,
+  createInvoiceSummary,
+  useSubmissionFlow,
+  type InvoiceSummary,
+} from './SubmissionConfirmation';
 
 // =============================================================================
 // Types
@@ -609,6 +617,46 @@ export function InvoiceForm({
   const submitButtonClasses = getSubmitButtonClasses(canSubmit);
   const submitButtonTooltip = getSubmitButtonTooltip(validationState);
 
+  // Create invoice summary for confirmation modal (Subtask 14.8)
+  const invoiceSummary = useMemo((): InvoiceSummary => {
+    return createInvoiceSummary(
+      {
+        rfcEmisor: { value: formState.rfcEmisor.value, originalValue: formState.rfcEmisor.originalValue },
+        rfcReceptor: { value: formState.rfcReceptor.value, originalValue: formState.rfcReceptor.originalValue },
+        fecha: { value: formState.fecha.value, originalValue: formState.fecha.originalValue },
+        subtotal: { value: formState.subtotal.value, originalValue: formState.subtotal.originalValue },
+        iva: { value: formState.iva.value, originalValue: formState.iva.originalValue },
+        total: { value: formState.total.value, originalValue: formState.total.originalValue },
+      },
+      lineItems.length
+    );
+  }, [formState, lineItems.length]);
+
+  // Submission flow state management (Subtask 14.8)
+  const performSubmission = useCallback(async () => {
+    const data: InvoiceData = {
+      rfcEmisor: { value: formState.rfcEmisor.value, confidence: 1.0 },
+      rfcReceptor: { value: formState.rfcReceptor.value, confidence: 1.0 },
+      fecha: { value: formState.fecha.value, confidence: 1.0 },
+      subtotal: { value: formState.subtotal.value, confidence: 1.0 },
+      iva: { value: formState.iva.value, confidence: 1.0 },
+      total: { value: formState.total.value, confidence: 1.0 },
+      lineItems,
+    };
+
+    // Simulate async submission - in real app this would be an API call
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    onSubmit?.(data);
+  }, [formState, lineItems, onSubmit]);
+
+  const {
+    state: submissionState,
+    showConfirmation,
+    cancelConfirmation,
+    confirmAndSubmit,
+    closeModal,
+  } = useSubmissionFlow(performSubmission);
+
   // Handle field change
   const handleFieldChange = useCallback(
     (fieldName: keyof FormState, value: string) => {
@@ -748,7 +796,7 @@ export function InvoiceForm({
     return isValid && !mathError;
   }, [formState, mathError]);
 
-  // Handle form submission
+  // Handle form submission - show confirmation modal (Subtask 14.8)
   const handleSubmit = useCallback(
     (e: React.FormEvent) => {
       e.preventDefault();
@@ -757,19 +805,10 @@ export function InvoiceForm({
         return;
       }
 
-      const data: InvoiceData = {
-        rfcEmisor: { value: formState.rfcEmisor.value, confidence: 1.0 },
-        rfcReceptor: { value: formState.rfcReceptor.value, confidence: 1.0 },
-        fecha: { value: formState.fecha.value, confidence: 1.0 },
-        subtotal: { value: formState.subtotal.value, confidence: 1.0 },
-        iva: { value: formState.iva.value, confidence: 1.0 },
-        total: { value: formState.total.value, confidence: 1.0 },
-        lineItems,
-      };
-
-      onSubmit?.(data);
+      // Show confirmation modal instead of direct submission
+      showConfirmation();
     },
-    [formState, lineItems, validateForm, onSubmit]
+    [validateForm, showConfirmation]
   );
 
   return (
@@ -934,6 +973,17 @@ export function InvoiceForm({
           </div>
         </div>
       )}
+
+      {/* Submission Confirmation Modal (Subtask 14.8) */}
+      <ConfirmationModal
+        isOpen={submissionState.status !== 'idle'}
+        summary={invoiceSummary}
+        state={submissionState}
+        onConfirm={confirmAndSubmit}
+        onCancel={cancelConfirmation}
+        onClose={closeModal}
+        onRetry={confirmAndSubmit}
+      />
     </form>
   );
 }
