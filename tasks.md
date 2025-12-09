@@ -2809,7 +2809,7 @@ Validate that user has paid before processing invoices.
 ## Task 16: Code Obfuscation
 
 **Priority**: Low | **Dependencies**: Tasks 9, 12 | **Tags**: protection, phase-4
-**Status**: Not Started
+**Status**: In Progress
 **Estimated Effort**: 1-2 days
 
 ### Description
@@ -2817,7 +2817,7 @@ Protect code from reverse engineering.
 
 ### Subtasks
 
-- [ ] 16.1 Install and configure PyArmor for Python
+- [x] 16.1 Install and configure PyArmor for Python
 - [ ] 16.2 Obfuscate inference.py and main.py
 - [ ] 16.3 Modify Dockerfile to use obfuscated dist/
 - [ ] 16.4 Configure Dotfuscator Community for C#
@@ -2825,7 +2825,35 @@ Protect code from reverse engineering.
 - [ ] 16.6 Test obfuscated code functionality
 
 ### Implementation Notes
-<!-- Add notes here after completing the task -->
+
+**Subtask 16.1 Completed**: 2025-12-09
+
+**Summary**: Installed and configured PyArmor 8.x for Python code obfuscation with a JSON-based configuration and automated obfuscation script.
+
+**Files Created**:
+- `mcp-container/requirements-dev.txt` - Dev dependencies including PyArmor 8.5.4
+- `mcp-container/pyarmor.json` - PyArmor 8.x configuration file
+- `mcp-container/scripts/obfuscate.py` - Automated obfuscation script (~320 lines)
+- `tests/test_task016_1_pyarmor_config.py` - 26 unit tests
+
+**Key Features**:
+- PyArmor 8.5.4 in dev requirements (build-time only, not in runtime)
+- JSON configuration targeting src/ directory
+- Obfuscation settings: restrict_mode=2, obf_code=2, obf_module=1
+- Exclusion of test files and __pycache__
+- Automated script with CLI: --dry-run, --clean, --verbose options
+- Entry point: main.py with recursive obfuscation
+
+**Configuration Sections**:
+- project: Metadata (name, version)
+- obfuscation: Source/output directories, includes/excludes
+- settings: Python version, restriction mode, obfuscation levels
+- targets: Primary files (main.py, inference.py), models, utils
+
+**Log Files**:
+- `log_files/T016.1_PyArmorConfig_Log.md`
+- `log_tests/T016.1_PyArmorConfig_TestLog.md`
+- `log_learn/T016.1_PyArmorConfig_Guide.md`
 
 ---
 
