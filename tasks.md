@@ -2527,7 +2527,7 @@ Validate that user has paid before processing invoices.
 
 - [x] 15.1 Implement hardware fingerprint collection (UUID)
 - [x] 15.2 Add fallback identifiers (MAC address)
-- [ ] 15.3 Set up cloud licensing server (Lambda/Firebase)
+- [x] 15.3 Set up cloud licensing server (Lambda/Firebase)
 - [ ] 15.4 Create license validation endpoint
 - [ ] 15.5 Implement JWT signing and validation
 - [ ] 15.6 Implement offline grace period (7 days)
@@ -2595,6 +2595,38 @@ Validate that user has paid before processing invoices.
 - `log_files/T015.2_FallbackIdentifiers_Log.md`
 - `log_tests/T015.2_FallbackIdentifiers_TestLog.md`
 - `log_learn/T015.2_FallbackIdentifiers_Learnings.md`
+
+---
+
+**Subtask 15.3 Completed**: 2025-12-09
+
+**Summary**: Created licensing server client and mock server for license activation, validation, and deactivation with hardware fingerprint binding.
+
+**Files Created**:
+- `src/services/LicensingServer.ts` - Licensing server client (~600 lines)
+- `tests/licensing-server.test.ts` - 56 unit tests
+
+**Key Features**:
+- License key format: XXXX-XXXX-XXXX-XXXX (16 alphanumeric chars)
+- License key validation and normalization
+- License types: trial, standard, professional, enterprise
+- License status: active, expired, revoked, suspended, pending
+- Activation with hardware fingerprint binding
+- Validation with fingerprint matching
+- Deactivation with activation count decrement
+- MockLicensingServer for testing
+- Type-specific limits (activations, days, features)
+- Serialization/deserialization with Date handling
+
+**API Endpoints**:
+- POST `/api/v1/license/activate` - Activate with fingerprint
+- POST `/api/v1/license/validate` - Validate active license
+- POST `/api/v1/license/deactivate` - Deactivate license
+
+**Log Files**:
+- `log_files/T015.3_LicensingServer_Log.md`
+- `log_tests/T015.3_LicensingServer_Test.md`
+- `log_learn/T015.3_LicensingServer_Learn.md`
 
 ---
 
