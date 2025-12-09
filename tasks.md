@@ -2819,7 +2819,7 @@ Protect code from reverse engineering.
 
 - [x] 16.1 Install and configure PyArmor for Python
 - [x] 16.2 Obfuscate inference.py and main.py
-- [ ] 16.3 Modify Dockerfile to use obfuscated dist/
+- [x] 16.3 Modify Dockerfile to use obfuscated dist/
 - [ ] 16.4 Configure Dotfuscator Community for C#
 - [ ] 16.5 Enable string encryption
 - [ ] 16.6 Test obfuscated code functionality
@@ -2887,6 +2887,46 @@ Protect code from reverse engineering.
 - `log_files/T016.2_ObfuscateFiles_Log.md`
 - `log_tests/T016.2_ObfuscateFiles_TestLog.md`
 - `log_learn/T016.2_ObfuscateFiles_Guide.md`
+
+**Subtask 16.3 Completed**: 2025-12-09
+
+**Summary**: Created production Dockerfile.prod that uses obfuscated code from dist/ directory with multi-stage build, security hardening, and optimized layer caching.
+
+**Files Created**:
+- `mcp-container/Dockerfile.prod` - Production Dockerfile (~89 lines)
+- `tests/test_task016_3_dockerfile_dist.py` - 31 unit tests
+
+**Key Features**:
+- Multi-stage build (builder + runtime stages)
+- ARG for Python version (3.9) and app version (1.0.0)
+- Copies dist/ to ./src/ maintaining module structure
+- Non-root user (appuser) for security
+- Health check with 30s interval
+- Production environment variables (PYTHONUNBUFFERED, PYTHONDONTWRITEBYTECODE)
+- Labels for build identification (production, obfuscated)
+
+**Dockerfile Structure**:
+- Stage 1 (builder): Creates Python wheels for dependencies
+- Stage 2 (runtime): Installs wheels, copies obfuscated code, sets up non-root user
+
+**Docker Layer Caching**:
+- Requirements copied before dist/ for optimal caching
+- System dependencies installed before application code
+
+**Runtime Dependencies**:
+- tesseract-ocr + tesseract-ocr-spa (OCR with Spanish)
+- poppler-utils + libpoppler-cpp-dev (PDF processing)
+- libgl1-mesa-glx, libglib2.0-0 (graphics libraries)
+- curl (for health checks)
+
+**Build Commands**:
+- `make build`: Run obfuscation then docker build with Dockerfile.prod
+- `docker build -f Dockerfile.prod -t contpaqi-mcp .`: Direct build
+
+**Log Files**:
+- `log_files/T016.3_DockerfileDist_Log.md`
+- `log_tests/T016.3_DockerfileDist_TestLog.md`
+- `log_learn/T016.3_DockerfileDist_Guide.md`
 
 ---
 
