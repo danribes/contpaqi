@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Dotfuscator Community Edition Configuration
+  ContPAQi AI Bridge - Windows Bridge Component
+
+  This configuration defines obfuscation rules for the C# Windows Bridge
+  that interfaces with the ContPAQi SDK.
+
+  Usage: dotfuscator.exe dotfuscator.xml
+
+  Note: Dotfuscator Community Edition is included with Visual Studio.
+  For advanced features (string encryption, control flow), consider
+  Dotfuscator Professional.
+-->
+<dotfuscator version="2.3">
+
+  <!-- =================================================================== -->
+  <!-- Project Settings                                                    -->
+  <!-- =================================================================== -->
+  <propertylist>
+    <property name="ProjectName" value="ContpaqiBridge" />
+    <property name="BuildConfiguration" value="Release" />
+  </propertylist>
+
+  <!-- =================================================================== -->
+  <!-- Input Assemblies                                                    -->
+  <!-- =================================================================== -->
+  <!--
+    Input section defines which assemblies to obfuscate.
+    We target the Release build output.
+  -->
+  <input>
+    <asmlist>
+      <!-- Main application assembly -->
+      <inputassembly>
+        <option>honoraliases</option>
+        <option>stripaliases</option>
+        <file dir="src\ContpaqiBridge\bin\Release\net6.0" name="ContpaqiBridge.dll" />
+      </inputassembly>
+    </asmlist>
+  </input>
+
+  <!-- =================================================================== -->
+  <!-- Output Configuration                                                -->
+  <!-- =================================================================== -->
+  <!--
+    Output to a dedicated 'obfuscated' directory to separate
+    obfuscated binaries from source build output.
+  -->
+  <output>
+    <destination dir="obfuscated" />
+  </output>
+
+  <!-- =================================================================== -->
+  <!-- Renaming Configuration                                              -->
+  <!-- =================================================================== -->
+  <!--
+    Renaming is the primary obfuscation technique in Community Edition.
+    We configure exclusions for:
+    - ASP.NET Controllers (routing depends on naming)
+    - Model classes (JSON serialization depends on property names)
+    - Public interfaces (SDK interop)
+  -->
+  <renaming>
+    <option>xmlserialization</option>
+    <option>runtimeserialization</option>
+
+    <!-- Mapping file for debugging obfuscated stack traces -->
+    <mapping>
+      <mapoutput dir="obfuscated">
+        <file name="mapping.xml" />
+      </mapoutput>
+    </mapping>
+
+    <!-- =================================================================== -->
+    <!-- Exclusion Rules                                                    -->
+    <!-- =================================================================== -->
+    <!--
+      Rules define what NOT to rename. This is critical for:
+      1. ASP.NET Core routing (Controller names)
+      2. JSON serialization (Model property names)
+      3. COM interop (Interface definitions)
+    -->
+    <excludelist>
+
+      <!-- Exclude all ASP.NET Controller classes -->
+      <!-- Controller names must remain for routing to work -->
+      <type name="ContpaqiBridge.Controllers.*Controller" excludetype="true">
+        <method name="*" signature="*" />
+        <field name="*" signature="*" />
+        <property name="*" signature="*" />
+      </type>
+
+      <!-- Exclude Model classes for JSON serialization -->
+      <!-- Property names must match API contract -->
+      <type name="ContpaqiBridge.Models.*" excludetype="true">
+        <property name="*" signature="*" />
+        <field name="*" signature="*" />
+      </type>
+
+      <!-- Exclude public interfaces for SDK interop -->
+      <!-- Interface members must remain for COM/SDK calls -->
+      <type name="ContpaqiBridge.Sdk.ISdk*" regex="true" excludetype="true">
+        <method name="*" signature="*" />
+        <property name="*" signature="*" />
+      </type>
+
+      <!-- Exclude SDK implementation public methods -->
+      <type name="ContpaqiBridge.Sdk.SdkInterop" excludetype="false">
+        <method name="*" signature="*" />
+      </type>
+
+      <!-- Exclude ASP.NET attributes and routing -->
+      <type name="*Attribute" regex="true" excludetype="true" />
+
+      <!-- Exclude Program entry point -->
+      <type name="ContpaqiBridge.Program" excludetype="true">
+        <method name="Main" signature="*" />
+      </type>
+
+      <!-- Exclude dependency injection interfaces -->
+      <type name="Microsoft.*" regex="true" excludetype="true" />
+
+    </excludelist>
+  </renaming>
+
+  <!-- =================================================================== -->
+  <!-- Control Flow Obfuscation (Professional Feature)                     -->
+  <!-- =================================================================== -->
+  <!--
+    Note: Control flow obfuscation is only available in
+    Dotfuscator Professional. This section is included as
+    documentation for future upgrade.
+
+    <controlflow level="high">
+      <excludelist>
+        <type name="ContpaqiBridge.Controllers.*" regex="true" />
+      </excludelist>
+    </controlflow>
+  -->
+
+  <!-- =================================================================== -->
+  <!-- String Encryption (Professional Feature)                            -->
+  <!-- =================================================================== -->
+  <!--
+    Note: String encryption is configured separately in subtask 16.5.
+    Dotfuscator Community has limited string encryption capabilities.
+
+    For enhanced protection, see:
+    - Subtask 16.5: Enable string encryption
+  -->
+
+  <!-- =================================================================== -->
+  <!-- Removal Settings                                                    -->
+  <!-- =================================================================== -->
+  <!--
+    Remove unused code to reduce assembly size and attack surface.
+  -->
+  <removal>
+    <option>keepaliases</option>
+  </removal>
+
+</dotfuscator>
