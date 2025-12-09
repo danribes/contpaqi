@@ -2249,7 +2249,7 @@ Verification screen where users confirm and correct extracted data.
 - [x] 14.5 Implement math error highlighting (red)
 - [x] 14.6 Implement validation blocking (disable Submit)
 - [x] 14.7 Create manual correction interface
-- [ ] 14.8 Implement submission confirmation flow
+- [x] 14.8 Implement submission confirmation flow
 - [ ] 14.9 Add batch processing view for multiple invoices
 - [ ] 14.10 Add keyboard shortcuts for efficiency
 
@@ -2388,6 +2388,74 @@ Verification screen where users confirm and correct extracted data.
 - `log_files/T014.1_SplitScreenLayout_Log.md`
 - `log_tests/T014.1_SplitScreenLayout_TestLog.md`
 - `log_learn/T014.1_SplitScreenLayout_Guide.md`
+
+---
+
+**Subtask 14.6 Completed**: 2025-12-09
+
+**Summary**: Implemented validation blocking to disable the Submit button when form has errors.
+
+**Components Created**:
+- `src/components/ValidationBlocking.tsx` - Validation utilities and components (~400 lines)
+- `tests/validation-blocking.test.ts` - 30 unit tests
+
+**Key Features**:
+- calculateValidationState: Validates RFC, date, amounts, and math
+- shouldDisableSubmit: Returns true when form is invalid
+- ValidationBlockerBanner: Shows list of validation errors
+- MiniValidationIndicator: Shows green checkmark or warning icon
+- Real-time validation as user types
+
+**Log Files**:
+- `log_files/T014.6_ValidationBlocking_Log.md`
+- `log_tests/T014.6_ValidationBlocking_TestLog.md`
+- `log_learn/T014.6_ValidationBlocking_Guide.md`
+
+---
+
+**Subtask 14.7 Completed**: 2025-12-09
+
+**Summary**: Created manual correction interface with original value tracking and revert functionality.
+
+**Components Created**:
+- `src/components/ManualCorrection.tsx` - Correction utilities and components (~600 lines)
+- `tests/manual-correction.test.ts` - 44 unit tests
+
+**Key Features**:
+- CorrectionBadge: Blue badge indicating field was corrected
+- OriginalValueDisplay: Shows original value with strikethrough
+- RevertButton: Allows reverting to original value
+- useFieldCorrection hook for single field management
+- 100% confidence for manually corrected fields
+
+**Log Files**:
+- `log_files/T014.7_ManualCorrection_Log.md`
+- `log_tests/T014.7_ManualCorrection_TestLog.md`
+- `log_learn/T014.7_ManualCorrection_Guide.md`
+
+---
+
+**Subtask 14.8 Completed**: 2025-12-09
+
+**Summary**: Implemented submission confirmation flow with modal, loading states, and auto-close.
+
+**Components Created**:
+- `src/components/SubmissionConfirmation.tsx` - Submission flow utilities and components (~850 lines)
+- `tests/submission-confirmation.test.ts` - 47 unit tests
+
+**Key Features**:
+- ConfirmationModal: Modal showing invoice summary before submission
+- State machine: idle → confirming → submitting → success/error
+- InvoiceSummaryDisplay: Shows all invoice data with corrections highlighted
+- LoadingSpinner, SuccessDisplay, ErrorDisplay: State-specific UI
+- useSubmissionFlow hook: Manages entire submission lifecycle
+- Auto-close: Modal closes 3 seconds after success
+- Mexican locale formatting for currency and dates
+
+**Log Files**:
+- `log_files/T014.8_SubmissionConfirmation_Log.md`
+- `log_tests/T014.8_SubmissionConfirmation_TestLog.md`
+- `log_learn/T014.8_SubmissionConfirmation_Guide.md`
 
 ---
 
