@@ -2531,7 +2531,7 @@ Validate that user has paid before processing invoices.
 - [x] 15.4 Create license validation endpoint
 - [x] 15.5 Implement JWT signing and validation
 - [x] 15.6 Implement offline grace period (7 days)
-- [ ] 15.7 Integrate license check into JobQueueService
+- [x] 15.7 Integrate license check into JobQueueService
 - [ ] 15.8 Create license management UI
 
 ### Implementation Notes
@@ -2722,6 +2722,46 @@ Validate that user has paid before processing invoices.
 - `log_files/T015.6_OfflineGracePeriod_Log.md`
 - `log_tests/T015.6_OfflineGracePeriod_Test.md`
 - `log_learn/T015.6_OfflineGracePeriod_Learn.md`
+
+---
+
+**Subtask 15.7 Completed**: 2025-12-09
+
+**Summary**: Created a license-aware job queue service that integrates license validation into all job processing operations, enforcing license validity, feature access, concurrent job limits, and batch size restrictions.
+
+**Files Created**:
+- `src/services/JobQueueService.ts` - Job queue service with license integration (~570 lines)
+- `tests/job-queue-service.test.ts` - 100 unit tests
+
+**Key Features**:
+- License validation before job processing
+- Feature gating based on license type
+- Concurrent job limits per license tier (trial: 1, standard: 3, professional: 10, enterprise: unlimited)
+- Batch size limits per license tier (trial: 5, standard: 25, professional: 100, enterprise: unlimited)
+- Priority queue (critical > high > normal > low)
+- Job blocking with specific license block reasons
+- Event system for UI integration
+- State persistence and restoration
+- Offline mode support with cached licenses
+- Retry handling with configurable max retries
+
+**License Block Reasons**:
+- NO_LICENSE: No license configured
+- LICENSE_EXPIRED: License past expiration date
+- LICENSE_REVOKED: License permanently revoked
+- LICENSE_SUSPENDED: License temporarily suspended
+- FEATURE_NOT_AVAILABLE: Required feature not in license
+- RATE_LIMIT_EXCEEDED: Too many concurrent jobs
+- BATCH_SIZE_EXCEEDED: Batch size over limit
+
+**Events Emitted**:
+- JOB_ADDED, JOB_STARTED, JOB_COMPLETED, JOB_FAILED, JOB_BLOCKED
+- LICENSE_CHECKED, LICENSE_CHANGED, QUEUE_CLEARED
+
+**Log Files**:
+- `log_files/T015.7_JobQueueService_Log.md`
+- `log_tests/T015.7_JobQueueService_Test.md`
+- `log_learn/T015.7_JobQueueService_Learn.md`
 
 ---
 
