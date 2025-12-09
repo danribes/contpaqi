@@ -2818,7 +2818,7 @@ Protect code from reverse engineering.
 ### Subtasks
 
 - [x] 16.1 Install and configure PyArmor for Python
-- [ ] 16.2 Obfuscate inference.py and main.py
+- [x] 16.2 Obfuscate inference.py and main.py
 - [ ] 16.3 Modify Dockerfile to use obfuscated dist/
 - [ ] 16.4 Configure Dotfuscator Community for C#
 - [ ] 16.5 Enable string encryption
@@ -2854,6 +2854,39 @@ Protect code from reverse engineering.
 - `log_files/T016.1_PyArmorConfig_Log.md`
 - `log_tests/T016.1_PyArmorConfig_TestLog.md`
 - `log_learn/T016.1_PyArmorConfig_Guide.md`
+
+**Subtask 16.2 Completed**: 2025-12-09
+
+**Summary**: Created build pipeline for obfuscating Python source files (main.py, inference.py, and supporting modules) using Makefile automation.
+
+**Files Created**:
+- `mcp-container/Makefile` - Build automation (~160 lines)
+- `tests/test_task016_2_obfuscate_files.py` - 29 unit tests
+
+**Key Features**:
+- Makefile with targets: obfuscate, build, clean, verify, help
+- Dry-run mode to preview obfuscation without executing
+- Production build: obfuscate → docker-build chain
+- Development build: skip obfuscation
+- Clean targets for dist/, bytecode, and Docker images
+- Self-documenting help target
+
+**Build Commands**:
+- `make obfuscate`: Run PyArmor obfuscation
+- `make obfuscate-dry-run`: Preview obfuscation
+- `make build`: Full production build
+- `make build-dev`: Development build (no obfuscation)
+- `make clean`: Remove all artifacts
+
+**Files to Obfuscate**:
+- Primary: main.py, inference.py
+- Models: tatr.py, layoutlm.py, validators.py, schemas.py
+- Utils: ocr.py
+
+**Log Files**:
+- `log_files/T016.2_ObfuscateFiles_Log.md`
+- `log_tests/T016.2_ObfuscateFiles_TestLog.md`
+- `log_learn/T016.2_ObfuscateFiles_Guide.md`
 
 ---
 

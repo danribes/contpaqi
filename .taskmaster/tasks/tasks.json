@@ -274,7 +274,7 @@
       "dependencies": [9, 12],
       "subtasks": [
         {"id": "16.1", "title": "Install and configure PyArmor for Python", "status": "done"},
-        {"id": "16.2", "title": "Obfuscate inference.py and main.py", "status": "pending"},
+        {"id": "16.2", "title": "Obfuscate inference.py and main.py", "status": "done"},
         {"id": "16.3", "title": "Modify Dockerfile to use obfuscated dist/", "status": "pending"},
         {"id": "16.4", "title": "Configure Dotfuscator Community for C#", "status": "pending"},
         {"id": "16.5", "title": "Enable string encryption", "status": "pending"},
