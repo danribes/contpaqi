@@ -2529,7 +2529,7 @@ Validate that user has paid before processing invoices.
 - [x] 15.2 Add fallback identifiers (MAC address)
 - [x] 15.3 Set up cloud licensing server (Lambda/Firebase)
 - [x] 15.4 Create license validation endpoint
-- [ ] 15.5 Implement JWT signing and validation
+- [x] 15.5 Implement JWT signing and validation
 - [ ] 15.6 Implement offline grace period (7 days)
 - [ ] 15.7 Integrate license check into JobQueueService
 - [ ] 15.8 Create license management UI
@@ -2661,6 +2661,38 @@ Validate that user has paid before processing invoices.
 - `log_files/T015.4_LicenseValidator_Log.md`
 - `log_tests/T015.4_LicenseValidator_Test.md`
 - `log_learn/T015.4_LicenseValidator_Learn.md`
+
+---
+
+**Subtask 15.5 Completed**: 2025-12-09
+
+**Summary**: Created JWT-based token service for secure license authentication between client and server, with token creation, signing, validation, and refresh handling.
+
+**Files Created**:
+- `src/services/JwtLicenseToken.ts` - JWT token service (~500 lines)
+- `tests/jwt-license-token.test.ts` - 57 unit tests
+
+**Key Features**:
+- JWT structure (header.payload.signature)
+- Base64URL encoding/decoding
+- HMAC signing with HS256/HS384/HS512
+- Constant-time signature comparison (timing attack prevention)
+- Standard JWT claims (iss, sub, aud, exp, iat, nbf, jti)
+- Custom license claims (licenseId, type, fingerprint, features)
+- Full token validation chain
+- Token refresh detection
+- JwtTokenManager class for token lifecycle
+
+**Security Features**:
+- Constant-time signature verification
+- Fingerprint binding in token
+- Unique JWT IDs (JTI)
+- Algorithm enforcement
+
+**Log Files**:
+- `log_files/T015.5_JwtLicenseToken_Log.md`
+- `log_tests/T015.5_JwtLicenseToken_Test.md`
+- `log_learn/T015.5_JwtLicenseToken_Learn.md`
 
 ---
 
