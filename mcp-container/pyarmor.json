@@ -35,6 +35,43 @@
     "advanced_mode": 0,
     "enable_suffix": 0
   },
+  "string_encryption": {
+    "enabled": true,
+    "description": "Encrypt sensitive strings in source code to prevent extraction",
+    "selective": true,
+    "patterns": [
+      "api_key",
+      "api_secret",
+      "password",
+      "secret",
+      "token",
+      "credential",
+      "connection_string",
+      "database_url",
+      "redis_url",
+      "endpoint",
+      "base_url",
+      "host",
+      "contpaqi",
+      "license"
+    ],
+    "exclude_patterns": [
+      "DEBUG",
+      "INFO",
+      "WARNING",
+      "ERROR",
+      "CRITICAL",
+      "__name__",
+      "__main__",
+      "utf-8",
+      "application/json"
+    ],
+    "notes": {
+      "runtime_visibility": "Encrypted strings are decrypted at runtime and may be visible in memory",
+      "performance": "String encryption adds minimal runtime overhead",
+      "pyarmor_8": "PyArmor 8.x includes string encryption in obf_code level 2"
+    }
+  },
   "runtime": {
     "include_runtime": true,
     "runtime_path": "pytransform"

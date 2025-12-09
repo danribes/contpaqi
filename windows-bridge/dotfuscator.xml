@@ -140,14 +140,60 @@
   -->
 
   <!-- =================================================================== -->
-  <!-- String Encryption (Professional Feature)                            -->
+  <!-- String Encryption Configuration                                     -->
   <!-- =================================================================== -->
   <!--
-    Note: String encryption is configured separately in subtask 16.5.
-    Dotfuscator Community has limited string encryption capabilities.
+    String encryption protects sensitive strings from being extracted
+    from the compiled assembly using tools like strings.exe or ILSpy.
 
-    For enhanced protection, see:
-    - Subtask 16.5: Enable string encryption
+    IMPORTANT: Full string encryption is a Dotfuscator Professional feature.
+    Community Edition has limited string encryption capabilities.
+
+    Sensitive strings to protect:
+    - API keys and secrets
+    - Connection strings (database, Redis)
+    - Credential patterns
+    - License validation strings
+    - ContPAQi SDK paths and identifiers
+
+    When upgrading to Professional, uncomment the stringencrypt section below.
+  -->
+
+  <!--
+    Professional Edition String Encryption Configuration:
+
+    <stringencrypt>
+      <option>all</option>
+
+      <includelist>
+        <type name="ContpaqiBridge.Sdk.*" regex="true" />
+        <type name="ContpaqiBridge.Services.*" regex="true" />
+      </includelist>
+
+      <excludelist>
+        <type name="ContpaqiBridge.Controllers.*" regex="true" />
+        <type name="ContpaqiBridge.Models.*" regex="true" />
+      </excludelist>
+    </stringencrypt>
+  -->
+
+  <!--
+    Alternative approaches for Community Edition:
+    1. Store sensitive strings in encrypted configuration files
+    2. Use environment variables for secrets at runtime
+    3. Implement custom string obfuscation helper in code
+    4. Use SecureString for credential handling in memory
+
+    Example custom obfuscation pattern in C#:
+    // Instead of: string apiKey = "secret123";
+    // Use: string apiKey = StringProtection.Decode("base64_encoded_value");
+
+    The StringProtection helper can XOR or AES decrypt strings at runtime.
+
+    Limitations:
+    - Strings are visible in memory at runtime after decryption
+    - Determined attackers can still extract strings via debugging
+    - String encryption is one layer in defense-in-depth strategy
   -->
 
   <!-- =================================================================== -->
