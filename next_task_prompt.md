@@ -1,7 +1,7 @@
 # Next Subtask Implementation Prompt
 
 Please check the tasks.md file to find the last subtask implemented.
-Please continue with the next subtask. Please, work subtask by subtask and not task by task. Wait until I ask you to implement another subtask. Let's go for the next subtask.
+Please continue with the next subtask. Please, work subtask by subtask and not task by task. Wait until I ask you to implement another subtask. Let's go for the next non implemented subtask.
 Write the test code for the next subtask not implemented yet and, once done that, write the code of that subtask making sure it passes the test you wrote before.
 Run the tests, analyse the errors and fix them.
 Write the following log files, making sure the files are named starting with T (capital T) and the subtask number in a three figures number (e.g. T002.1 for subtask 2.1):
