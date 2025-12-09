@@ -2530,7 +2530,7 @@ Validate that user has paid before processing invoices.
 - [x] 15.3 Set up cloud licensing server (Lambda/Firebase)
 - [x] 15.4 Create license validation endpoint
 - [x] 15.5 Implement JWT signing and validation
-- [ ] 15.6 Implement offline grace period (7 days)
+- [x] 15.6 Implement offline grace period (7 days)
 - [ ] 15.7 Integrate license check into JobQueueService
 - [ ] 15.8 Create license management UI
 
@@ -2693,6 +2693,35 @@ Validate that user has paid before processing invoices.
 - `log_files/T015.5_JwtLicenseToken_Log.md`
 - `log_tests/T015.5_JwtLicenseToken_Test.md`
 - `log_learn/T015.5_JwtLicenseToken_Learn.md`
+
+---
+
+**Subtask 15.6 Completed**: 2025-12-09
+
+**Summary**: Created offline grace period service for managing license validation when server is unreachable, with configurable grace periods by license type and progressive warning levels.
+
+**Files Created**:
+- `src/services/OfflineGracePeriod.ts` - Offline grace period service (~550 lines)
+- `tests/offline-grace-period.test.ts` - 44 unit tests
+
+**Key Features**:
+- Configurable grace periods (default 7 days)
+- License type specific grace periods (trial: 3, standard: 7, professional: 14, enterprise: 30)
+- Warning levels (none, warning, critical, expired)
+- State transitions (online → offline → warning → critical → expired)
+- Event-driven architecture for notifications
+- State serialization/persistence
+- OfflineGraceManager class for lifecycle management
+
+**Warning Thresholds**:
+- Warning: ≤ 2 days remaining
+- Critical: < 24 hours remaining
+- Expired: 0 remaining
+
+**Log Files**:
+- `log_files/T015.6_OfflineGracePeriod_Log.md`
+- `log_tests/T015.6_OfflineGracePeriod_Test.md`
+- `log_learn/T015.6_OfflineGracePeriod_Learn.md`
 
 ---
 
