@@ -1,6 +1,7 @@
 /**
  * InvoiceForm Component
  * Subtask 14.3: Create InvoiceForm component with auto-population
+ * Subtask 14.5: Implement math error highlighting (red)
  *
  * Features:
  * - Form fields for Mexican invoice data (RFC, dates, amounts)
@@ -8,10 +9,19 @@
  * - Confidence-based field highlighting
  * - Line items table
  * - Form validation
- * - Math validation (subtotal + IVA = total)
+ * - Math validation with red highlighting (subtotal + IVA = total, IVA = 16%)
  */
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
+import {
+  validateInvoiceMath,
+  validateLineItems,
+  MathErrorBanner,
+  CalculationHelper,
+  getMathErrorHighlightClass,
+  type MathError,
+  type LineItemValidation,
+} from './MathValidation';
 
 // =============================================================================
 // Types
@@ -154,6 +164,7 @@ interface FormFieldProps {
   value: string;
   confidence?: number;
   error?: string;
+  mathError?: string; // Math validation error (red highlighting)
   required?: boolean;
   readOnly?: boolean;
   onChange: (value: string) => void;
@@ -167,24 +178,45 @@ function FormFieldInput({
   value,
   confidence,
   error,
+  mathError,
   required,
   readOnly,
   onChange,
   onFocus,
 }: FormFieldProps) {
   const confidenceLevel = confidence !== undefined ? getConfidenceLevel(confidence) : undefined;
-  const borderColor = error
+
+  // Math error takes precedence, then form error, then confidence highlighting
+  const hasMathError = !!mathError;
+  const hasFormError = !!error;
+
+  const borderColor = hasMathError
+    ? 'border-red-500'
+    : hasFormError
     ? 'border-red-500'
     : confidenceLevel
     ? getConfidenceColor(confidenceLevel)
     : 'border-gray-300';
-  const bgColor = confidenceLevel ? getConfidenceBgColor(confidenceLevel) : 'bg-white';
+
+  const bgColor = hasMathError
+    ? 'bg-red-50'
+    : confidenceLevel
+    ? getConfidenceBgColor(confidenceLevel)
+    : 'bg-white';
+
+  // Additional highlighting for math errors
+  const mathHighlightClass = hasMathError ? 'ring-2 ring-red-300' : '';
 
   return (
     <div className="mb-4">
       <label htmlFor={name} className="block text-sm font-medium text-gray-700 mb-1">
         {label}
         {required && <span className="text-red-500 ml-1">*</span>}
+        {hasMathError && (
+          <span className="ml-2 text-red-500 text-xs font-normal">
+            (Math error)
+          </span>
+        )}
       </label>
       <div className="relative">
         <input
@@ -195,12 +227,12 @@ function FormFieldInput({
           onChange={(e) => onChange(e.target.value)}
           onFocus={onFocus}
           readOnly={readOnly}
-          className={`w-full px-3 py-2 border-2 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 ${borderColor} ${bgColor} ${
+          className={`w-full px-3 py-2 border-2 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 ${borderColor} ${bgColor} ${mathHighlightClass} ${
             readOnly ? 'bg-gray-100 cursor-not-allowed' : ''
           }`}
           step={type === 'number' ? '0.01' : undefined}
         />
-        {confidence !== undefined && (
+        {confidence !== undefined && !hasMathError && (
           <span
             className={`absolute right-2 top-1/2 -translate-y-1/2 text-xs px-1.5 py-0.5 rounded ${
               confidenceLevel === 'high'
@@ -213,8 +245,23 @@ function FormFieldInput({
             {Math.round(confidence * 100)}%
           </span>
         )}
+        {hasMathError && (
+          <span className="absolute right-2 top-1/2 -translate-y-1/2">
+            <svg className="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+            </svg>
+          </span>
+        )}
       </div>
       {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
+      {mathError && !error && (
+        <p className="mt-1 text-xs text-red-600 flex items-center gap-1">
+          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+          </svg>
+          {mathError}
+        </p>
+      )}
     </div>
   );
 }
@@ -420,7 +467,6 @@ export function InvoiceForm({
   const [lineItems, setLineItems] = useState<LineItem[]>(
     extractedData?.lineItems || []
   );
-  const [mathError, setMathError] = useState<string | null>(null);
 
   // Re-populate when extracted data changes
   useEffect(() => {
@@ -430,25 +476,38 @@ export function InvoiceForm({
     }
   }, [extractedData]);
 
-  // Validate math whenever amounts change
-  useEffect(() => {
+  // Enhanced math validation with detailed errors (Subtask 14.5)
+  const mathValidation = useMemo(() => {
     const subtotal = parseFloat(formState.subtotal.value) || 0;
     const iva = parseFloat(formState.iva.value) || 0;
     const total = parseFloat(formState.total.value) || 0;
 
-    if (subtotal > 0 && iva > 0 && total > 0) {
-      const result = validateMath(subtotal, iva, total);
-      if (!result.isValid) {
-        setMathError(
-          `Math error: Expected IVA=${result.expectedIva.toFixed(2)}, Total=${result.expectedTotal.toFixed(2)}`
-        );
-      } else {
-        setMathError(null);
-      }
-    } else {
-      setMathError(null);
+    // Only validate if all values are entered
+    if (subtotal === 0 && iva === 0 && total === 0) {
+      return { isValid: true, errors: [], ivaError: null, totalError: null };
     }
+
+    const result = validateInvoiceMath({ subtotal, iva, total });
+    const ivaError = result.errors.find(e => e.field === 'iva') || null;
+    const totalError = result.errors.find(e => e.field === 'total') || null;
+
+    return {
+      ...result,
+      ivaError,
+      totalError,
+    };
   }, [formState.subtotal.value, formState.iva.value, formState.total.value]);
+
+  // Line item validation
+  const lineItemValidations = useMemo(() => {
+    if (lineItems.length === 0) return [];
+    return validateLineItems(lineItems);
+  }, [lineItems]);
+
+  // Legacy mathError for form validation (backwards compatibility)
+  const mathError = mathValidation.errors.length > 0
+    ? mathValidation.errors.map(e => e.message).join('; ')
+    : null;
 
   // Handle field change
   const handleFieldChange = useCallback(
@@ -607,16 +666,21 @@ export function InvoiceForm({
         </p>
       </div>
 
-      {/* Math Error Warning */}
-      {mathError && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
-          <div className="flex items-center gap-2 text-red-700">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
-            <span className="text-sm font-medium">{mathError}</span>
-          </div>
-        </div>
+      {/* Math Error Warning Banner (Subtask 14.5) */}
+      {mathValidation.errors.length > 0 && (
+        <MathErrorBanner errors={mathValidation.errors} className="mb-4" />
+      )}
+
+      {/* Calculation Helper - shown when subtotal is entered */}
+      {parseFloat(formState.subtotal.value) > 0 && !readOnly && (
+        <CalculationHelper
+          subtotal={parseFloat(formState.subtotal.value)}
+          onAutoCalculate={(iva, total) => {
+            handleFieldChange('iva', iva.toFixed(2));
+            handleFieldChange('total', total.toFixed(2));
+          }}
+          className="mb-4"
+        />
       )}
 
       {/* RFC Fields */}
@@ -682,6 +746,7 @@ export function InvoiceForm({
           value={formState.iva.value}
           confidence={formState.iva.confidence}
           error={formState.iva.error}
+          mathError={mathValidation.ivaError?.message}
           required
           readOnly={readOnly}
           onChange={(v) => handleFieldChange('iva', v)}
@@ -694,6 +759,7 @@ export function InvoiceForm({
           value={formState.total.value}
           confidence={formState.total.confidence}
           error={formState.total.error}
+          mathError={mathValidation.totalError?.message}
           required
           readOnly={readOnly}
           onChange={(v) => handleFieldChange('total', v)}

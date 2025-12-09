@@ -2246,7 +2246,7 @@ Verification screen where users confirm and correct extracted data.
 - [x] 14.2 Implement PDF viewer with react-pdf (zoom, navigation)
 - [x] 14.3 Create InvoiceForm component with auto-population
 - [x] 14.4 Implement confidence-based highlighting (orange <0.90)
-- [ ] 14.5 Implement math error highlighting (red)
+- [x] 14.5 Implement math error highlighting (red)
 - [ ] 14.6 Implement validation blocking (disable Submit)
 - [ ] 14.7 Create manual correction interface
 - [ ] 14.8 Implement submission confirmation flow
@@ -2337,6 +2337,34 @@ Verification screen where users confirm and correct extracted data.
 - `log_files/T014.4_ConfidenceHighlighting_Log.md`
 - `log_tests/T014.4_ConfidenceHighlighting_TestLog.md`
 - `log_learn/T014.4_ConfidenceHighlighting_Guide.md`
+
+---
+
+**Subtask 14.5 Completed**: 2025-12-09
+
+**Summary**: Implemented red math error highlighting for invoice calculations with real-time validation.
+
+**Components Created**:
+- `src/components/MathValidation.tsx` - Validation utilities and components (~450 lines)
+- `tests/math-validation.test.ts` - 43 unit tests
+
+**Key Features**:
+- MathErrorBanner: Red banner showing math validation errors
+- CalculationHelper: Shows expected values with auto-fill button
+- Real-time validation of IVA (16%) and total calculations
+- Red highlighting for fields with math errors
+- Line item amount validation (qty × price)
+- Tolerance handling for floating point precision
+
+**Validation Rules**:
+- IVA must be 16% of subtotal (±$0.01 tolerance)
+- Total must equal subtotal + IVA (±$0.01 tolerance)
+- Line item amount = quantity × unit price
+
+**Log Files**:
+- `log_files/T014.5_MathErrorHighlighting_Log.md`
+- `log_tests/T014.5_MathErrorHighlighting_TestLog.md`
+- `log_learn/T014.5_MathErrorHighlighting_Guide.md`
 
 ---
 
