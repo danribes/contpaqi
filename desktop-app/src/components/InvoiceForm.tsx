@@ -3,6 +3,7 @@
  * Subtask 14.3: Create InvoiceForm component with auto-population
  * Subtask 14.5: Implement math error highlighting (red)
  * Subtask 14.6: Implement validation blocking (disable Submit)
+ * Subtask 14.7: Create manual correction interface
  *
  * Features:
  * - Form fields for Mexican invoice data (RFC, dates, amounts)
@@ -12,6 +13,7 @@
  * - Form validation
  * - Math validation with red highlighting (subtotal + IVA = total, IVA = 16%)
  * - Validation blocking with submit button disable
+ * - Manual correction with original value tracking
  */
 
 import { useState, useCallback, useEffect, useMemo } from 'react';
@@ -34,6 +36,16 @@ import {
   type FormValues,
   type ValidationState,
 } from './ValidationBlocking';
+import {
+  CorrectionBadge,
+  OriginalValueDisplay,
+  RevertButton,
+  CorrectionSummaryPanel,
+  hasBeenCorrected,
+  getConfidenceAfterCorrection,
+  MANUAL_OVERRIDE_CONFIDENCE,
+  type CorrectionState,
+} from './ManualCorrection';
 
 // =============================================================================
 // Types
@@ -66,6 +78,7 @@ export interface InvoiceData {
 
 interface FormField {
   value: string;
+  originalValue: string; // Original extracted value for correction tracking (Subtask 14.7)
   confidence?: number;
   touched: boolean;
   error?: string;
@@ -174,6 +187,7 @@ interface FormFieldProps {
   name: string;
   type: 'text' | 'number' | 'date';
   value: string;
+  originalValue?: string; // Original extracted value (for correction tracking)
   confidence?: number;
   error?: string;
   mathError?: string; // Math validation error (red highlighting)
@@ -181,6 +195,7 @@ interface FormFieldProps {
   readOnly?: boolean;
   onChange: (value: string) => void;
   onFocus?: () => void;
+  onRevert?: () => void; // Revert to original value
 }
 
 function FormFieldInput({
@@ -188,6 +203,7 @@ function FormFieldInput({
   name,
   type,
   value,
+  originalValue,
   confidence,
   error,
   mathError,
@@ -195,10 +211,21 @@ function FormFieldInput({
   readOnly,
   onChange,
   onFocus,
+  onRevert,
 }: FormFieldProps) {
-  const confidenceLevel = confidence !== undefined ? getConfidenceLevel(confidence) : undefined;
+  // Check if field has been manually corrected (Subtask 14.7)
+  const isCorrected = originalValue !== undefined && hasBeenCorrected(originalValue, value);
 
-  // Math error takes precedence, then form error, then confidence highlighting
+  // Get display confidence (100% for corrected fields)
+  const displayConfidence = isCorrected
+    ? MANUAL_OVERRIDE_CONFIDENCE
+    : confidence;
+
+  const confidenceLevel = displayConfidence !== undefined
+    ? getConfidenceLevel(displayConfidence)
+    : undefined;
+
+  // Math error takes precedence, then form error, then correction, then confidence highlighting
   const hasMathError = !!mathError;
   const hasFormError = !!error;
 
@@ -206,12 +233,16 @@ function FormFieldInput({
     ? 'border-red-500'
     : hasFormError
     ? 'border-red-500'
+    : isCorrected
+    ? 'border-blue-300'
     : confidenceLevel
     ? getConfidenceColor(confidenceLevel)
     : 'border-gray-300';
 
   const bgColor = hasMathError
     ? 'bg-red-50'
+    : isCorrected
+    ? 'bg-blue-50'
     : confidenceLevel
     ? getConfidenceBgColor(confidenceLevel)
     : 'bg-white';
@@ -229,6 +260,9 @@ function FormFieldInput({
             (Math error)
           </span>
         )}
+        {isCorrected && !hasMathError && (
+          <CorrectionBadge hasBeenCorrected={true} className="ml-2" />
+        )}
       </label>
       <div className="relative">
         <input
@@ -241,20 +275,29 @@ function FormFieldInput({
           readOnly={readOnly}
           className={`w-full px-3 py-2 border-2 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 ${borderColor} ${bgColor} ${mathHighlightClass} ${
             readOnly ? 'bg-gray-100 cursor-not-allowed' : ''
-          }`}
+          } ${isCorrected && onRevert ? 'pr-20' : ''}`}
           step={type === 'number' ? '0.01' : undefined}
         />
-        {confidence !== undefined && !hasMathError && (
+        {/* Revert button for corrected fields */}
+        {isCorrected && onRevert && !readOnly && (
+          <RevertButton
+            onRevert={onRevert}
+            className="absolute right-12 top-1/2 -translate-y-1/2"
+          />
+        )}
+        {displayConfidence !== undefined && !hasMathError && (
           <span
             className={`absolute right-2 top-1/2 -translate-y-1/2 text-xs px-1.5 py-0.5 rounded ${
-              confidenceLevel === 'high'
+              isCorrected
+                ? 'bg-blue-100 text-blue-700'
+                : confidenceLevel === 'high'
                 ? 'bg-green-100 text-green-700'
                 : confidenceLevel === 'medium'
                 ? 'bg-orange-100 text-orange-700'
                 : 'bg-red-100 text-red-700'
             }`}
           >
-            {Math.round(confidence * 100)}%
+            {Math.round(displayConfidence * 100)}%
           </span>
         )}
         {hasMathError && (
@@ -265,6 +308,13 @@ function FormFieldInput({
           </span>
         )}
       </div>
+      {/* Show original value when corrected (Subtask 14.7) */}
+      {isCorrected && originalValue && (
+        <OriginalValueDisplay
+          originalValue={originalValue}
+          hasBeenCorrected={true}
+        />
+      )}
       {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
       {mathError && !error && (
         <p className="mt-1 text-xs text-red-600 flex items-center gap-1">
@@ -432,34 +482,47 @@ function LineItemsTable({
 // =============================================================================
 
 function createInitialFormState(data?: InvoiceData): FormState {
+  const rfcEmisorValue = data?.rfcEmisor?.value || '';
+  const rfcReceptorValue = data?.rfcReceptor?.value || '';
+  const fechaValue = data?.fecha?.value || '';
+  const subtotalValue = data?.subtotal?.value || '';
+  const ivaValue = data?.iva?.value || '';
+  const totalValue = data?.total?.value || '';
+
   return {
     rfcEmisor: {
-      value: data?.rfcEmisor?.value || '',
+      value: rfcEmisorValue,
+      originalValue: rfcEmisorValue, // Track original for corrections (Subtask 14.7)
       confidence: data?.rfcEmisor?.confidence,
       touched: false,
     },
     rfcReceptor: {
-      value: data?.rfcReceptor?.value || '',
+      value: rfcReceptorValue,
+      originalValue: rfcReceptorValue,
       confidence: data?.rfcReceptor?.confidence,
       touched: false,
     },
     fecha: {
-      value: data?.fecha?.value || '',
+      value: fechaValue,
+      originalValue: fechaValue,
       confidence: data?.fecha?.confidence,
       touched: false,
     },
     subtotal: {
-      value: data?.subtotal?.value || '',
+      value: subtotalValue,
+      originalValue: subtotalValue,
       confidence: data?.subtotal?.confidence,
       touched: false,
     },
     iva: {
-      value: data?.iva?.value || '',
+      value: ivaValue,
+      originalValue: ivaValue,
       confidence: data?.iva?.confidence,
       touched: false,
     },
     total: {
-      value: data?.total?.value || '',
+      value: totalValue,
+      originalValue: totalValue,
       confidence: data?.total?.confidence,
       touched: false,
     },
@@ -576,6 +639,22 @@ export function InvoiceForm({
       onFieldFocus?.(fieldName, bboxMap[fieldName]);
     },
     [extractedData, onFieldFocus]
+  );
+
+  // Handle revert field to original value (Subtask 14.7)
+  const handleRevertField = useCallback(
+    (fieldName: keyof FormState) => {
+      setFormState((prev) => ({
+        ...prev,
+        [fieldName]: {
+          ...prev[fieldName],
+          value: prev[fieldName].originalValue,
+          touched: true,
+          error: undefined,
+        },
+      }));
+    },
+    []
   );
 
   // Handle line item change
@@ -727,24 +806,28 @@ export function InvoiceForm({
           name="rfcEmisor"
           type="text"
           value={formState.rfcEmisor.value}
+          originalValue={formState.rfcEmisor.originalValue}
           confidence={formState.rfcEmisor.confidence}
           error={formState.rfcEmisor.error}
           required
           readOnly={readOnly}
           onChange={(v) => handleFieldChange('rfcEmisor', v)}
           onFocus={() => handleFieldFocus('rfcEmisor')}
+          onRevert={() => handleRevertField('rfcEmisor')}
         />
         <FormFieldInput
           label="RFC Receptor"
           name="rfcReceptor"
           type="text"
           value={formState.rfcReceptor.value}
+          originalValue={formState.rfcReceptor.originalValue}
           confidence={formState.rfcReceptor.confidence}
           error={formState.rfcReceptor.error}
           required
           readOnly={readOnly}
           onChange={(v) => handleFieldChange('rfcReceptor', v)}
           onFocus={() => handleFieldFocus('rfcReceptor')}
+          onRevert={() => handleRevertField('rfcReceptor')}
         />
       </div>
 
@@ -754,12 +837,14 @@ export function InvoiceForm({
         name="fecha"
         type="date"
         value={formState.fecha.value}
+        originalValue={formState.fecha.originalValue}
         confidence={formState.fecha.confidence}
         error={formState.fecha.error}
         required
         readOnly={readOnly}
         onChange={(v) => handleFieldChange('fecha', v)}
         onFocus={() => handleFieldFocus('fecha')}
+        onRevert={() => handleRevertField('fecha')}
       />
 
       {/* Amount Fields */}
@@ -769,18 +854,21 @@ export function InvoiceForm({
           name="subtotal"
           type="number"
           value={formState.subtotal.value}
+          originalValue={formState.subtotal.originalValue}
           confidence={formState.subtotal.confidence}
           error={formState.subtotal.error}
           required
           readOnly={readOnly}
           onChange={(v) => handleFieldChange('subtotal', v)}
           onFocus={() => handleFieldFocus('subtotal')}
+          onRevert={() => handleRevertField('subtotal')}
         />
         <FormFieldInput
           label="IVA (16%)"
           name="iva"
           type="number"
           value={formState.iva.value}
+          originalValue={formState.iva.originalValue}
           confidence={formState.iva.confidence}
           error={formState.iva.error}
           mathError={mathValidation.ivaError?.message}
@@ -788,12 +876,14 @@ export function InvoiceForm({
           readOnly={readOnly}
           onChange={(v) => handleFieldChange('iva', v)}
           onFocus={() => handleFieldFocus('iva')}
+          onRevert={() => handleRevertField('iva')}
         />
         <FormFieldInput
           label="Total"
           name="total"
           type="number"
           value={formState.total.value}
+          originalValue={formState.total.originalValue}
           confidence={formState.total.confidence}
           error={formState.total.error}
           mathError={mathValidation.totalError?.message}
@@ -801,6 +891,7 @@ export function InvoiceForm({
           readOnly={readOnly}
           onChange={(v) => handleFieldChange('total', v)}
           onFocus={() => handleFieldFocus('total')}
+          onRevert={() => handleRevertField('total')}
         />
       </div>
 
