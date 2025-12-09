@@ -1,0 +1,61 @@
+{
+  "project": {
+    "name": "contpaqi-ai-bridge",
+    "description": "ContPAQi AI Bridge - Invoice Processing Engine",
+    "version": "1.0.0"
+  },
+  "pyarmor": {
+    "version": "8.x",
+    "license": "trial"
+  },
+  "obfuscation": {
+    "src": "src",
+    "output": "dist",
+    "entry": "main.py",
+    "recursive": true,
+    "includes": [
+      "*.py"
+    ],
+    "excludes": [
+      "__pycache__",
+      "*.pyc",
+      "*.pyo",
+      "test_*.py",
+      "*_test.py",
+      "tests/"
+    ]
+  },
+  "settings": {
+    "python_version": "3.9",
+    "platform": "linux",
+    "restrict_mode": 2,
+    "obf_code": 2,
+    "obf_module": 1,
+    "wrap_mode": 1,
+    "advanced_mode": 0,
+    "enable_suffix": 0
+  },
+  "runtime": {
+    "include_runtime": true,
+    "runtime_path": "pytransform"
+  },
+  "targets": {
+    "primary": [
+      "src/main.py",
+      "src/inference.py"
+    ],
+    "models": [
+      "src/models/tatr.py",
+      "src/models/layoutlm.py",
+      "src/models/validators.py",
+      "src/models/schemas.py"
+    ],
+    "utils": [
+      "src/utils/ocr.py"
+    ]
+  },
+  "bootstrap": {
+    "entry_script": "src/main.py",
+    "disable_restrict_mode": false
+  }
+}

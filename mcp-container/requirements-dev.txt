@@ -1,0 +1,25 @@
+# Development and build dependencies
+# These are NOT included in the runtime container
+
+# Code obfuscation (build-time only)
+pyarmor==8.5.4
+
+# Testing
+pytest==7.4.3
+pytest-cov==4.1.0
+pytest-asyncio==0.21.1
+httpx==0.25.2
+
+# Type checking
+mypy==1.7.0
+
+# Code formatting
+black==23.11.0
+isort==5.12.0
+
+# Linting
+flake8==6.1.0
+pylint==3.0.2
+
+# Documentation
+sphinx==7.2.6
