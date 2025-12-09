@@ -2821,7 +2821,7 @@ Protect code from reverse engineering.
 - [x] 16.2 Obfuscate inference.py and main.py
 - [x] 16.3 Modify Dockerfile to use obfuscated dist/
 - [x] 16.4 Configure Dotfuscator Community for C#
-- [ ] 16.5 Enable string encryption
+- [x] 16.5 Enable string encryption
 - [ ] 16.6 Test obfuscated code functionality
 
 ### Implementation Notes
@@ -2966,6 +2966,44 @@ Protect code from reverse engineering.
 - `log_files/T016.4_DotfuscatorConfig_Log.md`
 - `log_tests/T016.4_DotfuscatorConfig_TestLog.md`
 - `log_learn/T016.4_DotfuscatorConfig_Guide.md`
+
+**Subtask 16.5 Completed**: 2025-12-09
+
+**Summary**: Enabled string encryption for both Python (PyArmor) and C# (Dotfuscator) code to protect sensitive strings from extraction.
+
+**Files Modified**:
+- `mcp-container/pyarmor.json` - Added string_encryption section
+- `windows-bridge/dotfuscator.xml` - Added string encryption documentation and config
+
+**Files Created**:
+- `docs/string-encryption.md` - Comprehensive documentation (~200 lines)
+- `tests/test_task016_5_string_encryption.py` - 27 unit tests
+
+**Key Features**:
+- PyArmor string encryption enabled with selective patterns
+- Dotfuscator Professional config template (full encryption)
+- Community Edition alternatives documented
+- Comprehensive security documentation
+
+**Sensitive String Patterns**:
+- API: api_key, api_secret, endpoint, base_url
+- Auth: password, secret, token, credential
+- Connection: database_url, redis_url, host
+- App: contpaqi, license
+
+**Exclusion Patterns**:
+- Log levels: DEBUG, INFO, WARNING, ERROR
+- Common: utf-8, application/json, __name__
+
+**Security Notes**:
+- String encryption is one layer in defense-in-depth
+- Runtime visibility warning documented
+- Environment variables recommended for production secrets
+
+**Log Files**:
+- `log_files/T016.5_StringEncryption_Log.md`
+- `log_tests/T016.5_StringEncryption_TestLog.md`
+- `log_learn/T016.5_StringEncryption_Guide.md`
 
 ---
 
