@@ -3059,7 +3059,7 @@ Create Windows installer with all dependencies and services.
 - [x] 17.5 Implement silent Docker image loading
 - [x] 17.6 Create uninstaller logic
 - [x] 17.7 Add desktop shortcut creation
-- [ ] 17.8 Implement first-run wizard
+- [x] 17.8 Implement first-run wizard
 - [ ] 17.9 Code sign the installer
 - [ ] 17.10 Test on clean Windows 10/11 machines
 
@@ -3370,6 +3370,51 @@ Create Windows installer with all dependencies and services.
 - `log_files/T017.7_Shortcuts_Log.md`
 - `log_tests/T017.7_Shortcuts_TestLog.md`
 - `log_learn/T017.7_Shortcuts_Guide.md`
+
+**Subtask 17.8 Completed**: 2025-12-10
+
+**Summary**: Created PowerShell first-run wizard script that provides initial setup and configuration experience after installation.
+
+**Files Created**:
+- `installer/scripts/first-run-wizard.ps1` - First-run wizard script (~480 lines)
+- `tests/test_task017_8_first_run_wizard.py` - 30 unit tests
+
+**Script Parameters**:
+- `-SkipChecks` / `-Skip`: Skip system requirement checks
+- `-Quiet` / `-Silent`: Suppress output
+- `-InstallPath`: Custom installation path
+- `-Force`: Run even if already initialized
+- `-NonInteractive`: Disable interactive prompts
+- `-OpenBrowser`: Open application URL after setup
+
+**System Checks Performed**:
+- Docker: Verifies Docker installed and daemon running
+- .NET Runtime: Checks dotnet CLI availability
+- Service Status: Confirms service is installed and running
+- Configuration: Validates config directory and appsettings.json
+
+**First-Run Detection**:
+- Uses `.firstrun` marker file in installation directory
+- Marker stores initialization timestamp and version
+- Can be bypassed with `-Force` parameter
+
+**Interactive Features**:
+- User confirmation prompts (yes/no)
+- Service start prompt
+- Browser launch prompt to localhost:5000
+- Can be disabled with `-NonInteractive`
+
+**Exit Codes**:
+- 0: Success
+- 1: System checks failed
+- 2: Service start failed
+- 3: Configuration error
+- 4: Already initialized
+
+**Log Files**:
+- `log_files/T017.8_FirstRunWizard_Log.md`
+- `log_tests/T017.8_FirstRunWizard_TestLog.md`
+- `log_learn/T017.8_FirstRunWizard_Guide.md`
 
 ---
 
