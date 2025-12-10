@@ -3060,7 +3060,7 @@ Create Windows installer with all dependencies and services.
 - [x] 17.6 Create uninstaller logic
 - [x] 17.7 Add desktop shortcut creation
 - [x] 17.8 Implement first-run wizard
-- [ ] 17.9 Code sign the installer
+- [x] 17.9 Code sign the installer
 - [ ] 17.10 Test on clean Windows 10/11 machines
 
 ### Implementation Notes
@@ -3415,6 +3415,53 @@ Create Windows installer with all dependencies and services.
 - `log_files/T017.8_FirstRunWizard_Log.md`
 - `log_tests/T017.8_FirstRunWizard_TestLog.md`
 - `log_learn/T017.8_FirstRunWizard_Guide.md`
+
+**Subtask 17.9 Completed**: 2025-12-10
+
+**Summary**: Created PowerShell script to code sign Windows executables, DLLs, and installers using Microsoft's signtool.exe.
+
+**Files Created**:
+- `installer/scripts/code-sign.ps1` - Code signing script (~450 lines)
+- `tests/test_task017_9_code_signing.py` - 31 unit tests
+
+**Script Parameters**:
+- `-FilePath` / `-Path`: Path to file to sign
+- `-Directory`: Directory containing files to sign
+- `-Files`: Array of files to sign
+- `-CertPath` / `-PfxPath`: Path to PFX certificate
+- `-Password` / `-CertPassword`: Certificate password
+- `-TimestampServer`: Timestamp server URL
+- `-HashAlgorithm`: Hash algorithm (sha256, sha384, sha512)
+- `-Verify`: Verify signature only
+- `-Recursive`: Sign files in subdirectories
+- `-Quiet`: Suppress output
+
+**SignTool Detection**:
+- Searches Windows SDK paths: Windows Kits\10, 8.1
+- Supports x64 and x86 versions
+- Falls back to PATH lookup
+
+**Signing Features**:
+- PFX/PKCS12 certificate support
+- SHA-256 hash algorithm (default)
+- RFC3161 timestamp server support
+- Default: http://timestamp.digicert.com
+
+**Supported File Types**:
+- `.exe`, `.dll`, `.msi`, `.msix`, `.appx`, `.cab`, `.ocx`, `.sys`
+
+**Exit Codes**:
+- 0: Success
+- 1: File not found
+- 2: Certificate not found
+- 3: SignTool not found
+- 4: Signing failed
+- 5: Verification failed
+
+**Log Files**:
+- `log_files/T017.9_CodeSigning_Log.md`
+- `log_tests/T017.9_CodeSigning_TestLog.md`
+- `log_learn/T017.9_CodeSigning_Guide.md`
 
 ---
 
