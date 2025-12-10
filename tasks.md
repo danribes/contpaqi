@@ -3053,7 +3053,7 @@ Create Windows installer with all dependencies and services.
 ### Subtasks
 
 - [x] 17.1 Create inno-setup.iss script structure
-- [ ] 17.2 Implement Docker Desktop prerequisite check
+- [x] 17.2 Implement Docker Desktop prerequisite check
 - [ ] 17.3 Implement Windows Service installation
 - [ ] 17.4 Bundle Docker image (docker save)
 - [ ] 17.5 Implement silent Docker image loading
@@ -3112,6 +3112,44 @@ Create Windows installer with all dependencies and services.
 - `log_files/T017.1_InnoSetupStructure_Log.md`
 - `log_tests/T017.1_InnoSetupStructure_TestLog.md`
 - `log_learn/T017.1_InnoSetupStructure_Guide.md`
+
+**Subtask 17.2 Completed**: 2025-12-10
+
+**Summary**: Implemented comprehensive Docker Desktop prerequisite checking with PowerShell script for installation, running state, and version validation.
+
+**Files Created**:
+- `installer/scripts/check-docker.ps1` - Docker check script (~320 lines)
+- `tests/test_task017_2_docker_prerequisite.py` - 26 unit tests
+
+**Detection Methods**:
+- File paths: Program Files, LocalAppData
+- Registry: HKLM and HKCU Docker keys
+- CLI: Get-Command docker
+- Service: com.docker.service status
+- Running: docker info command
+
+**PowerShell Functions**:
+- Test-DockerInstalled: Multiple path/registry checks
+- Test-DockerRunning: Docker info and service status
+- Get-DockerVersionInfo: Parse docker --version
+- Compare-DockerVersion: Version comparison with minimum
+- Get-DockerStatus: Main function returning PSCustomObject
+
+**Output Properties**:
+- Installed, Running, Version, VersionOK
+- Path, ServiceStatus, Message
+- MinVersionRequired (default: 20.10.0)
+
+**Exit Codes**:
+- 0: All checks passed
+- 1: Installed but not running
+- 2: Not installed
+- 3: Other issue
+
+**Log Files**:
+- `log_files/T017.2_DockerPrerequisite_Log.md`
+- `log_tests/T017.2_DockerPrerequisite_TestLog.md`
+- `log_learn/T017.2_DockerPrerequisite_Guide.md`
 
 ---
 
