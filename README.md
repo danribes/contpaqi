@@ -1,5 +1,7 @@
 # ContPAQi AI Bridge
 
+*Read this in other languages: [Español](README.es.md)*
+
 AI-powered invoice processing system that automatically extracts data from PDF invoices and creates accounting entries in ContPAQi accounting software.
 
 ## Overview
