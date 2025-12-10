@@ -3054,7 +3054,7 @@ Create Windows installer with all dependencies and services.
 
 - [x] 17.1 Create inno-setup.iss script structure
 - [x] 17.2 Implement Docker Desktop prerequisite check
-- [ ] 17.3 Implement Windows Service installation
+- [x] 17.3 Implement Windows Service installation
 - [ ] 17.4 Bundle Docker image (docker save)
 - [ ] 17.5 Implement silent Docker image loading
 - [ ] 17.6 Create uninstaller logic
@@ -3150,6 +3150,57 @@ Create Windows installer with all dependencies and services.
 - `log_files/T017.2_DockerPrerequisite_Log.md`
 - `log_tests/T017.2_DockerPrerequisite_TestLog.md`
 - `log_learn/T017.2_DockerPrerequisite_Guide.md`
+
+**Subtask 17.3 Completed**: 2025-12-10
+
+**Summary**: Implemented comprehensive Windows Service installation script for the ContPAQi AI Bridge application.
+
+**Files Created**:
+- `installer/scripts/install-service.ps1` - Service management script (~380 lines)
+- `tests/test_task017_3_windows_service.py` - 36 unit tests
+
+**Script Parameters**:
+- `-Install`: Install and configure the service
+- `-Uninstall`: Stop and remove the service
+- `-Start`: Start the service
+- `-Stop`: Stop the service
+- `-Status`: Check service status
+- `-Force`: Force reinstallation
+- `-InstallPath`: Custom installation path
+
+**Service Configuration**:
+- Service Name: `ContPAQiBridge`
+- Display Name: `ContPAQi AI Bridge Service`
+- Startup Type: Automatic (Delayed Start)
+- Binary Path: `{InstallPath}\bin\ContpaqiBridge.exe`
+
+**PowerShell Functions**:
+- Install-ContPAQiService: Full service installation
+- Uninstall-ContPAQiService: Service removal
+- Start-ContPAQiService: Service startup
+- Stop-ContPAQiService: Service shutdown
+- Get-ContPAQiServiceStatus: Status reporting
+- Test-Administrator: Admin privilege check
+- Write-Log: Color-coded logging
+
+**Recovery Configuration**:
+- Auto-restart on failure (3 attempts)
+- 1 minute delay between restarts
+- 24 hour failure counter reset
+
+**Exit Codes**:
+- 0: Success
+- 1: Not Administrator
+- 2: Install failed
+- 3: Uninstall failed
+- 4: Start failed
+- 5: Stop failed
+- 6: Service not found
+
+**Log Files**:
+- `log_files/T017.3_WindowsService_Log.md`
+- `log_tests/T017.3_WindowsService_TestLog.md`
+- `log_learn/T017.3_WindowsService_Guide.md`
 
 ---
 
