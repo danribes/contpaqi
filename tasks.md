@@ -3058,7 +3058,7 @@ Create Windows installer with all dependencies and services.
 - [x] 17.4 Bundle Docker image (docker save)
 - [x] 17.5 Implement silent Docker image loading
 - [x] 17.6 Create uninstaller logic
-- [ ] 17.7 Add desktop shortcut creation
+- [x] 17.7 Add desktop shortcut creation
 - [ ] 17.8 Implement first-run wizard
 - [ ] 17.9 Code sign the installer
 - [ ] 17.10 Test on clean Windows 10/11 machines
@@ -3325,6 +3325,51 @@ Create Windows installer with all dependencies and services.
 - `log_files/T017.6_Uninstaller_Log.md`
 - `log_tests/T017.6_Uninstaller_TestLog.md`
 - `log_learn/T017.6_Uninstaller_Guide.md`
+
+**Subtask 17.7 Completed**: 2025-12-10
+
+**Summary**: Created PowerShell script to manage desktop and Start Menu shortcuts using WScript.Shell COM object.
+
+**Files Created**:
+- `installer/scripts/create-shortcuts.ps1` - Shortcut management script (~420 lines)
+- `tests/test_task017_7_shortcuts.py` - 31 unit tests
+
+**Script Parameters**:
+- `-Create`: Create shortcuts
+- `-Remove`: Remove shortcuts
+- `-Desktop`: Target desktop shortcuts
+- `-StartMenu`: Target Start Menu shortcuts
+- `-AllUsers`: Apply to all users (Public Desktop)
+- `-CurrentUser`: Apply to current user only
+- `-InstallPath`: Custom installation path
+- `-Quiet`: Suppress output
+
+**Shortcuts Created**:
+- Desktop: `ContPAQi AI Bridge.lnk`
+- Start Menu folder with:
+  - Main application shortcut
+  - Configuration folder shortcut
+  - Logs folder shortcut
+
+**Shortcut Properties Set**:
+- TargetPath: Executable path
+- WorkingDirectory: Application bin directory
+- Description: Tooltip text
+- IconLocation: Executable icon
+
+**User Scope Support**:
+- AllUsers: CommonDesktopDirectory / CommonPrograms
+- CurrentUser: Desktop / Programs
+
+**Exit Codes**:
+- 0: Success
+- 1: Creation failed
+- 2: Removal failed
+
+**Log Files**:
+- `log_files/T017.7_Shortcuts_Log.md`
+- `log_tests/T017.7_Shortcuts_TestLog.md`
+- `log_learn/T017.7_Shortcuts_Guide.md`
 
 ---
 
