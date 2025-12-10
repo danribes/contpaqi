@@ -2052,8 +2052,9 @@ Network locking and API endpoints for the Windows Bridge service.
 ## Task 13: Electron Shell & Docker Management
 
 **Priority**: Medium | **Dependencies**: Tasks 9, 12 | **Tags**: desktop-app, phase-5, electron, us2
-**Status**: Not Started
+**Status**: Completed
 **Estimated Effort**: 2-3 days
+**Completed Date**: 2025-12-08
 
 ### Description
 Desktop app wrapper that manages the Docker background process.
@@ -2232,8 +2233,9 @@ Desktop app wrapper that manages the Docker background process.
 ## Task 14: Human-in-the-Loop UI
 
 **Priority**: Medium | **Dependencies**: Task 13 | **Tags**: desktop-app, phase-5, react, us2
-**Status**: Not Started
+**Status**: Completed
 **Estimated Effort**: 4-5 days
+**Completed Date**: 2025-12-09
 
 ### Description
 Verification screen where users confirm and correct extracted data.
