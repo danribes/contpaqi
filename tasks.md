@@ -3044,7 +3044,7 @@ Protect code from reverse engineering.
 ## Task 17: Inno Setup Installer
 
 **Priority**: Low | **Dependencies**: Tasks 13, 14, 15, 16 | **Tags**: deployment, phase-6
-**Status**: Not Started
+**Status**: In Progress
 **Estimated Effort**: 2-3 days
 
 ### Description
@@ -3052,7 +3052,7 @@ Create Windows installer with all dependencies and services.
 
 ### Subtasks
 
-- [ ] 17.1 Create inno-setup.iss script structure
+- [x] 17.1 Create inno-setup.iss script structure
 - [ ] 17.2 Implement Docker Desktop prerequisite check
 - [ ] 17.3 Implement Windows Service installation
 - [ ] 17.4 Bundle Docker image (docker save)
@@ -3064,7 +3064,54 @@ Create Windows installer with all dependencies and services.
 - [ ] 17.10 Test on clean Windows 10/11 machines
 
 ### Implementation Notes
-<!-- Add notes here after completing the task -->
+
+**Subtask 17.1 Completed**: 2025-12-10
+
+**Summary**: Created complete Inno Setup 6.x installer script structure with all required sections and Pascal Script functions for prerequisites checking.
+
+**Files Created**:
+- `installer/contpaqi-bridge.iss` - Main installer script (~350 lines)
+- `installer/assets/license.txt` - MIT License with third-party notices
+- `installer/assets/readme.txt` - Installation guide and troubleshooting
+- `tests/test_task017_1_inno_setup_structure.py` - 32 unit tests
+
+**ISS Sections Implemented**:
+- [Setup]: Application metadata, compression, Windows compatibility
+- [Languages]: English and Spanish
+- [Tasks]: Optional desktop/quick launch icons
+- [Dirs]: Directory structure with permissions
+- [Files]: Source files with proper flags
+- [Icons]: Start Menu and Desktop shortcuts
+- [Registry]: Application registration, environment vars
+- [Run]: Post-install tasks (service, Docker)
+- [UninstallRun]: Pre-uninstall cleanup
+- [Code]: Pascal Script functions
+
+**Pascal Script Functions**:
+- DockerInstalled(): Check Docker Desktop
+- DotNetInstalled(): Check .NET Runtime
+- GetDockerVersion(): Get Docker version
+- InitializeWizard(): Custom wizard pages
+- NextButtonClick(): Validate prerequisites
+- InitializeSetup(): Pre-installation checks
+- CurStepChanged(): Post-installation message
+- CurUninstallStepChanged(): Cleanup on uninstall
+
+**Installation Structure**:
+```
+{app}\
+├── bin\           ; Windows Bridge executables
+├── config\        ; Configuration files
+├── logs\          ; Application logs
+├── data\          ; User data
+├── docker\        ; Docker image tar
+└── scripts\       ; Utility scripts
+```
+
+**Log Files**:
+- `log_files/T017.1_InnoSetupStructure_Log.md`
+- `log_tests/T017.1_InnoSetupStructure_TestLog.md`
+- `log_learn/T017.1_InnoSetupStructure_Guide.md`
 
 ---
 
