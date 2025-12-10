@@ -3056,7 +3056,7 @@ Create Windows installer with all dependencies and services.
 - [x] 17.2 Implement Docker Desktop prerequisite check
 - [x] 17.3 Implement Windows Service installation
 - [x] 17.4 Bundle Docker image (docker save)
-- [ ] 17.5 Implement silent Docker image loading
+- [x] 17.5 Implement silent Docker image loading
 - [ ] 17.6 Create uninstaller logic
 - [ ] 17.7 Add desktop shortcut creation
 - [ ] 17.8 Implement first-run wizard
@@ -3242,6 +3242,45 @@ Create Windows installer with all dependencies and services.
 - `log_files/T017.4_DockerBundle_Log.md`
 - `log_tests/T017.4_DockerBundle_TestLog.md`
 - `log_learn/T017.4_DockerBundle_Guide.md`
+
+**Subtask 17.5 Completed**: 2025-12-10
+
+**Summary**: Created PowerShell script to load bundled Docker images during installation, running silently as part of the Inno Setup post-installation process.
+
+**Files Created**:
+- `installer/scripts/load-docker-image.ps1` - Docker loading script (~270 lines)
+- `tests/test_task017_5_docker_load.py` - 31 unit tests
+
+**Script Parameters**:
+- `-ImagePath`: Path to the Docker image tar file
+- `-ImageName`: Expected image name (default: "contpaqi-mcp")
+- `-Tag`: Expected image tag (default: "latest")
+- `-Force`: Reload even if image already exists
+- `-SkipIfLoaded`: Skip loading if image already exists
+- `-Quiet` / `-Silent`: Suppress non-error output
+
+**Functions Implemented**:
+- Test-DockerAvailable: Check Docker CLI
+- Test-DockerRunning: Check Docker daemon
+- Test-DockerImageExists: Verify image exists
+- Get-DockerImageInfo: Get image size/ID
+- Import-DockerImage: Main loading function
+
+**Exit Codes**:
+- 0: Success
+- 1: Docker CLI not found
+- 2: Docker daemon not running
+- 3: Image file not found
+- 4: Load operation failed
+- 5: Verification failed
+- 6: Already loaded (non-fatal with -SkipIfLoaded)
+
+**ISS Integration**: Runs via `{app}\scripts\load-docker-image.ps1` with `Check: DockerInstalled`
+
+**Log Files**:
+- `log_files/T017.5_DockerLoad_Log.md`
+- `log_tests/T017.5_DockerLoad_TestLog.md`
+- `log_learn/T017.5_DockerLoad_Guide.md`
 
 ---
 
