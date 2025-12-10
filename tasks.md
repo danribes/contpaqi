@@ -3510,14 +3510,252 @@ Create Windows installer with all dependencies and services.
 
 ---
 
+## Task 18: Multi-Language Support (i18n)
+
+**Priority**: Medium | **Dependencies**: Tasks 13, 14, 17 | **Tags**: i18n, localization, phase-7
+**Status**: Not Started
+**Estimated Effort**: 3-4 days
+
+### Description
+Implement internationalization (i18n) support for the application with English and Spanish languages. Add language selection dropdown during installation and runtime language switching in the desktop application.
+
+**Supported Languages**:
+- English (en) - Default
+- Spanish (es)
+
+**CSS Framework**: Use Tailwind CSS for all styling
+
+### Subtasks
+
+- [ ] 18.1 Add language selection to Inno Setup installer
+  ```pascal
+  <!-- IMPLEMENTATION STEPS:
+  Update installer/contpaqi-bridge.iss:
+
+  [Languages]
+  Name: "english"; MessagesFile: "compiler:Default.isl"
+  Name: "spanish"; MessagesFile: "compiler:Languages\Spanish.isl"
+
+  [CustomMessages]
+  english.SelectLanguage=Select Installation Language
+  spanish.SelectLanguage=Seleccione el Idioma de Instalación
+
+  Add custom wizard page for language selection with dropdown
+  Store selected language in registry for app to read
+  -->
+  ```
+
+- [ ] 18.2 Set up i18n framework in Electron/React app
+  ```typescript
+  <!-- IMPLEMENTATION STEPS:
+  Install dependencies:
+  - i18next
+  - react-i18next
+  - i18next-electron-fs-backend (for loading from files)
+
+  Create src/i18n/index.ts:
+  - Initialize i18next with React bindings
+  - Configure language detection (registry, localStorage)
+  - Set fallback language to 'en'
+  - Configure interpolation settings
+
+  Wrap App component with I18nextProvider
+  -->
+  ```
+
+- [ ] 18.3 Create English language file (en.json)
+  ```json
+  <!-- IMPLEMENTATION STEPS:
+  Create src/i18n/locales/en.json with all UI strings:
+
+  {
+    "app": {
+      "name": "ContPAQi AI Bridge",
+      "tagline": "Intelligent Invoice Processing"
+    },
+    "status": {
+      "starting": "Starting...",
+      "ready": "Ready",
+      "error": "Error",
+      "offline": "Offline"
+    },
+    "invoice": {
+      "form": { ... },
+      "validation": { ... }
+    },
+    "actions": { ... },
+    "errors": { ... },
+    "settings": { ... }
+  }
+  -->
+  ```
+
+- [ ] 18.4 Create Spanish language file (es.json)
+  ```json
+  <!-- IMPLEMENTATION STEPS:
+  Create src/i18n/locales/es.json with Spanish translations:
+
+  {
+    "app": {
+      "name": "ContPAQi AI Bridge",
+      "tagline": "Procesamiento Inteligente de Facturas"
+    },
+    "status": {
+      "starting": "Iniciando...",
+      "ready": "Listo",
+      "error": "Error",
+      "offline": "Sin conexión"
+    },
+    "invoice": {
+      "form": {
+        "rfcEmisor": "RFC Emisor",
+        "rfcReceptor": "RFC Receptor",
+        "fecha": "Fecha",
+        "subtotal": "Subtotal",
+        "iva": "IVA",
+        "total": "Total"
+      },
+      "validation": {
+        "rfcInvalid": "RFC inválido",
+        "mathError": "Error en cálculos"
+      }
+    },
+    "actions": {
+      "submit": "Enviar",
+      "cancel": "Cancelar",
+      "retry": "Reintentar"
+    }
+  }
+  -->
+  ```
+
+- [ ] 18.5 Update UI components to use translation keys
+  ```typescript
+  <!-- IMPLEMENTATION STEPS:
+  Update all React components to use useTranslation hook:
+
+  import { useTranslation } from 'react-i18next';
+
+  const MyComponent = () => {
+    const { t } = useTranslation();
+    return <button>{t('actions.submit')}</button>;
+  };
+
+  Components to update:
+  - StatusIndicator, StatusBar, StatusBadge
+  - InvoiceForm, ValidationMessages
+  - PDFViewer toolbar
+  - ConfidenceHighlighting
+  - BatchProcessingView
+  - Settings panel
+  - Error messages and dialogs
+  -->
+  ```
+
+- [ ] 18.6 Implement language switcher component
+  ```typescript
+  <!-- IMPLEMENTATION STEPS:
+  Create src/components/LanguageSwitcher.tsx:
+
+  - Dropdown/select with language options
+  - Display current language with flag icon
+  - On change: i18n.changeLanguage(lng)
+  - Persist preference to localStorage and registry
+  - Tailwind styling matching app theme
+
+  Add to app header/settings panel
+  -->
+  ```
+
+- [ ] 18.7 Persist language preference across sessions
+  ```typescript
+  <!-- IMPLEMENTATION STEPS:
+  Create electron/language-manager.ts:
+
+  - Read initial language from:
+    1. Registry (set by installer)
+    2. localStorage (user preference)
+    3. System locale
+    4. Default to 'en'
+
+  - Save preference on change:
+    - localStorage for renderer
+    - Registry for system-wide
+
+  - IPC handlers for main process
+  -->
+  ```
+
+- [ ] 18.8 Update installer scripts with localized messages
+  ```powershell
+  <!-- IMPLEMENTATION STEPS:
+  Update PowerShell scripts to support localization:
+
+  - check-docker.ps1
+  - install-service.ps1
+  - first-run-wizard.ps1
+  - test-installation.ps1
+
+  Add message resources or parameter for language
+  Display messages in selected language
+  -->
+  ```
+
+- [ ] 18.9 Create language selection wizard page in installer
+  ```pascal
+  <!-- IMPLEMENTATION STEPS:
+  Create custom wizard page in Inno Setup:
+
+  procedure InitializeWizard();
+  var
+    LanguagePage: TInputOptionWizardPage;
+  begin
+    LanguagePage := CreateInputOptionPage(
+      wpWelcome,
+      'Select Language / Seleccione Idioma',
+      'Choose your preferred language',
+      'Please select the language for the application:',
+      True, False);
+
+    LanguagePage.Add('English');
+    LanguagePage.Add('Español');
+    LanguagePage.SelectedValueIndex := 0;
+  end;
+
+  Save selection to registry: HKCU\Software\ContPAQi\AIBridge\Language
+  -->
+  ```
+
+- [ ] 18.10 Write unit tests for i18n functionality
+  ```typescript
+  <!-- IMPLEMENTATION STEPS:
+  Create tests/i18n.test.ts:
+
+  - Test language detection
+  - Test translation key resolution
+  - Test fallback to English
+  - Test language switching
+  - Test persistence
+  - Test all components render with translations
+  - Test missing key handling
+  - Test interpolation (variables in strings)
+  -->
+  ```
+
+### Implementation Notes
+
+*To be filled as subtasks are completed*
+
+---
+
 ## Summary
 
 | Priority | Tasks | Subtasks |
 |----------|-------|----------|
 | High | 12 | 78 |
-| Medium | 3 | 25 |
+| Medium | 4 | 35 |
 | Low | 2 | 16 |
-| **Total** | **17** | **119** |
+| **Total** | **18** | **129** |
 
 ---
 
@@ -3538,18 +3776,21 @@ Task 1 (Setup)
 Task 9 + Task 12 ──────────────────────→ Task 16 (Obfuscation)
                                                  ↓
 Tasks 13, 14, 15, 16 ──────────────────→ Task 17 (Installer)
+                                                 ↓
+Tasks 13, 14, 17 ─────────────────────→ Task 18 (i18n/Localization)
 ```
 
 ---
 
 ## Progress Tracking
 
-- [x] **Phase 1**: Setup & Data (Tasks 1-3) — 19/19 subtasks ✓
-- [x] **Phase 2**: MCP Container (Tasks 4-9) — 34/34 subtasks ✓
-- [x] **Phase 3**: Windows Bridge (Tasks 10-12) — 22/22 subtasks ✓
-- [ ] **Phase 4**: Licensing & Protection (Tasks 15-16) — 0/14 subtasks
-- [ ] **Phase 5**: Desktop App (Tasks 13-14) — 4/17 subtasks
-- [ ] **Phase 6**: Deployment (Task 17) — 0/10 subtasks
+- [x] **Phase 1**: Setup & Data (Tasks 1-3) — 18/18 subtasks ✓
+- [x] **Phase 2**: MCP Container (Tasks 4-9) — 42/42 subtasks ✓
+- [x] **Phase 3**: Windows Bridge (Tasks 10-12) — 15/15 subtasks ✓
+- [x] **Phase 4**: Licensing & Protection (Tasks 15-16) — 14/14 subtasks ✓
+- [x] **Phase 5**: Desktop App (Tasks 13-14) — 17/17 subtasks ✓
+- [x] **Phase 6**: Deployment (Task 17) — 10/10 subtasks ✓
+- [ ] **Phase 7**: Localization (Task 18) — 0/10 subtasks
 
 ---
 
