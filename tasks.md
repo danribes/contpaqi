@@ -3055,7 +3055,7 @@ Create Windows installer with all dependencies and services.
 - [x] 17.1 Create inno-setup.iss script structure
 - [x] 17.2 Implement Docker Desktop prerequisite check
 - [x] 17.3 Implement Windows Service installation
-- [ ] 17.4 Bundle Docker image (docker save)
+- [x] 17.4 Bundle Docker image (docker save)
 - [ ] 17.5 Implement silent Docker image loading
 - [ ] 17.6 Create uninstaller logic
 - [ ] 17.7 Add desktop shortcut creation
@@ -3201,6 +3201,47 @@ Create Windows installer with all dependencies and services.
 - `log_files/T017.3_WindowsService_Log.md`
 - `log_tests/T017.3_WindowsService_TestLog.md`
 - `log_learn/T017.3_WindowsService_Guide.md`
+
+**Subtask 17.4 Completed**: 2025-12-10
+
+**Summary**: Created PowerShell script to export Docker images to tar files for offline distribution with the installer.
+
+**Files Created**:
+- `installer/scripts/bundle-docker.ps1` - Docker bundling script (~280 lines)
+- `tests/test_task017_4_docker_bundle.py` - 31 unit tests
+
+**Script Parameters**:
+- `-ImageName`: Docker image name (default: "contpaqi-mcp")
+- `-Tag`: Image tag (default: "latest")
+- `-OutputPath`: Output directory for tar file
+- `-OutputFilename`: Custom output filename
+- `-Force`: Overwrite existing file
+- `-Compress`: Create .tar.gz instead of .tar
+- `-Quiet`: Suppress info messages
+
+**Functions Implemented**:
+- Test-DockerAvailable: Check Docker CLI
+- Test-DockerRunning: Check Docker daemon
+- Test-DockerImageExists: Verify image exists
+- Get-DockerImageSize: Get image size
+- Export-DockerImage: Main export function
+- Format-FileSize: Human-readable size formatting
+
+**Exit Codes**:
+- 0: Success
+- 1: Docker CLI not found
+- 2: Docker daemon not running
+- 3: Image not found
+- 4: Save operation failed
+- 5: Output file already exists
+- 6: Compression failed
+
+**Output**: Creates `dist/docker/contpaqi-mcp.tar` for ISS bundling
+
+**Log Files**:
+- `log_files/T017.4_DockerBundle_Log.md`
+- `log_tests/T017.4_DockerBundle_TestLog.md`
+- `log_learn/T017.4_DockerBundle_Guide.md`
 
 ---
 
