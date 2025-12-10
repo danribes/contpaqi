@@ -3057,7 +3057,7 @@ Create Windows installer with all dependencies and services.
 - [x] 17.3 Implement Windows Service installation
 - [x] 17.4 Bundle Docker image (docker save)
 - [x] 17.5 Implement silent Docker image loading
-- [ ] 17.6 Create uninstaller logic
+- [x] 17.6 Create uninstaller logic
 - [ ] 17.7 Add desktop shortcut creation
 - [ ] 17.8 Implement first-run wizard
 - [ ] 17.9 Code sign the installer
@@ -3281,6 +3281,50 @@ Create Windows installer with all dependencies and services.
 - `log_files/T017.5_DockerLoad_Log.md`
 - `log_tests/T017.5_DockerLoad_TestLog.md`
 - `log_learn/T017.5_DockerLoad_Guide.md`
+
+**Subtask 17.6 Completed**: 2025-12-10
+
+**Summary**: Created comprehensive uninstaller PowerShell script for cleanup during application uninstallation, handling services, Docker, data, and registry.
+
+**Files Created**:
+- `installer/scripts/uninstall.ps1` - Uninstaller script (~380 lines)
+- `tests/test_task017_6_uninstaller.py` - 32 unit tests
+
+**Script Parameters**:
+- `-InstallPath`: Installation directory path
+- `-KeepData`: Preserve user data (logs, config)
+- `-RemoveAll`: Remove everything including user data
+- `-Force`: Skip confirmation prompts
+- `-Quiet` / `-Silent`: Suppress non-error output
+
+**Cleanup Functions**:
+- Remove-ContPAQiService: Stop and remove Windows Service
+- Remove-DockerResources: Stop containers, remove images
+- Remove-ApplicationData: Clean up data directories
+- Remove-RegistryEntries: Remove registry keys and env vars
+- Start-Uninstall: Main orchestration function
+
+**Cleanup Order**:
+1. Windows Service (stop, remove)
+2. Docker Resources (containers, images)
+3. Application Data (logs, temp, optionally config)
+4. Registry Entries (app key, environment variable)
+
+**Exit Codes**:
+- 0: Complete success
+- 1: Partial failure (some steps had issues)
+- 2: Critical failure
+
+**Features**:
+- Continues cleanup even if individual steps fail
+- Graceful handling of missing Docker
+- User confirmation with skip options
+- Summary report of all cleanup steps
+
+**Log Files**:
+- `log_files/T017.6_Uninstaller_Log.md`
+- `log_tests/T017.6_Uninstaller_TestLog.md`
+- `log_learn/T017.6_Uninstaller_Guide.md`
 
 ---
 
