@@ -3,7 +3,7 @@
 **Project**: AI-powered invoice processing for Contpaqi accounting
 **Created**: 2025-12-03
 **Version**: 1.0.0
-**Total**: 17 main tasks, 119 subtasks
+**Total**: 19 main tasks, 141 subtasks
 
 ---
 
@@ -3748,14 +3748,343 @@ Implement internationalization (i18n) support for the application with English a
 
 ---
 
+## Task 19: Sales Website & License Delivery
+
+**Priority**: Medium | **Dependencies**: Task 17 | **Tags**: website, e-commerce, phase-8
+**Status**: Not Started
+**Estimated Effort**: 5-7 days
+
+### Description
+Create a professional sales website for ContPAQi AI Bridge that allows customers to view features, pricing, purchase licenses, and download the software. Includes payment processing with Stripe, automatic license key generation and delivery, and a customer portal for license management.
+
+**Tech Stack Recommendation**:
+- Frontend: Next.js 14 (React) with Tailwind CSS
+- Backend: Next.js API Routes or separate Node.js/Express
+- Database: PostgreSQL (Supabase or PlanetScale)
+- Payments: Stripe
+- Hosting: Vercel (frontend) + Railway/Render (backend)
+- Email: Resend or SendGrid
+
+### Subtasks
+
+- [ ] 19.1 Set up Next.js project with Tailwind CSS
+  ```
+  <!-- IMPLEMENTATION STEPS:
+  1. Create new repository: contpaqi-website
+  2. Initialize Next.js 14: npx create-next-app@latest . --typescript --tailwind --app
+  3. Configure Tailwind with custom theme (brand colors)
+  4. Set up project structure:
+     - app/ (pages)
+     - components/ (reusable UI)
+     - lib/ (utilities, API clients)
+     - types/ (TypeScript types)
+  5. Install dependencies: stripe, @stripe/stripe-js, resend
+  -->
+  ```
+
+- [ ] 19.2 Create landing page with hero section
+  ```typescript
+  <!-- IMPLEMENTATION STEPS:
+  Create app/page.tsx:
+
+  - Hero section with:
+    - Tagline: "AI-Powered Invoice Processing for ContPAQi"
+    - Subtitle: "Automate your accounting workflow"
+    - CTA buttons: "Get Started" / "Watch Demo"
+    - Hero image/animation of app workflow
+
+  - Problem/Solution section:
+    - Manual data entry problems
+    - How AI Bridge solves them
+
+  - How It Works section:
+    - 3-step process with icons
+    - Upload → AI Extract → Auto-Post
+
+  - Testimonials placeholder
+
+  - Footer with links, contact, social
+  -->
+  ```
+
+- [ ] 19.3 Create features page with detailed capabilities
+  ```typescript
+  <!-- IMPLEMENTATION STEPS:
+  Create app/features/page.tsx:
+
+  Sections:
+  - AI-Powered OCR
+    - Table detection (TATR)
+    - Field extraction (LayoutLMv3)
+    - Confidence scoring
+
+  - Mexican Invoice Support
+    - RFC validation
+    - CFDI compliance
+    - IVA calculation
+
+  - Human-in-the-Loop
+    - Split-screen review
+    - Confidence highlighting
+    - Batch processing
+
+  - ContPAQi Integration
+    - Direct SDK connection
+    - Automatic posting
+    - Entry validation
+
+  - Security
+    - Hardware-locked licensing
+    - Local-only processing
+    - No cloud data transmission
+  -->
+  ```
+
+- [ ] 19.4 Create pricing page with license tiers
+  ```typescript
+  <!-- IMPLEMENTATION STEPS:
+  Create app/pricing/page.tsx:
+
+  License Tiers:
+  1. Starter - $XX/month or $XXX/year
+     - 1 machine
+     - 100 invoices/month
+     - Email support
+
+  2. Professional - $XX/month or $XXX/year
+     - 3 machines
+     - Unlimited invoices
+     - Priority support
+     - API access
+
+  3. Enterprise - Contact Sales
+     - Unlimited machines
+     - Custom integration
+     - Dedicated support
+     - SLA guarantee
+
+  Features comparison table
+  FAQ section for licensing questions
+  -->
+  ```
+
+- [ ] 19.5 Implement Stripe payment integration
+  ```typescript
+  <!-- IMPLEMENTATION STEPS:
+  Create app/api/checkout/route.ts:
+
+  1. Set up Stripe:
+     - npm install stripe @stripe/stripe-js
+     - Create products/prices in Stripe Dashboard
+     - Store STRIPE_SECRET_KEY in environment
+
+  2. Create checkout session:
+     - POST /api/checkout
+     - Accept: priceId, customerEmail
+     - Create Stripe Checkout Session
+     - Return sessionId for redirect
+
+  3. Create success/cancel pages:
+     - app/checkout/success/page.tsx
+     - app/checkout/cancel/page.tsx
+
+  4. Handle webhooks:
+     - app/api/webhooks/stripe/route.ts
+     - Verify webhook signature
+     - Handle checkout.session.completed
+     - Trigger license generation
+  -->
+  ```
+
+- [ ] 19.6 Create license key generation system
+  ```typescript
+  <!-- IMPLEMENTATION STEPS:
+  Create lib/license.ts:
+
+  1. Database schema (Prisma/Drizzle):
+     - licenses table:
+       - id, key, customerId, email
+       - tier, maxMachines, expiresAt
+       - createdAt, activatedAt
+
+  2. License key generation:
+     - Generate secure unique key (UUID + checksum)
+     - Format: XXXX-XXXX-XXXX-XXXX
+     - Store in database with customer info
+
+  3. License validation API:
+     - POST /api/license/validate
+     - Verify key exists and not expired
+     - Check machine count limit
+     - Return license details
+
+  4. Machine registration:
+     - POST /api/license/activate
+     - Accept: licenseKey, machineFingerprint
+     - Store machine association
+     - Return activation status
+  -->
+  ```
+
+- [ ] 19.7 Implement email delivery system
+  ```typescript
+  <!-- IMPLEMENTATION STEPS:
+  Create lib/email.ts:
+
+  1. Set up Resend:
+     - npm install resend
+     - Create API key, store in environment
+     - Create email templates
+
+  2. Email templates:
+     - Purchase confirmation
+     - License key delivery
+     - Download instructions
+     - Password reset
+     - Renewal reminders
+
+  3. Email sending function:
+     - sendPurchaseConfirmation(email, licenseKey, downloadLink)
+     - sendLicenseKey(email, licenseKey)
+     - sendDownloadLink(email, downloadUrl)
+
+  4. Triggered from webhook handler after successful payment
+  -->
+  ```
+
+- [ ] 19.8 Create customer portal for license management
+  ```typescript
+  <!-- IMPLEMENTATION STEPS:
+  Create app/portal/ pages:
+
+  1. Authentication:
+     - Login with email (magic link)
+     - Or login with license key
+
+  2. Dashboard (app/portal/page.tsx):
+     - View active licenses
+     - See machine activations
+     - Download software
+     - View invoice history
+
+  3. License details (app/portal/license/[id]/page.tsx):
+     - License key (copyable)
+     - Activation status
+     - Machine list
+     - Deactivate machine option
+     - Renewal date
+
+  4. Downloads section:
+     - Latest version download
+     - Release notes
+     - System requirements
+  -->
+  ```
+
+- [ ] 19.9 Create secure download system
+  ```typescript
+  <!-- IMPLEMENTATION STEPS:
+  Create app/api/download/route.ts:
+
+  1. Download endpoint:
+     - Verify license key or logged in user
+     - Generate time-limited signed URL
+     - Track download count
+
+  2. File storage:
+     - Store installer in S3/R2/Vercel Blob
+     - Version control for releases
+     - Checksum verification
+
+  3. Download page:
+     - Verify license before showing download
+     - Display version info
+     - Show installation instructions
+     - Provide checksums for verification
+  -->
+  ```
+
+- [ ] 19.10 Set up database and authentication
+  ```typescript
+  <!-- IMPLEMENTATION STEPS:
+  1. Database setup:
+     - Create PostgreSQL database (Supabase/PlanetScale)
+     - Set up Prisma ORM
+     - Define schemas: User, License, Machine, Download
+
+  2. Authentication:
+     - NextAuth.js with email provider
+     - Magic link authentication
+     - Session management
+
+  3. Environment configuration:
+     - DATABASE_URL
+     - NEXTAUTH_SECRET
+     - STRIPE_SECRET_KEY
+     - STRIPE_WEBHOOK_SECRET
+     - RESEND_API_KEY
+  -->
+  ```
+
+- [ ] 19.11 Add bilingual support (English/Spanish)
+  ```typescript
+  <!-- IMPLEMENTATION STEPS:
+  1. Set up next-intl:
+     - npm install next-intl
+     - Configure middleware for locale detection
+
+  2. Create translations:
+     - messages/en.json
+     - messages/es.json
+
+  3. Update all pages to use translations:
+     - useTranslations hook
+     - Dynamic locale switching
+
+  4. Language switcher component in header
+  -->
+  ```
+
+- [ ] 19.12 Deploy website and configure domain
+  ```
+  <!-- IMPLEMENTATION STEPS:
+  1. Vercel deployment:
+     - Connect GitHub repository
+     - Configure environment variables
+     - Set up custom domain
+
+  2. DNS configuration:
+     - Point domain to Vercel
+     - Configure SSL certificate
+
+  3. Production checklist:
+     - Test all payment flows
+     - Verify email delivery
+     - Test download links
+     - Monitor error tracking (Sentry)
+
+  4. SEO optimization:
+     - Meta tags
+     - Open Graph images
+     - Sitemap
+     - robots.txt
+  -->
+  ```
+
+### Implementation Notes
+
+*To be filled as subtasks are completed*
+
+---
+
 ## Summary
 
 | Priority | Tasks | Subtasks |
 |----------|-------|----------|
 | High | 12 | 78 |
-| Medium | 4 | 35 |
+| Medium | 5 | 47 |
 | Low | 2 | 16 |
-| **Total** | **18** | **129** |
+| **Total** | **19** | **141** |
 
 ---
 
@@ -3778,6 +4107,8 @@ Task 9 + Task 12 ─────────────────────
 Tasks 13, 14, 15, 16 ──────────────────→ Task 17 (Installer)
                                                  ↓
 Tasks 13, 14, 17 ─────────────────────→ Task 18 (i18n/Localization)
+
+Task 17 ───────────────────────────────→ Task 19 (Sales Website)
 ```
 
 ---
@@ -3791,6 +4122,7 @@ Tasks 13, 14, 17 ─────────────────────
 - [x] **Phase 5**: Desktop App (Tasks 13-14) — 17/17 subtasks ✓
 - [x] **Phase 6**: Deployment (Task 17) — 10/10 subtasks ✓
 - [ ] **Phase 7**: Localization (Task 18) — 0/10 subtasks
+- [ ] **Phase 8**: Sales Website (Task 19) — 0/12 subtasks
 
 ---
 
