@@ -1,0 +1,27 @@
+{
+  "app": {
+    "name": "ContPAQi AI Bridge",
+    "tagline": "Procesamiento Inteligente de Facturas"
+  },
+  "status": {
+    "starting": "Iniciando...",
+    "ready": "Listo",
+    "error": "Error",
+    "offline": "Sin conexión",
+    "checking": "Verificando..."
+  },
+  "actions": {
+    "submit": "Enviar",
+    "cancel": "Cancelar",
+    "retry": "Reintentar",
+    "close": "Cerrar",
+    "save": "Guardar",
+    "upload": "Subir",
+    "back": "Volver"
+  },
+  "settings": {
+    "title": "Configuración",
+    "language": "Idioma",
+    "selectLanguage": "Seleccionar Idioma"
+  }
+}
