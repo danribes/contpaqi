@@ -3546,7 +3546,7 @@ Implement internationalization (i18n) support for the application with English a
   ```
   **Completed**: 2025-12-11 | Added [CustomMessages] section with English/Spanish translations, created LanguagePage wizard with radio buttons, added GetSelectedLanguage(), SaveLanguagePreference() functions, registry storage at SOFTWARE\ContPAQi AI Bridge\Language, 27 tests passing
 
-- [ ] 18.2 Set up i18n framework in Electron/React app
+- [x] 18.2 Set up i18n framework in Electron/React app
   ```typescript
   <!-- IMPLEMENTATION STEPS:
   Install dependencies:
@@ -3563,6 +3563,7 @@ Implement internationalization (i18n) support for the application with English a
   Wrap App component with I18nextProvider
   -->
   ```
+  **Completed**: 2025-12-11 | Installed i18next, react-i18next, i18next-browser-languagedetector. Created src/i18n/index.ts with configuration, utility functions (getCurrentLanguage, changeLanguage, etc.), and registry loading support. Created placeholder en.json/es.json. Updated main.tsx with Suspense wrapper. 34 tests passing
 
 - [ ] 18.3 Create English language file (en.json)
   ```json

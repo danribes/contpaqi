@@ -1,0 +1,27 @@
+{
+  "app": {
+    "name": "ContPAQi AI Bridge",
+    "tagline": "Intelligent Invoice Processing"
+  },
+  "status": {
+    "starting": "Starting...",
+    "ready": "Ready",
+    "error": "Error",
+    "offline": "Offline",
+    "checking": "Checking..."
+  },
+  "actions": {
+    "submit": "Submit",
+    "cancel": "Cancel",
+    "retry": "Retry",
+    "close": "Close",
+    "save": "Save",
+    "upload": "Upload",
+    "back": "Back"
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "Language",
+    "selectLanguage": "Select Language"
+  }
+}
