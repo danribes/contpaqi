@@ -1,0 +1,272 @@
+# =============================================================================
+# ContPAQi AI Bridge - Build and Release Installer
+# =============================================================================
+# This workflow builds the Windows installer and creates a release.
+# When a release is created, it triggers the website update workflow.
+#
+# Triggers:
+# - Push to main with changes to installer/, desktop-app/, or windows-bridge/
+# - Manual dispatch
+# - Creating a new tag (v*)
+# =============================================================================
+
+name: Build and Release Installer
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'installer/**'
+      - 'desktop-app/**'
+      - 'windows-bridge/**'
+      - 'mcp-container/**'
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version number (e.g., 1.0.0)'
+        required: true
+        default: '1.0.0'
+      create_release:
+        description: 'Create a GitHub release'
+        type: boolean
+        default: true
+
+env:
+  INSTALLER_NAME: ContPAQi-AI-Bridge-Setup
+
+jobs:
+  # ===========================================================================
+  # Build Windows Installer
+  # ===========================================================================
+  build-installer:
+    name: Build Windows Installer
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # -----------------------------------------------------------------------
+      # Setup Build Environment
+      # -----------------------------------------------------------------------
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: desktop-app/package-lock.json
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '6.0.x'
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+
+      # -----------------------------------------------------------------------
+      # Build Desktop App (Electron)
+      # -----------------------------------------------------------------------
+      - name: Install desktop app dependencies
+        working-directory: desktop-app
+        run: npm ci
+
+      - name: Build desktop app
+        working-directory: desktop-app
+        run: npm run electron:build
+
+      # -----------------------------------------------------------------------
+      # Build Windows Bridge (.NET)
+      # -----------------------------------------------------------------------
+      - name: Build Windows Bridge
+        working-directory: windows-bridge/src/ContpaqiBridge
+        run: dotnet publish -c Release -r win-x86 --self-contained true -o ../../../installer/dist/windows-bridge
+
+      # -----------------------------------------------------------------------
+      # Build Docker Image (for bundling)
+      # -----------------------------------------------------------------------
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and save Docker image
+        working-directory: mcp-container
+        run: |
+          docker build -t contpaqi-mcp:latest .
+          docker save contpaqi-mcp:latest -o ../installer/dist/docker/contpaqi-mcp.tar
+
+      # -----------------------------------------------------------------------
+      # Prepare Installer Files
+      # -----------------------------------------------------------------------
+      - name: Prepare installer distribution
+        run: |
+          mkdir -p installer/dist/config
+          mkdir -p installer/dist/scripts
+
+          # Copy configuration files
+          cp windows-bridge/src/ContpaqiBridge/appsettings.json installer/dist/config/
+          cp windows-bridge/src/ContpaqiBridge/appsettings.Production.json installer/dist/config/ 2>/dev/null || true
+
+          # Copy installer scripts
+          cp installer/scripts/*.ps1 installer/dist/scripts/
+
+      # -----------------------------------------------------------------------
+      # Build Installer with Inno Setup
+      # -----------------------------------------------------------------------
+      - name: Install Inno Setup
+        run: |
+          choco install innosetup -y
+
+      - name: Determine version
+        id: version
+        run: |
+          if ("${{ github.event.inputs.version }}" -ne "") {
+            $version = "${{ github.event.inputs.version }}"
+          } elseif ("${{ github.ref }}" -match "refs/tags/v(.+)") {
+            $version = $matches[1]
+          } else {
+            $version = "1.0.0-dev.${{ github.run_number }}"
+          }
+          echo "VERSION=$version" >> $env:GITHUB_OUTPUT
+          echo "Building version: $version"
+
+      - name: Update installer version
+        run: |
+          $content = Get-Content installer/contpaqi-bridge.iss -Raw
+          $content = $content -replace '#define MyAppVersion ".*"', '#define MyAppVersion "${{ steps.version.outputs.VERSION }}"'
+          Set-Content installer/contpaqi-bridge.iss $content
+
+      - name: Build installer
+        run: |
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer/contpaqi-bridge.iss
+        shell: pwsh
+
+      # -----------------------------------------------------------------------
+      # Generate Checksums
+      # -----------------------------------------------------------------------
+      - name: Generate checksums
+        run: |
+          $installer = Get-ChildItem installer/output/*.exe
+          $sha256 = (Get-FileHash $installer.FullName -Algorithm SHA256).Hash
+          $md5 = (Get-FileHash $installer.FullName -Algorithm MD5).Hash
+
+          @{
+            filename = $installer.Name
+            version = "${{ steps.version.outputs.VERSION }}"
+            sha256 = $sha256
+            md5 = $md5
+            size = $installer.Length
+            created = (Get-Date).ToString("o")
+          } | ConvertTo-Json | Set-Content installer/output/checksums.json
+
+          echo "SHA256: $sha256" > installer/output/checksums.txt
+          echo "MD5: $md5" >> installer/output/checksums.txt
+
+      # -----------------------------------------------------------------------
+      # Upload Artifacts
+      # -----------------------------------------------------------------------
+      - name: Upload installer artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: installer-${{ steps.version.outputs.VERSION }}
+          path: |
+            installer/output/*.exe
+            installer/output/checksums.json
+            installer/output/checksums.txt
+          retention-days: 30
+
+  # ===========================================================================
+  # Create Release
+  # ===========================================================================
+  create-release:
+    name: Create GitHub Release
+    needs: build-installer
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') || github.event.inputs.create_release == 'true'
+
+    outputs:
+      release_url: ${{ steps.create_release.outputs.upload_url }}
+      version: ${{ steps.version.outputs.VERSION }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Determine version
+        id: version
+        run: |
+          if [ "${{ github.event.inputs.version }}" != "" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+          elif [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+            VERSION="${{ github.ref_name }}"
+            VERSION="${VERSION#v}"
+          else
+            VERSION="1.0.0-dev.${{ github.run_number }}"
+          fi
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Download installer artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: installer-${{ steps.version.outputs.VERSION }}
+          path: release-files
+
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.version.outputs.VERSION }}
+          name: ContPAQi AI Bridge v${{ steps.version.outputs.VERSION }}
+          body: |
+            ## ContPAQi AI Bridge v${{ steps.version.outputs.VERSION }}
+
+            ### Downloads
+            - Windows Installer (64-bit)
+
+            ### Checksums
+            See checksums.txt for SHA256 and MD5 hashes.
+
+            ### Installation
+            1. Download the installer
+            2. Run as Administrator
+            3. Follow the setup wizard
+
+            ### Requirements
+            - Windows 10/11 (64-bit)
+            - Docker Desktop
+            - .NET 6.0 Runtime
+          files: |
+            release-files/*.exe
+            release-files/checksums.json
+            release-files/checksums.txt
+          draft: false
+          prerelease: ${{ contains(steps.version.outputs.VERSION, 'dev') || contains(steps.version.outputs.VERSION, 'beta') }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ===========================================================================
+  # Trigger Website Update
+  # ===========================================================================
+  trigger-website-update:
+    name: Trigger Website Update
+    needs: create-release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Trigger contpaqi-website workflow
+        uses: peter-evans/repository-dispatch@v2
+        with:
+          token: ${{ secrets.WEBSITE_REPO_TOKEN }}
+          repository: ${{ github.repository_owner }}/contpaqi-website
+          event-type: installer-updated
+          client-payload: |
+            {
+              "version": "${{ needs.create-release.outputs.version }}",
+              "repository": "${{ github.repository }}",
+              "release_url": "https://github.com/${{ github.repository }}/releases/tag/v${{ needs.create-release.outputs.version }}",
+              "download_url": "https://github.com/${{ github.repository }}/releases/download/v${{ needs.create-release.outputs.version }}/ContPAQi-AI-Bridge-Setup-${{ needs.create-release.outputs.version }}.exe"
+            }

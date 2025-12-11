@@ -1,0 +1,169 @@
+# =============================================================================
+# ContPAQi Website - Update Download Information
+# =============================================================================
+# This workflow is triggered when the contpaqi repository creates a new release.
+# It updates the download page with the latest version information.
+#
+# INSTALLATION:
+# 1. Copy this file to contpaqi-website/.github/workflows/update-download.yml
+# 2. Ensure the CONTPAQI_REPO_TOKEN secret is set (or use GITHUB_TOKEN if public)
+#
+# Triggers:
+# - Repository dispatch from contpaqi repo (installer-updated event)
+# - Manual dispatch for testing
+# =============================================================================
+
+name: Update Download Information
+
+on:
+  repository_dispatch:
+    types: [installer-updated]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to update to'
+        required: true
+        default: '1.0.0'
+
+env:
+  DOWNLOAD_CONFIG_PATH: src/config/download.json
+  DOWNLOAD_DATA_PATH: public/download-info.json
+
+jobs:
+  update-download:
+    name: Update Download Information
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout website repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get version information
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" == "repository_dispatch" ]; then
+            VERSION="${{ github.event.client_payload.version }}"
+            DOWNLOAD_URL="${{ github.event.client_payload.download_url }}"
+            RELEASE_URL="${{ github.event.client_payload.release_url }}"
+          else
+            VERSION="${{ github.event.inputs.version }}"
+            DOWNLOAD_URL="https://github.com/danribes/contpaqi/releases/download/v${VERSION}/ContPAQi-AI-Bridge-Setup-${VERSION}.exe"
+            RELEASE_URL="https://github.com/danribes/contpaqi/releases/tag/v${VERSION}"
+          fi
+
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          echo "DOWNLOAD_URL=$DOWNLOAD_URL" >> $GITHUB_OUTPUT
+          echo "RELEASE_URL=$RELEASE_URL" >> $GITHUB_OUTPUT
+
+          echo "Version: $VERSION"
+          echo "Download URL: $DOWNLOAD_URL"
+          echo "Release URL: $RELEASE_URL"
+
+      - name: Fetch release information from contpaqi
+        id: release_info
+        run: |
+          # Fetch checksums from the release
+          CHECKSUMS_URL="https://github.com/danribes/contpaqi/releases/download/v${{ steps.version.outputs.VERSION }}/checksums.json"
+
+          # Try to download checksums, use defaults if not available
+          if curl -sL -o checksums.json "$CHECKSUMS_URL" 2>/dev/null; then
+            SHA256=$(jq -r '.sha256 // empty' checksums.json)
+            FILE_SIZE=$(jq -r '.size // empty' checksums.json)
+          fi
+
+          echo "SHA256=${SHA256:-}" >> $GITHUB_OUTPUT
+          echo "FILE_SIZE=${FILE_SIZE:-}" >> $GITHUB_OUTPUT
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Update download configuration
+        run: |
+          # Create or update download configuration
+          mkdir -p $(dirname ${{ env.DOWNLOAD_CONFIG_PATH }})
+          mkdir -p $(dirname ${{ env.DOWNLOAD_DATA_PATH }})
+
+          cat > ${{ env.DOWNLOAD_DATA_PATH }} << 'EOF'
+          {
+            "version": "${{ steps.version.outputs.VERSION }}",
+            "downloadUrl": "${{ steps.version.outputs.DOWNLOAD_URL }}",
+            "releaseUrl": "${{ steps.version.outputs.RELEASE_URL }}",
+            "sha256": "${{ steps.release_info.outputs.SHA256 }}",
+            "fileSize": ${{ steps.release_info.outputs.FILE_SIZE || 'null' }},
+            "updatedAt": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")",
+            "requirements": {
+              "os": "Windows 10/11 (64-bit)",
+              "docker": "Docker Desktop",
+              "dotnet": ".NET 6.0 Runtime"
+            }
+          }
+          EOF
+
+          # Also update src config if it exists
+          if [ -d "src/config" ]; then
+            cp ${{ env.DOWNLOAD_DATA_PATH }} ${{ env.DOWNLOAD_CONFIG_PATH }}
+          fi
+
+          echo "Download information updated:"
+          cat ${{ env.DOWNLOAD_DATA_PATH }}
+
+      - name: Update environment variable (if using .env)
+        run: |
+          # Update .env.local or .env.production if they exist
+          if [ -f ".env.local" ]; then
+            sed -i "s/NEXT_PUBLIC_APP_VERSION=.*/NEXT_PUBLIC_APP_VERSION=${{ steps.version.outputs.VERSION }}/" .env.local
+          fi
+
+          if [ -f ".env.production" ]; then
+            sed -i "s/NEXT_PUBLIC_APP_VERSION=.*/NEXT_PUBLIC_APP_VERSION=${{ steps.version.outputs.VERSION }}/" .env.production
+          fi
+
+          # Create or update if not exists
+          if [ -f ".env.local" ] || [ -f ".env.production" ]; then
+            echo "Environment files updated"
+          else
+            echo "NEXT_PUBLIC_APP_VERSION=${{ steps.version.outputs.VERSION }}" >> .env.local
+            echo "NEXT_PUBLIC_DOWNLOAD_URL=${{ steps.version.outputs.DOWNLOAD_URL }}" >> .env.local
+          fi
+
+      - name: Commit and push changes
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+
+          git add -A
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "chore: update download to v${{ steps.version.outputs.VERSION }}
+
+          - Version: ${{ steps.version.outputs.VERSION }}
+          - Download URL: ${{ steps.version.outputs.DOWNLOAD_URL }}
+          - Triggered by: ${{ github.event_name }}"
+
+            git push
+          fi
+
+      - name: Trigger Vercel deployment (if using Vercel)
+        if: env.VERCEL_DEPLOY_HOOK != ''
+        env:
+          VERCEL_DEPLOY_HOOK: ${{ secrets.VERCEL_DEPLOY_HOOK }}
+        run: |
+          curl -X POST "$VERCEL_DEPLOY_HOOK"
+          echo "Vercel deployment triggered"
+
+      - name: Summary
+        run: |
+          echo "## Download Update Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Property | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Version | ${{ steps.version.outputs.VERSION }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Download URL | ${{ steps.version.outputs.DOWNLOAD_URL }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Release URL | ${{ steps.version.outputs.RELEASE_URL }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| SHA256 | ${{ steps.release_info.outputs.SHA256 || 'N/A' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Updated At | $(date -u +"%Y-%m-%d %H:%M:%S UTC") |" >> $GITHUB_STEP_SUMMARY
