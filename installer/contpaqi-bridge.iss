@@ -76,6 +76,26 @@ InfoBeforeFile=assets\readme.txt
 Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "spanish"; MessagesFile: "compiler:Languages\Spanish.isl"
 
+[CustomMessages]
+; Language Selection Page Messages
+english.SelectLanguage=Select Installation Language
+spanish.SelectLanguage=Seleccione el Idioma de Instalación
+
+english.AppLanguage=Application Language
+spanish.AppLanguage=Idioma de la Aplicación
+
+english.LanguageSelectionPrompt=Select the language for the application interface:
+spanish.LanguageSelectionPrompt=Seleccione el idioma para la interfaz de la aplicación:
+
+english.LanguageEnglish=English
+spanish.LanguageEnglish=Inglés
+
+english.LanguageSpanish=Spanish
+spanish.LanguageSpanish=Español
+
+english.LanguageNote=This setting can be changed later in the application settings.
+spanish.LanguageNote=Esta configuración se puede cambiar más tarde en la configuración de la aplicación.
+
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 Name: "quicklaunchicon"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked; OnlyBelowVersion: 6.1; Check: not IsAdminInstallMode
@@ -122,6 +142,10 @@ Root: HKLM; Subkey: "SOFTWARE\{#MyAppPublisher}\{#MyAppName}"; ValueType: string
 Root: HKLM; Subkey: "SOFTWARE\{#MyAppPublisher}\{#MyAppName}"; ValueType: string; ValueName: "Version"; ValueData: "{#MyAppVersion}"
 Root: HKLM; Subkey: "SOFTWARE\{#MyAppPublisher}\{#MyAppName}"; ValueType: string; ValueName: "DataPath"; ValueData: "{app}\data"
 
+; Language preference (set by SelectedLanguage function in [Code] section)
+; Default value set here, actual value written by SaveLanguagePreference()
+Root: HKLM; Subkey: "SOFTWARE\{#MyAppPublisher}\{#MyAppName}"; ValueType: string; ValueName: "Language"; ValueData: "en"; Flags: createvalueifdoesntexist
+
 ; Environment variables (optional)
 Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"; ValueType: expandsz; ValueName: "CONTPAQI_BRIDGE_HOME"; ValueData: "{app}"; Flags: uninsdeletevalue
 
@@ -151,6 +175,8 @@ Type: filesandordirs; Name: "{app}\data\temp"
 var
   DockerPage: TInputQueryWizardPage;
   DockerStatus: String;
+  LanguagePage: TInputOptionWizardPage;
+  SelectedLanguageCode: String;
 
 // Check if Docker Desktop is installed
 function DockerInstalled(): Boolean;
@@ -195,10 +221,83 @@ begin
   end;
 end;
 
+// =============================================================================
+// Language Selection Functions
+// =============================================================================
+
+// Get the selected language code ('en' or 'es')
+function GetSelectedLanguage(): String;
+begin
+  if LanguagePage <> nil then
+  begin
+    // Index 0 = English, Index 1 = Spanish
+    if LanguagePage.SelectedValueIndex = 1 then
+      Result := 'es'
+    else
+      Result := 'en';
+  end
+  else
+    Result := 'en'; // Default to English
+end;
+
+// Save language preference to registry
+procedure SaveLanguagePreference();
+var
+  LanguageCode: String;
+begin
+  LanguageCode := GetSelectedLanguage();
+  SelectedLanguageCode := LanguageCode;
+
+  // Write to registry under app key
+  RegWriteStringValue(HKEY_LOCAL_MACHINE,
+    'SOFTWARE\{#MyAppPublisher}\{#MyAppName}',
+    'Language',
+    LanguageCode);
+end;
+
+// Load language preference from registry (for display)
+function LoadLanguagePreference(): String;
+var
+  LanguageCode: String;
+begin
+  if RegQueryStringValue(HKEY_LOCAL_MACHINE,
+    'SOFTWARE\{#MyAppPublisher}\{#MyAppName}',
+    'Language',
+    LanguageCode) then
+    Result := LanguageCode
+  else
+    Result := 'en'; // Default to English
+end;
+
 // Initialize wizard
 procedure InitializeWizard();
 begin
-  // Create Docker status page
+  // ==========================================================================
+  // Create Language Selection Page
+  // ==========================================================================
+  LanguagePage := CreateInputOptionPage(wpWelcome,
+    ExpandConstant('{cm:SelectLanguage}'),
+    ExpandConstant('{cm:AppLanguage}'),
+    ExpandConstant('{cm:LanguageSelectionPrompt}'),
+    True,   // Exclusive (radio buttons)
+    False); // Not required
+
+  // Add language options
+  LanguagePage.Add(ExpandConstant('{cm:LanguageEnglish}') + ' (English)');
+  LanguagePage.Add(ExpandConstant('{cm:LanguageSpanish}') + ' (Español)');
+
+  // Set default selection based on installer language or previous preference
+  if ActiveLanguage = 'spanish' then
+    LanguagePage.SelectedValueIndex := 1
+  else
+    LanguagePage.SelectedValueIndex := 0;
+
+  // Initialize language code
+  SelectedLanguageCode := 'en';
+
+  // ==========================================================================
+  // Create Docker Status Page
+  // ==========================================================================
   DockerPage := CreateInputQueryPage(wpSelectDir,
     'Docker Desktop Status',
     'Checking Docker Desktop installation...',
@@ -260,19 +359,32 @@ end;
 
 // Post-installation message
 procedure CurStepChanged(CurStep: TSetupStep);
+var
+  LanguageMsg: String;
 begin
   if CurStep = ssPostInstall then
   begin
+    // Save the selected language preference to registry
+    SaveLanguagePreference();
+
+    // Build language info message
+    if GetSelectedLanguage() = 'es' then
+      LanguageMsg := 'Idioma de la aplicación: Español'
+    else
+      LanguageMsg := 'Application language: English';
+
     // Show completion message
     if DockerInstalled() then
       MsgBox('Installation complete!' + #13#10 + #13#10 +
              'The ContPAQi AI Bridge service has been installed.' + #13#10 +
-             'You can start it from the Start Menu or Services panel.',
+             'You can start it from the Start Menu or Services panel.' + #13#10 + #13#10 +
+             LanguageMsg,
              mbInformation, MB_OK)
     else
       MsgBox('Installation complete!' + #13#10 + #13#10 +
              'WARNING: Docker Desktop was not detected.' + #13#10 +
-             'Please install Docker Desktop to enable AI/ML features.',
+             'Please install Docker Desktop to enable AI/ML features.' + #13#10 + #13#10 +
+             LanguageMsg,
              mbInformation, MB_OK);
   end;
 end;

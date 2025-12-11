@@ -3513,7 +3513,7 @@ Create Windows installer with all dependencies and services.
 ## Task 18: Multi-Language Support (i18n)
 
 **Priority**: Medium | **Dependencies**: Tasks 13, 14, 17 | **Tags**: i18n, localization, phase-7
-**Status**: Not Started
+**Status**: In Progress
 **Estimated Effort**: 3-4 days
 
 ### Description
@@ -3527,7 +3527,7 @@ Implement internationalization (i18n) support for the application with English a
 
 ### Subtasks
 
-- [ ] 18.1 Add language selection to Inno Setup installer
+- [x] 18.1 Add language selection to Inno Setup installer
   ```pascal
   <!-- IMPLEMENTATION STEPS:
   Update installer/contpaqi-bridge.iss:
@@ -3544,6 +3544,7 @@ Implement internationalization (i18n) support for the application with English a
   Store selected language in registry for app to read
   -->
   ```
+  **Completed**: 2025-12-11 | Added [CustomMessages] section with English/Spanish translations, created LanguagePage wizard with radio buttons, added GetSelectedLanguage(), SaveLanguagePreference() functions, registry storage at SOFTWARE\ContPAQi AI Bridge\Language, 27 tests passing
 
 - [ ] 18.2 Set up i18n framework in Electron/React app
   ```typescript
