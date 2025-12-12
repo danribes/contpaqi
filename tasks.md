@@ -3657,7 +3657,7 @@ Implement internationalization (i18n) support for the application with English a
   ```
   **Completed**: 2025-12-12 | Integrated react-i18next into StatusIndicator.tsx (StatusIndicator, StatusBadge, StatusBar, StartupScreen) and ValidationBlocking.tsx components. Created getStatusTextKey() and getStatusBarMessageKey() translation key mapping functions. Added FIELD_LABEL_KEYS for form field translations. 110 tests verifying translation key usage across all UI categories with language switching support.
 
-- [ ] 18.6 Implement language switcher component
+- [x] 18.6 Implement language switcher component
   ```typescript
   <!-- IMPLEMENTATION STEPS:
   Create src/components/LanguageSwitcher.tsx:
@@ -3671,6 +3671,7 @@ Implement internationalization (i18n) support for the application with English a
   Add to app header/settings panel
   -->
   ```
+  **Completed**: 2025-12-12 | Created LanguageSwitcher.tsx component with three display variants (dropdown, buttons, compact). Includes flag icons (🇺🇸, 🇲🇽), native language names, full ARIA accessibility support, keyboard navigation, and Tailwind styling. Integrates with react-i18next via useTranslation hook. Persists language preference to localStorage. 70 tests covering all variants and edge cases.
 
 - [ ] 18.7 Persist language preference across sessions
   ```typescript
