@@ -112,8 +112,8 @@ Name: "{app}\docker"; Permissions: users-modify
 ; Main application files
 Source: "dist\windows-bridge\*"; DestDir: "{app}\bin"; Flags: ignoreversion recursesubdirs createallsubdirs
 
-; Docker image (saved tar)
-Source: "dist\docker\contpaqi-mcp.tar"; DestDir: "{app}\docker"; Flags: ignoreversion
+; Docker image (saved tar) - optional, may not exist in CI builds
+Source: "dist\docker\contpaqi-mcp.tar"; DestDir: "{app}\docker"; Flags: ignoreversion skipifdoesntexist
 
 ; Configuration files
 Source: "dist\config\appsettings.json"; DestDir: "{app}\config"; Flags: ignoreversion onlyifdoesntexist
@@ -123,8 +123,8 @@ Source: "dist\config\appsettings.Production.json"; DestDir: "{app}\config"; Flag
 Source: "assets\readme.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "assets\license.txt"; DestDir: "{app}"; Flags: ignoreversion
 
-; Utilities
-Source: "dist\scripts\*"; DestDir: "{app}\scripts"; Flags: ignoreversion recursesubdirs createallsubdirs
+; Utilities - optional, may not exist in CI builds
+Source: "dist\scripts\*"; DestDir: "{app}\scripts"; Flags: ignoreversion recursesubdirs createallsubdirs skipifdoesntexist
 
 [Icons]
 ; Start Menu shortcuts
