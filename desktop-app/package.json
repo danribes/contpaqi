@@ -52,9 +52,16 @@
     "directories": {
       "output": "release"
     },
+    "files": [
+      "**/*",
+      "!**/node_modules/canvas/**/*",
+      "!**/node_modules/**/canvas/**/*"
+    ],
     "win": {
       "target": "nsis",
       "icon": "public/icon.ico"
-    }
+    },
+    "npmRebuild": true,
+    "buildDependenciesFromSource": false
   }
 }

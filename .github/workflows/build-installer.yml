@@ -74,7 +74,7 @@ jobs:
       # -----------------------------------------------------------------------
       - name: Install desktop app dependencies
         working-directory: desktop-app
-        run: npm ci
+        run: npm ci --omit=optional
 
       - name: Build desktop app
         working-directory: desktop-app
