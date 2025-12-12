@@ -43,7 +43,7 @@ DisableProgramGroupPage=yes
 ; Output settings
 OutputDir=output
 OutputBaseFilename=ContPAQi-AI-Bridge-Setup-{#MyAppVersion}
-SetupIconFile=assets\icon.ico
+; SetupIconFile=assets\icon.ico  ; TODO: Add custom icon file when available
 UninstallDisplayIcon={app}\{#MyAppExeName}
 UninstallDisplayName={#MyAppName}
 
