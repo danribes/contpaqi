@@ -10,7 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="6.0.0" />
+    <!-- Note: Microsoft.AspNetCore.OpenApi requires .NET 7+, use Swashbuckle for .NET 6 -->
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
   </ItemGroup>
 
