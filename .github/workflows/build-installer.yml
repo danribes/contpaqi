@@ -97,13 +97,15 @@ jobs:
         run: dotnet publish -c Release -r win-x86 --self-contained true -o ../../../installer/dist/windows-bridge
 
       # -----------------------------------------------------------------------
-      # Build Docker Image (for bundling)
+      # Prepare Docker Image Directory
+      # Note: Linux Docker images cannot be built on Windows runners.
+      # The MCP container will be pulled from registry at install time.
       # -----------------------------------------------------------------------
-      - name: Build and save Docker image
-        working-directory: mcp-container
+      - name: Create Docker image placeholder
         run: |
-          docker build -t contpaqi-mcp:latest .
-          docker save contpaqi-mcp:latest -o ../installer/dist/docker/contpaqi-mcp.tar
+          mkdir -p installer/dist/docker
+          echo "Docker image will be pulled from registry during installation" > installer/dist/docker/README.txt
+        shell: bash
 
       # -----------------------------------------------------------------------
       # Prepare Installer Files
@@ -117,8 +119,9 @@ jobs:
           cp windows-bridge/src/ContpaqiBridge/appsettings.json installer/dist/config/
           cp windows-bridge/src/ContpaqiBridge/appsettings.Production.json installer/dist/config/ 2>/dev/null || true
 
-          # Copy installer scripts
+          # Copy installer scripts (including localization module)
           cp installer/scripts/*.ps1 installer/dist/scripts/
+          cp installer/scripts/*.psm1 installer/dist/scripts/ 2>/dev/null || true
 
       # -----------------------------------------------------------------------
       # Build Installer with Inno Setup
