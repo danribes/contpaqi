@@ -1,6 +1,7 @@
 /**
  * Validation Blocking Components and Utilities
  * Subtask 14.6: Implement validation blocking (disable Submit)
+ * Subtask 18.5: Updated to use i18n translation keys
  *
  * Provides:
  * - Form validation state calculation
@@ -10,6 +11,7 @@
  */
 
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 
 // ============= Types =============
 
@@ -49,6 +51,22 @@ export const REQUIRED_FIELDS = [
   'total',
 ];
 
+/**
+ * Translation keys for field labels
+ */
+export const FIELD_LABEL_KEYS: Record<string, string> = {
+  rfcEmisor: 'invoice.form.rfcEmisor',
+  rfcReceptor: 'invoice.form.rfcReceptor',
+  fecha: 'invoice.form.fecha',
+  subtotal: 'invoice.form.subtotal',
+  iva: 'invoice.form.iva',
+  total: 'invoice.form.total',
+};
+
+/**
+ * Static field labels (fallback for non-React contexts)
+ * @deprecated Use FIELD_LABEL_KEYS with useTranslation hook in React components
+ */
 export const FIELD_LABELS: Record<string, string> = {
   rfcEmisor: 'RFC Emisor',
   rfcReceptor: 'RFC Receptor',
@@ -264,6 +282,8 @@ export function ValidationBlockerBanner({
   validationState,
   className = '',
 }: ValidationBlockerBannerProps) {
+  const { t } = useTranslation();
+
   if (validationState.canSubmit) return null;
 
   return (
@@ -284,7 +304,7 @@ export function ValidationBlockerBanner({
           />
         </svg>
         <div>
-          <p className="font-bold">Cannot Submit Invoice</p>
+          <p className="font-bold">{t('validation.cannotSubmit')}</p>
           <ul className="mt-1 list-disc list-inside text-sm">
             {validationState.blockingReasons.map((reason, index) => (
               <li key={index}>{reason}</li>
@@ -312,6 +332,7 @@ export function SubmitButton({
   isSubmitting = false,
   className = '',
 }: SubmitButtonProps) {
+  const { t } = useTranslation();
   const disabled = shouldDisableSubmit(validationState) || isSubmitting;
   const tooltip = getSubmitButtonTooltip(validationState);
   const buttonClasses = getSubmitButtonClasses(validationState.canSubmit);
@@ -346,10 +367,10 @@ export function SubmitButton({
               d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
             />
           </svg>
-          Submitting...
+          {t('common.processing')}
         </span>
       ) : (
-        'Submit Invoice'
+        t('actions.submit')
       )}
     </button>
   );
@@ -369,6 +390,8 @@ export function ValidationSummary({
   showWhenValid = false,
   className = '',
 }: ValidationSummaryProps) {
+  const { t } = useTranslation();
+
   if (validationState.canSubmit && !showWhenValid) return null;
 
   if (validationState.canSubmit) {
@@ -384,7 +407,7 @@ export function ValidationSummary({
               clipRule="evenodd"
             />
           </svg>
-          <span className="font-medium">All validations passed - ready to submit</span>
+          <span className="font-medium">{t('validation.allValid')}</span>
         </div>
       </div>
     );
@@ -403,28 +426,28 @@ export function ValidationSummary({
               clipRule="evenodd"
             />
           </svg>
-          <span className="font-bold">Validation Issues</span>
+          <span className="font-bold">{t('common.warning')}</span>
         </div>
       </div>
       <div className="px-4 py-3 space-y-3 text-sm">
         {validationState.missingRequired.length > 0 && (
           <div>
-            <p className="font-medium text-amber-900">Missing Required Fields:</p>
+            <p className="font-medium text-amber-900">{t('validation.required')}:</p>
             <ul className="mt-1 list-disc list-inside text-amber-700">
               {validationState.missingRequired.map((field) => (
-                <li key={field}>{FIELD_LABELS[field] || field}</li>
+                <li key={field}>{t(FIELD_LABEL_KEYS[field]) || field}</li>
               ))}
             </ul>
           </div>
         )}
         {Object.keys(validationState.fieldErrors).length > 0 && (
           <div>
-            <p className="font-medium text-amber-900">Field Errors:</p>
+            <p className="font-medium text-amber-900">{t('common.error')}:</p>
             <ul className="mt-1 list-disc list-inside text-amber-700">
               {Object.entries(validationState.fieldErrors).map(
                 ([field, error]) => (
                   <li key={field}>
-                    {FIELD_LABELS[field] || field}: {error}
+                    {t(FIELD_LABEL_KEYS[field]) || field}: {error}
                   </li>
                 )
               )}
@@ -433,7 +456,7 @@ export function ValidationSummary({
         )}
         {validationState.mathErrors.length > 0 && (
           <div>
-            <p className="font-medium text-red-700">Math Errors:</p>
+            <p className="font-medium text-red-700">{t('validation.mathError')}:</p>
             <ul className="mt-1 list-disc list-inside text-red-600">
               {validationState.mathErrors.map((error, index) => (
                 <li key={index}>{error}</li>
@@ -458,6 +481,7 @@ export function MiniValidationIndicator({
   validationState,
   className = '',
 }: MiniValidationIndicatorProps) {
+  const { t } = useTranslation();
   const issueCount =
     validationState.missingRequired.length +
     Object.keys(validationState.fieldErrors).length +
@@ -475,7 +499,7 @@ export function MiniValidationIndicator({
             clipRule="evenodd"
           />
         </svg>
-        Ready
+        {t('status.ready')}
       </span>
     );
   }
@@ -492,7 +516,7 @@ export function MiniValidationIndicator({
           clipRule="evenodd"
         />
       </svg>
-      {issueCount} issue{issueCount !== 1 ? 's' : ''}
+      {t('common.items', { count: issueCount })}
     </span>
   );
 }
@@ -546,6 +570,7 @@ export default {
   // Constants
   REQUIRED_FIELDS,
   FIELD_LABELS,
+  FIELD_LABEL_KEYS,
   // Utility functions
   isFieldEmpty,
   getMissingRequiredFields,

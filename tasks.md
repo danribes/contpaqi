@@ -3633,7 +3633,7 @@ Implement internationalization (i18n) support for the application with English a
   ```
   **Completed**: 2025-12-12 | Expanded es.json from 27 to 380 lines with complete Spanish translations for all 326 keys. Full parity with en.json including: app, status, actions, settings, invoice (form/placeholders/messages/labels), validation, errors, navigation, license, batch, pdf, common, confirmation, shortcuts, docker, accessibility. Used Mexican Spanish formal register (usted), proper accents (á,é,í,ó,ú,ñ), and matching interpolation placeholders. 178 tests passing.
 
-- [ ] 18.5 Update UI components to use translation keys
+- [x] 18.5 Update UI components to use translation keys
   ```typescript
   <!-- IMPLEMENTATION STEPS:
   Update all React components to use useTranslation hook:
@@ -3655,6 +3655,7 @@ Implement internationalization (i18n) support for the application with English a
   - Error messages and dialogs
   -->
   ```
+  **Completed**: 2025-12-12 | Integrated react-i18next into StatusIndicator.tsx (StatusIndicator, StatusBadge, StatusBar, StartupScreen) and ValidationBlocking.tsx components. Created getStatusTextKey() and getStatusBarMessageKey() translation key mapping functions. Added FIELD_LABEL_KEYS for form field translations. 110 tests verifying translation key usage across all UI categories with language switching support.
 
 - [ ] 18.6 Implement language switcher component
   ```typescript
