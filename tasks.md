@@ -3735,7 +3735,7 @@ Implement internationalization (i18n) support for the application with English a
   ```
   **Completed**: 2025-12-12 | Fixed Inno Setup language selection wizard page to use HKCU registry instead of HKLM for user preferences. Updated SaveLanguagePreference() and LoadLanguagePreference() functions to write to `HKCU\SOFTWARE\ContPAQi AI Bridge\Language`, matching the PowerShell LocalizedMessages.psm1 registry path. Updated [Registry] section accordingly. Language page already implemented with English/Español radio buttons, custom messages for bilingual UI, and ActiveLanguage detection. Created 39 tests in inno-setup-language-page.test.ts validating page structure, registry consistency, and cross-system integration.
 
-- [ ] 18.10 Write unit tests for i18n functionality
+- [x] 18.10 Write unit tests for i18n functionality
   ```typescript
   <!-- IMPLEMENTATION STEPS:
   Create tests/i18n.test.ts:
@@ -3750,6 +3750,7 @@ Implement internationalization (i18n) support for the application with English a
   - Test interpolation (variables in strings)
   -->
   ```
+  **Completed**: 2025-12-12 | Created comprehensive i18n.test.ts with 161 tests validating the i18next implementation. Tests cover: translation file structure (38 tests), key parity between languages (338 keys each), nested key resolution (25 tests), fallback behavior (4 tests), language switching (8 tests), persistence via localStorage and registry (6 tests), interpolation variable matching (31 tests for 20 keys with variables), missing key handling (4 tests), content quality (10 tests), i18next configuration (8 tests), and component rendering support (24 tests). Statistics: 338 translation keys, 16 categories, 20 keys with interpolation.
 
 ### Implementation Notes
 
