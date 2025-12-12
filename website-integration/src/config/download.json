@@ -1,0 +1,13 @@
+{
+  "version": "1.0.0",
+  "downloadUrl": "https://github.com/danribes/contpaqi/releases/latest/download/ContPAQi-AI-Bridge-Setup-1.0.0.exe",
+  "releaseUrl": "https://github.com/danribes/contpaqi/releases/latest",
+  "repository": "danribes/contpaqi",
+  "fileName": "ContPAQi-AI-Bridge-Setup-1.0.0.exe",
+  "updatedAt": "2025-12-12T00:00:00Z",
+  "requirements": {
+    "os": "Windows 10/11 (64-bit)",
+    "docker": "Docker Desktop",
+    "dotnet": ".NET 6.0 Runtime"
+  }
+}
