@@ -115,9 +115,9 @@ jobs:
           mkdir -p installer/dist/config
           mkdir -p installer/dist/scripts
 
-          # Copy configuration files
-          cp windows-bridge/src/ContpaqiBridge/appsettings.json installer/dist/config/
-          cp windows-bridge/src/ContpaqiBridge/appsettings.Production.json installer/dist/config/ 2>/dev/null || true
+          # Copy configuration files from publish output (dotnet publish copies them there)
+          cp installer/dist/windows-bridge/appsettings.json installer/dist/config/ 2>/dev/null || true
+          cp installer/dist/windows-bridge/appsettings.Production.json installer/dist/config/ 2>/dev/null || true
 
           # Copy installer scripts (including localization module)
           cp installer/scripts/*.ps1 installer/dist/scripts/
