@@ -55,8 +55,21 @@ param(
     [switch]$JsonOutput,
 
     [Parameter()]
-    [switch]$Quiet
+    [switch]$Quiet,
+
+    [Parameter(HelpMessage="Language for messages (en/es)")]
+    [ValidateSet('en', 'es')]
+    [string]$Language
 )
+
+# Import localization module
+$ModulePath = Join-Path $PSScriptRoot "LocalizedMessages.psm1"
+if (Test-Path $ModulePath) {
+    Import-Module $ModulePath -Force
+    if ($Language) {
+        Set-CurrentLanguage -Language $Language
+    }
+}
 
 # =============================================================================
 # Configuration
@@ -96,7 +109,14 @@ function Write-Status {
             "ERROR"   { "Red" }
             default   { "White" }
         }
-        Write-Host "[$Status] $Message" -ForegroundColor $color
+        # Use localized status labels if module is available
+        $statusLabel = switch ($Status) {
+            "OK"      { if (Get-Command Get-LocalizedMessage -ErrorAction SilentlyContinue) { Get-LocalizedMessage -Key 'common.success' } else { "OK" } }
+            "WARN"    { if (Get-Command Get-LocalizedMessage -ErrorAction SilentlyContinue) { Get-LocalizedMessage -Key 'common.warning' } else { "WARN" } }
+            "ERROR"   { if (Get-Command Get-LocalizedMessage -ErrorAction SilentlyContinue) { Get-LocalizedMessage -Key 'common.error' } else { "ERROR" } }
+            default   { if (Get-Command Get-LocalizedMessage -ErrorAction SilentlyContinue) { Get-LocalizedMessage -Key 'common.info' } else { "INFO" } }
+        }
+        Write-Host "[$statusLabel] $Message" -ForegroundColor $color
     }
 }
 
@@ -286,6 +306,45 @@ function Test-DockerService {
 # Main Execution
 # =============================================================================
 
+function Get-Msg {
+    <#
+    .SYNOPSIS
+        Helper function to get localized message or fallback to English.
+    #>
+    param([string]$Key, [object[]]$Args)
+
+    if (Get-Command Get-LocalizedMessage -ErrorAction SilentlyContinue) {
+        return Get-LocalizedMessage -Key $Key -Args $Args
+    }
+    # Fallback messages
+    $fallback = @{
+        'docker.checking_installation' = 'Checking Docker Desktop installation...'
+        'docker.found_at' = 'Docker Desktop found at:'
+        'docker.checking_service' = 'Checking Docker service...'
+        'docker.checking_daemon' = 'Checking if Docker daemon is running...'
+        'docker.daemon_running' = 'Docker daemon is running'
+        'docker.getting_version' = 'Getting Docker version...'
+        'docker.version' = 'Docker version:'
+        'docker.version_meets_requirement' = 'Version meets minimum requirement'
+        'docker.version_below_minimum' = 'Version {0} is below minimum required ({1})'
+        'docker.not_installed' = 'Docker Desktop is not installed. Please download from https://www.docker.com/products/docker-desktop'
+        'docker.could_not_determine_version' = 'Could not determine Docker version'
+        'docker.all_good' = 'Docker Desktop is installed, running, and meets version requirements.'
+        'docker.installed_not_running' = 'Docker Desktop is installed but not running. Please start Docker Desktop.'
+        'docker.version_too_low' = 'Docker Desktop is running but version is below minimum required ({0}).'
+        'docker.status_summary' = 'Docker Desktop Status Summary'
+        'docker.installed' = 'Installed:'
+        'docker.running' = 'Running:'
+        'docker.version_ok' = 'Version OK:'
+        'docker.path' = 'Path:'
+        'docker.service_status' = 'Service:'
+        'docker.message' = 'Message:'
+    }
+    $msg = $fallback[$Key]
+    if ($msg -and $Args) { $msg = $msg -f $Args }
+    return $msg
+}
+
 function Get-DockerStatus {
     <#
     .SYNOPSIS
@@ -304,26 +363,26 @@ function Get-DockerStatus {
     }
 
     # Check installation
-    Write-Status "Checking Docker Desktop installation..."
+    Write-Status (Get-Msg 'docker.checking_installation')
     $installCheck = Test-DockerInstalled
 
     if (-not $installCheck.Installed) {
-        $result.Message = "Docker Desktop is not installed. Please download from https://www.docker.com/products/docker-desktop"
+        $result.Message = Get-Msg 'docker.not_installed'
         Write-Status $result.Message "ERROR"
         return $result
     }
 
     $result.Installed = $true
     $result.Path = $installCheck.Path
-    Write-Status "Docker Desktop found at: $($installCheck.Path)" "OK"
+    Write-Status "$(Get-Msg 'docker.found_at') $($installCheck.Path)" "OK"
 
     # Check service
-    Write-Status "Checking Docker service..."
+    Write-Status (Get-Msg 'docker.checking_service')
     $serviceCheck = Test-DockerService
     $result.ServiceStatus = $serviceCheck.Status
 
     # Check if running
-    Write-Status "Checking if Docker daemon is running..."
+    Write-Status (Get-Msg 'docker.checking_daemon')
     $runningCheck = Test-DockerRunning
     $result.Running = $runningCheck.Running
 
@@ -334,41 +393,41 @@ function Get-DockerStatus {
         # Still try to get version if docker CLI exists
     }
     else {
-        Write-Status "Docker daemon is running" "OK"
+        Write-Status (Get-Msg 'docker.daemon_running') "OK"
     }
 
     # Get version
-    Write-Status "Getting Docker version..."
+    Write-Status (Get-Msg 'docker.getting_version')
     $versionInfo = Get-DockerVersionInfo
 
     if ($versionInfo.Success) {
         $result.Version = $versionInfo.Version
-        Write-Status "Docker version: $($versionInfo.Version)" "OK"
+        Write-Status "$(Get-Msg 'docker.version') $($versionInfo.Version)" "OK"
 
         # Compare version
         $versionCompare = Compare-DockerVersion -CurrentVersion $versionInfo.Version -RequiredVersion $MinVersion
         $result.VersionOK = $versionCompare.MeetsRequirement
 
         if ($versionCompare.MeetsRequirement) {
-            Write-Status "Version meets minimum requirement ($MinVersion)" "OK"
+            Write-Status "$(Get-Msg 'docker.version_meets_requirement') ($MinVersion)" "OK"
         }
         else {
-            Write-Status "Version $($versionInfo.Version) is below minimum required ($MinVersion)" "WARN"
+            Write-Status (Get-Msg 'docker.version_below_minimum' -Args @($versionInfo.Version, $MinVersion)) "WARN"
         }
     }
     else {
-        Write-Status "Could not determine Docker version" "WARN"
+        Write-Status (Get-Msg 'docker.could_not_determine_version') "WARN"
     }
 
     # Final status message
     if ($result.Installed -and $result.Running -and $result.VersionOK) {
-        $result.Message = "Docker Desktop is installed, running, and meets version requirements."
+        $result.Message = Get-Msg 'docker.all_good'
     }
     elseif ($result.Installed -and -not $result.Running) {
-        $result.Message = "Docker Desktop is installed but not running. Please start Docker Desktop."
+        $result.Message = Get-Msg 'docker.installed_not_running'
     }
     elseif ($result.Installed -and $result.Running -and -not $result.VersionOK) {
-        $result.Message = "Docker Desktop is running but version is below minimum required ($MinVersion)."
+        $result.Message = Get-Msg 'docker.version_too_low' -Args @($MinVersion)
     }
 
     return $result
@@ -384,16 +443,16 @@ if ($JsonOutput) {
 else {
     Write-Host ""
     Write-Host "======================================" -ForegroundColor Cyan
-    Write-Host "Docker Desktop Status Summary" -ForegroundColor Cyan
+    Write-Host (Get-Msg 'docker.status_summary') -ForegroundColor Cyan
     Write-Host "======================================" -ForegroundColor Cyan
-    Write-Host "Installed:      $($status.Installed)"
-    Write-Host "Running:        $($status.Running)"
-    Write-Host "Version:        $($status.Version)"
-    Write-Host "Version OK:     $($status.VersionOK) (minimum: $MinVersion)"
-    Write-Host "Path:           $($status.Path)"
-    Write-Host "Service:        $($status.ServiceStatus)"
+    Write-Host "$(Get-Msg 'docker.installed') $($status.Installed)"
+    Write-Host "$(Get-Msg 'docker.running') $($status.Running)"
+    Write-Host "$(Get-Msg 'docker.version') $($status.Version)"
+    Write-Host "$(Get-Msg 'docker.version_ok') $($status.VersionOK) (minimum: $MinVersion)"
+    Write-Host "$(Get-Msg 'docker.path') $($status.Path)"
+    Write-Host "$(Get-Msg 'docker.service_status') $($status.ServiceStatus)"
     Write-Host ""
-    Write-Host "Message: $($status.Message)"
+    Write-Host "$(Get-Msg 'docker.message') $($status.Message)"
     Write-Host ""
 }
 

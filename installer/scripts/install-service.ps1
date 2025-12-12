@@ -31,8 +31,20 @@ param(
     [switch]$Stop,
     [switch]$Status,
     [switch]$Force,
-    [string]$InstallPath
+    [string]$InstallPath,
+    [Parameter(HelpMessage="Language for messages (en/es)")]
+    [ValidateSet('en', 'es')]
+    [string]$Language
 )
+
+# Import localization module
+$ModulePath = Join-Path $PSScriptRoot "LocalizedMessages.psm1"
+if (Test-Path $ModulePath) {
+    Import-Module $ModulePath -Force
+    if ($Language) {
+        Set-CurrentLanguage -Language $Language
+    }
+}
 
 # =============================================================================
 # Service Configuration
@@ -69,6 +81,75 @@ $EXIT_SERVICE_NOT_FOUND = 6
 # Helper Functions
 # =============================================================================
 
+function Get-Msg {
+    <#
+    .SYNOPSIS
+        Helper function to get localized message or fallback to English.
+    #>
+    param([string]$Key, [object[]]$Args)
+
+    if (Get-Command Get-LocalizedMessage -ErrorAction SilentlyContinue) {
+        return Get-LocalizedMessage -Key $Key -Args $Args
+    }
+    # Fallback messages
+    $fallback = @{
+        'service.starting_installation' = 'Starting ContPAQi AI Bridge service installation...'
+        'service.already_exists' = 'Service already exists. Removing existing service...'
+        'service.already_exists_use_force' = "Service '{0}' already exists. Use -Force to reinstall."
+        'service.binary_not_found' = 'Binary not found at: {0}'
+        'service.binary_path' = 'Binary path: {0}'
+        'service.working_directory' = 'Working directory: {0}'
+        'service.creating' = "Creating service '{0}'..."
+        'service.created_successfully' = 'Service created successfully'
+        'service.configuring_delayed_start' = 'Configuring delayed auto-start...'
+        'service.delayed_start_warning' = 'Warning: Could not set delayed auto-start: {0}'
+        'service.configuring_recovery' = 'Configuring failure recovery actions...'
+        'service.recovery_warning' = 'Warning: Could not configure recovery options: {0}'
+        'service.recovery_configured' = 'Recovery options configured (restart on failure)'
+        'service.installed_successfully' = "Service '{0}' installed successfully!"
+        'service.install_failed' = 'Failed to install service: {0}'
+        'service.starting_uninstallation' = 'Starting ContPAQi AI Bridge service uninstallation...'
+        'service.not_installed' = "Service '{0}' is not installed."
+        'service.stopping' = 'Stopping service...'
+        'service.stopped_successfully' = 'Service stopped successfully'
+        'service.stop_timeout' = 'Service did not stop within timeout. Forcing removal...'
+        'service.removing' = "Removing service '{0}'..."
+        'service.removed_successfully' = 'Service removed successfully'
+        'service.removed_successfully_alt' = 'Service removed successfully (Remove-Service)'
+        'service.remove_failed' = 'Failed to remove service: {0}'
+        'service.uninstalled_successfully' = "Service '{0}' uninstalled successfully!"
+        'service.uninstall_failed' = 'Failed to uninstall service: {0}'
+        'service.starting' = 'Starting ContPAQi AI Bridge service...'
+        'service.already_running' = 'Service is already running.'
+        'service.started_successfully' = 'Service started successfully'
+        'service.start_timeout' = 'Service did not start within timeout'
+        'service.start_failed' = 'Failed to start service: {0}'
+        'service.stop_timeout' = 'Service did not stop within timeout'
+        'service.stopping_service' = 'Stopping ContPAQi AI Bridge service...'
+        'service.already_stopped' = 'Service is already stopped.'
+        'service.stop_failed' = 'Failed to stop service: {0}'
+        'service.checking_status' = 'Checking ContPAQi AI Bridge service status...'
+        'service.name' = 'Service Name: {0}'
+        'service.display_name' = 'Display Name: {0}'
+        'service.status' = 'Status: {0}'
+        'service.start_type' = 'Start Type: {0}'
+        'service.manager_version' = 'ContPAQi AI Bridge Service Manager v1.0.0'
+        'service.manager_separator' = '========================================='
+        'service.requires_admin' = 'This script requires Administrator privileges.'
+        'service.run_as_admin' = 'Please run PowerShell as Administrator and try again.'
+        'service.running_as_admin' = 'Running with Administrator privileges'
+        'service.no_action' = 'No action specified. Use -Install, -Uninstall, -Start, -Stop, or -Status'
+        'service.one_action_only' = 'Please specify only one action at a time.'
+        'common.success' = 'OK'
+        'common.warning' = 'WARN'
+        'common.error' = 'ERROR'
+        'common.info' = 'INFO'
+    }
+    $msg = $fallback[$Key]
+    if ($msg -and $Args) { $msg = $msg -f $Args }
+    return $msg
+}
+
 function Write-Log {
     <#
     .SYNOPSIS
@@ -84,10 +165,10 @@ function Write-Log {
 
     $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
     $prefix = switch ($Level) {
-        "Info"    { "[INFO]" }
-        "Warning" { "[WARN]" }
-        "Error"   { "[ERROR]" }
-        "Success" { "[OK]" }
+        "Info"    { "[$(Get-Msg 'common.info')]" }
+        "Warning" { "[$(Get-Msg 'common.warning')]" }
+        "Error"   { "[$(Get-Msg 'common.error')]" }
+        "Success" { "[$(Get-Msg 'common.success')]" }
     }
 
     $logMessage = "$timestamp $prefix $Message"
@@ -145,32 +226,32 @@ function Install-ContPAQiService {
         Installs the ContPAQi AI Bridge as a Windows Service.
     #>
 
-    Write-Log "Starting ContPAQi AI Bridge service installation..."
+    Write-Log (Get-Msg 'service.starting_installation')
 
     # Check if service already exists
     if (Test-ServiceExists) {
         if ($Force) {
-            Write-Log "Service already exists. Removing existing service..." -Level Warning
+            Write-Log (Get-Msg 'service.already_exists') -Level Warning
             Uninstall-ContPAQiService
             Start-Sleep -Seconds 2
         } else {
-            Write-Log "Service '$ServiceName' already exists. Use -Force to reinstall." -Level Warning
+            Write-Log (Get-Msg 'service.already_exists_use_force' -Args @($ServiceName)) -Level Warning
             return $true
         }
     }
 
     # Verify binary exists
     if (-not (Test-Path $BinaryPath)) {
-        Write-Log "Binary not found at: $BinaryPath" -Level Error
+        Write-Log (Get-Msg 'service.binary_not_found' -Args @($BinaryPath)) -Level Error
         return $false
     }
 
-    Write-Log "Binary path: $BinaryPath"
-    Write-Log "Working directory: $WorkingDirectory"
+    Write-Log (Get-Msg 'service.binary_path' -Args @($BinaryPath))
+    Write-Log (Get-Msg 'service.working_directory' -Args @($WorkingDirectory))
 
     try {
         # Create the service using New-Service
-        Write-Log "Creating service '$ServiceName'..."
+        Write-Log (Get-Msg 'service.creating' -Args @($ServiceName))
 
         $serviceParams = @{
             Name = $ServiceName
@@ -181,34 +262,34 @@ function Install-ContPAQiService {
         }
 
         New-Service @serviceParams -ErrorAction Stop | Out-Null
-        Write-Log "Service created successfully" -Level Success
+        Write-Log (Get-Msg 'service.created_successfully') -Level Success
 
         # Configure delayed auto-start using sc.exe
-        Write-Log "Configuring delayed auto-start..."
+        Write-Log (Get-Msg 'service.configuring_delayed_start')
         $scResult = & sc.exe config $ServiceName start= delayed-auto 2>&1
         if ($LASTEXITCODE -ne 0) {
-            Write-Log "Warning: Could not set delayed auto-start: $scResult" -Level Warning
+            Write-Log (Get-Msg 'service.delayed_start_warning' -Args @($scResult)) -Level Warning
         }
 
         # Configure recovery options (restart on failure)
-        Write-Log "Configuring failure recovery actions..."
+        Write-Log (Get-Msg 'service.configuring_recovery')
         # reset= 86400 (24 hours in seconds)
         # actions= restart/60000/restart/60000/restart/60000 (restart after 1 min, 3 times)
         $scFailure = & sc.exe failure $ServiceName reset= 86400 actions= restart/60000/restart/60000/restart/60000 2>&1
         if ($LASTEXITCODE -ne 0) {
-            Write-Log "Warning: Could not configure recovery options: $scFailure" -Level Warning
+            Write-Log (Get-Msg 'service.recovery_warning' -Args @($scFailure)) -Level Warning
         } else {
-            Write-Log "Recovery options configured (restart on failure)" -Level Success
+            Write-Log (Get-Msg 'service.recovery_configured') -Level Success
         }
 
         # Set service description (backup method)
         Set-Service -Name $ServiceName -Description $ServiceDescription -ErrorAction SilentlyContinue
 
-        Write-Log "Service '$ServiceDisplayName' installed successfully!" -Level Success
+        Write-Log (Get-Msg 'service.installed_successfully' -Args @($ServiceDisplayName)) -Level Success
         return $true
     }
     catch {
-        Write-Log "Failed to install service: $($_.Exception.Message)" -Level Error
+        Write-Log (Get-Msg 'service.install_failed' -Args @($_.Exception.Message)) -Level Error
         return $false
     }
 }
@@ -223,11 +304,11 @@ function Uninstall-ContPAQiService {
         Uninstalls the ContPAQi AI Bridge Windows Service.
     #>
 
-    Write-Log "Starting ContPAQi AI Bridge service uninstallation..."
+    Write-Log (Get-Msg 'service.starting_uninstallation')
 
     # Check if service exists
     if (-not (Test-ServiceExists)) {
-        Write-Log "Service '$ServiceName' is not installed." -Level Warning
+        Write-Log (Get-Msg 'service.not_installed' -Args @($ServiceName)) -Level Warning
         return $true
     }
 
@@ -235,7 +316,7 @@ function Uninstall-ContPAQiService {
         # Stop the service first
         $currentState = Get-ServiceState
         if ($currentState -eq "Running") {
-            Write-Log "Stopping service..."
+            Write-Log (Get-Msg 'service.stopping')
             Stop-Service -Name $ServiceName -Force -ErrorAction Stop
 
             # Wait for service to stop
@@ -247,34 +328,34 @@ function Uninstall-ContPAQiService {
             }
 
             if ((Get-ServiceState) -eq "Stopped") {
-                Write-Log "Service stopped successfully" -Level Success
+                Write-Log (Get-Msg 'service.stopped_successfully') -Level Success
             } else {
-                Write-Log "Service did not stop within timeout. Forcing removal..." -Level Warning
+                Write-Log (Get-Msg 'service.stop_timeout') -Level Warning
             }
         }
 
         # Remove the service
-        Write-Log "Removing service '$ServiceName'..."
+        Write-Log (Get-Msg 'service.removing' -Args @($ServiceName))
 
         # Use sc.exe delete for broader compatibility
         $scDelete = & sc.exe delete $ServiceName 2>&1
         if ($LASTEXITCODE -eq 0) {
-            Write-Log "Service removed successfully" -Level Success
+            Write-Log (Get-Msg 'service.removed_successfully') -Level Success
         } else {
             # Try Remove-Service (PowerShell 6+)
             if (Get-Command Remove-Service -ErrorAction SilentlyContinue) {
                 Remove-Service -Name $ServiceName -ErrorAction Stop
-                Write-Log "Service removed successfully (Remove-Service)" -Level Success
+                Write-Log (Get-Msg 'service.removed_successfully_alt') -Level Success
             } else {
-                throw "Failed to remove service: $scDelete"
+                throw (Get-Msg 'service.remove_failed' -Args @($scDelete))
             }
         }
 
-        Write-Log "Service '$ServiceDisplayName' uninstalled successfully!" -Level Success
+        Write-Log (Get-Msg 'service.uninstalled_successfully' -Args @($ServiceDisplayName)) -Level Success
         return $true
     }
     catch {
-        Write-Log "Failed to uninstall service: $($_.Exception.Message)" -Level Error
+        Write-Log (Get-Msg 'service.uninstall_failed' -Args @($_.Exception.Message)) -Level Error
         return $false
     }
 }
@@ -289,16 +370,16 @@ function Start-ContPAQiService {
         Starts the ContPAQi AI Bridge service.
     #>
 
-    Write-Log "Starting ContPAQi AI Bridge service..."
+    Write-Log (Get-Msg 'service.starting')
 
     if (-not (Test-ServiceExists)) {
-        Write-Log "Service '$ServiceName' is not installed." -Level Error
+        Write-Log (Get-Msg 'service.not_installed' -Args @($ServiceName)) -Level Error
         return $false
     }
 
     $currentState = Get-ServiceState
     if ($currentState -eq "Running") {
-        Write-Log "Service is already running." -Level Info
+        Write-Log (Get-Msg 'service.already_running') -Level Info
         return $true
     }
 
@@ -314,15 +395,15 @@ function Start-ContPAQiService {
         }
 
         if ((Get-ServiceState) -eq "Running") {
-            Write-Log "Service started successfully" -Level Success
+            Write-Log (Get-Msg 'service.started_successfully') -Level Success
             return $true
         } else {
-            Write-Log "Service did not start within timeout" -Level Error
+            Write-Log (Get-Msg 'service.start_timeout') -Level Error
             return $false
         }
     }
     catch {
-        Write-Log "Failed to start service: $($_.Exception.Message)" -Level Error
+        Write-Log (Get-Msg 'service.start_failed' -Args @($_.Exception.Message)) -Level Error
         return $false
     }
 }
@@ -333,16 +414,16 @@ function Stop-ContPAQiService {
         Stops the ContPAQi AI Bridge service.
     #>
 
-    Write-Log "Stopping ContPAQi AI Bridge service..."
+    Write-Log (Get-Msg 'service.stopping_service')
 
     if (-not (Test-ServiceExists)) {
-        Write-Log "Service '$ServiceName' is not installed." -Level Error
+        Write-Log (Get-Msg 'service.not_installed' -Args @($ServiceName)) -Level Error
         return $false
     }
 
     $currentState = Get-ServiceState
     if ($currentState -eq "Stopped") {
-        Write-Log "Service is already stopped." -Level Info
+        Write-Log (Get-Msg 'service.already_stopped') -Level Info
         return $true
     }
 
@@ -358,15 +439,15 @@ function Stop-ContPAQiService {
         }
 
         if ((Get-ServiceState) -eq "Stopped") {
-            Write-Log "Service stopped successfully" -Level Success
+            Write-Log (Get-Msg 'service.stopped_successfully') -Level Success
             return $true
         } else {
-            Write-Log "Service did not stop within timeout" -Level Error
+            Write-Log (Get-Msg 'service.stop_timeout') -Level Error
             return $false
         }
     }
     catch {
-        Write-Log "Failed to stop service: $($_.Exception.Message)" -Level Error
+        Write-Log (Get-Msg 'service.stop_failed' -Args @($_.Exception.Message)) -Level Error
         return $false
     }
 }
@@ -377,10 +458,10 @@ function Get-ContPAQiServiceStatus {
         Gets the status of the ContPAQi AI Bridge service.
     #>
 
-    Write-Log "Checking ContPAQi AI Bridge service status..."
+    Write-Log (Get-Msg 'service.checking_status')
 
     if (-not (Test-ServiceExists)) {
-        Write-Log "Service '$ServiceName' is not installed." -Level Warning
+        Write-Log (Get-Msg 'service.not_installed' -Args @($ServiceName)) -Level Warning
         return @{
             Installed = $false
             Status = "NotInstalled"
@@ -392,10 +473,10 @@ function Get-ContPAQiServiceStatus {
     $service = Get-Service -Name $ServiceName
     $state = $service.Status.ToString()
 
-    Write-Log "Service Name: $ServiceName"
-    Write-Log "Display Name: $($service.DisplayName)"
-    Write-Log "Status: $state"
-    Write-Log "Start Type: $($service.StartType)"
+    Write-Log (Get-Msg 'service.name' -Args @($ServiceName))
+    Write-Log (Get-Msg 'service.display_name' -Args @($service.DisplayName))
+    Write-Log (Get-Msg 'service.status' -Args @($state))
+    Write-Log (Get-Msg 'service.start_type' -Args @($service.StartType))
 
     return @{
         Installed = $true
@@ -413,28 +494,28 @@ function Get-ContPAQiServiceStatus {
 # =============================================================================
 
 function Main {
-    Write-Log "ContPAQi AI Bridge Service Manager v1.0.0"
-    Write-Log "========================================="
+    Write-Log (Get-Msg 'service.manager_version')
+    Write-Log (Get-Msg 'service.manager_separator')
 
     # Check for administrator privileges
     if (-not (Test-Administrator)) {
-        Write-Log "This script requires Administrator privileges." -Level Error
-        Write-Log "Please run PowerShell as Administrator and try again." -Level Error
+        Write-Log (Get-Msg 'service.requires_admin') -Level Error
+        Write-Log (Get-Msg 'service.run_as_admin') -Level Error
         exit $EXIT_NOT_ADMIN
     }
 
-    Write-Log "Running with Administrator privileges" -Level Success
+    Write-Log (Get-Msg 'service.running_as_admin') -Level Success
 
     # Determine which action to perform
     $actionCount = @($Install, $Uninstall, $Start, $Stop, $Status).Where({ $_ }).Count
 
     if ($actionCount -eq 0) {
-        Write-Log "No action specified. Use -Install, -Uninstall, -Start, -Stop, or -Status" -Level Warning
+        Write-Log (Get-Msg 'service.no_action') -Level Warning
         exit $EXIT_SUCCESS
     }
 
     if ($actionCount -gt 1 -and -not ($Install -and $Start)) {
-        Write-Log "Please specify only one action at a time." -Level Error
+        Write-Log (Get-Msg 'service.one_action_only') -Level Error
         exit $EXIT_SUCCESS
     }
 

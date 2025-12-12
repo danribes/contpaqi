@@ -43,8 +43,21 @@ param(
     [switch]$NonInteractive,
 
     [Parameter(HelpMessage="Open browser to application URL after setup")]
-    [switch]$OpenBrowser
+    [switch]$OpenBrowser,
+
+    [Parameter(HelpMessage="Language for messages (en/es)")]
+    [ValidateSet('en', 'es')]
+    [string]$Language
 )
+
+# Import localization module
+$ModulePath = Join-Path $PSScriptRoot "LocalizedMessages.psm1"
+if (Test-Path $ModulePath) {
+    Import-Module $ModulePath -Force
+    if ($Language) {
+        Set-CurrentLanguage -Language $Language
+    }
+}
 
 # =============================================================================
 # Configuration
@@ -94,6 +107,90 @@ $script:CheckResults = @{
 # Helper Functions
 # =============================================================================
 
+function Get-Msg {
+    <#
+    .SYNOPSIS
+        Helper function to get localized message or fallback to English.
+    #>
+    param([string]$Key, [object[]]$Args)
+
+    if (Get-Command Get-LocalizedMessage -ErrorAction SilentlyContinue) {
+        return Get-LocalizedMessage -Key $Key -Args $Args
+    }
+    # Fallback messages
+    $fallback = @{
+        'wizard.installation_path' = 'Installation Path: {0}'
+        'wizard.system_status_summary' = 'System Status Summary'
+        'wizard.docker_pass' = 'Docker Desktop........... PASS'
+        'wizard.docker_fail' = 'Docker Desktop........... FAIL'
+        'wizard.dotnet_pass' = '.NET Runtime............. PASS'
+        'wizard.dotnet_fail' = '.NET Runtime............. FAIL'
+        'wizard.service_pass' = 'Application Service...... PASS'
+        'wizard.service_fail' = 'Application Service...... FAIL'
+        'wizard.config_pass' = 'Configuration............ PASS'
+        'wizard.config_fail' = 'Configuration............ FAIL'
+        'wizard.all_checks_passed' = 'All checks passed! Your installation is ready.'
+        'wizard.some_checks_failed' = 'Some checks did not pass. Review the issues above.'
+        'wizard.checking_docker' = 'Checking Docker availability...'
+        'wizard.docker_not_installed' = 'Docker is not installed or not in PATH'
+        'wizard.docker_not_running' = 'Docker is installed but not running'
+        'wizard.docker_available' = 'Docker is available and running'
+        'wizard.docker_error' = 'Error checking Docker: {0}'
+        'wizard.checking_dotnet' = 'Checking .NET runtime...'
+        'wizard.dotnet_not_installed' = '.NET is not installed or not in PATH'
+        'wizard.dotnet_available' = '.NET version {0} is available'
+        'wizard.dotnet_error' = 'Error checking .NET: {0}'
+        'wizard.checking_service' = 'Checking service status...'
+        'wizard.service_not_installed' = "Service '{0}' is not installed"
+        'wizard.service_running' = 'Service is installed and Running'
+        'wizard.service_status' = 'Service is installed but status is: {0}'
+        'wizard.service_error' = 'Error checking service: {0}'
+        'wizard.checking_config' = 'Checking configuration...'
+        'wizard.config_dir_not_found' = 'Configuration directory not found: {0}'
+        'wizard.appsettings_not_found' = 'appsettings.json not found'
+        'wizard.appsettings_invalid' = 'appsettings.json is not valid JSON'
+        'wizard.config_valid' = 'Configuration is valid'
+        'wizard.config_error' = 'Error checking configuration: {0}'
+        'wizard.system_requirements' = 'System Requirements Check'
+        'wizard.starting_service_header' = 'Starting Application Service'
+        'wizard.service_cannot_start' = 'Service is not installed, cannot start'
+        'wizard.service_already_running' = 'Service is already running'
+        'wizard.starting_service' = "Starting service '{0}'..."
+        'wizard.service_started' = 'Service started successfully'
+        'wizard.service_start_timeout' = 'Service did not start within {0} seconds'
+        'wizard.service_start_failed' = 'Failed to start service: {0}'
+        'wizard.marker_created' = 'First-run marker created'
+        'wizard.marker_failed' = 'Failed to create first-run marker: {0}'
+        'wizard.opening_browser' = 'Opening application in browser...'
+        'wizard.browser_opened' = 'Browser opened to {0}'
+        'wizard.browser_failed' = 'Failed to open browser: {0}'
+        'wizard.browser_manual' = 'You can manually navigate to: {0}'
+        'wizard.next_steps' = 'Next Steps'
+        'wizard.ready_to_use' = 'Your ContPAQi AI Bridge installation is ready to use!'
+        'wizard.to_get_started' = 'To get started:'
+        'wizard.step_docker' = '  1. Ensure Docker Desktop is running'
+        'wizard.step_service' = '  2. The service will start automatically on system boot'
+        'wizard.step_access' = '  3. Access the application at: {0}'
+        'wizard.more_info' = 'For more information:'
+        'wizard.docs_path' = '  - Documentation: {0}\docs'
+        'wizard.config_path' = '  - Configuration: {0}'
+        'wizard.logs_path' = '  - Logs: {0}\logs'
+        'wizard.already_initialized' = 'Application has already been initialized.'
+        'wizard.use_force' = 'Use -Force to run the wizard again.'
+        'wizard.skipping_checks' = 'Skipping system checks as requested'
+        'wizard.start_service_prompt' = 'Would you like to start the service now?'
+        'wizard.open_browser_prompt' = 'Would you like to open the application in your browser?'
+        'wizard.unexpected_error' = 'Unexpected error: {0}'
+        'common.success' = 'OK'
+        'common.warning' = 'WARN'
+        'common.error' = 'ERROR'
+        'common.info' = 'INFO'
+    }
+    $msg = $fallback[$Key]
+    if ($msg -and $Args) { $msg = $msg -f $Args }
+    return $msg
+}
+
 function Write-Log {
     <#
     .SYNOPSIS
@@ -113,9 +210,9 @@ function Write-Log {
     }
 
     switch ($Level) {
-        "Error"   { Write-Host "[ERROR] $Message" -ForegroundColor Red }
-        "Warning" { Write-Host "[WARN]  $Message" -ForegroundColor Yellow }
-        "Success" { Write-Host "[OK]    $Message" -ForegroundColor Green }
+        "Error"   { Write-Host "[$(Get-Msg 'common.error')] $Message" -ForegroundColor Red }
+        "Warning" { Write-Host "[$(Get-Msg 'common.warning')]  $Message" -ForegroundColor Yellow }
+        "Success" { Write-Host "[$(Get-Msg 'common.success')]    $Message" -ForegroundColor Green }
         "Header"  { Write-Host "`n$Message" -ForegroundColor Cyan }
         default   { Write-Host "        $Message" }
     }
@@ -141,7 +238,7 @@ function Write-WelcomeMessage {
 "@
 
     Write-Host $banner -ForegroundColor Cyan
-    Write-Log "Installation Path: $InstallPath"
+    Write-Log (Get-Msg 'wizard.installation_path' -Args @($InstallPath))
     Write-Log ""
 }
 
@@ -151,7 +248,7 @@ function Write-StatusSummary {
         Shows a status summary of all checks performed.
     #>
 
-    Write-Log "System Status Summary" -Level Header
+    Write-Log (Get-Msg 'wizard.system_status_summary') -Level Header
     Write-Log "====================="
     Write-Log ""
 
@@ -159,42 +256,42 @@ function Write-StatusSummary {
 
     # Docker status
     if ($script:CheckResults.Docker) {
-        Write-Log "Docker Desktop........... PASS" -Level Success
+        Write-Log (Get-Msg 'wizard.docker_pass') -Level Success
     } else {
-        Write-Log "Docker Desktop........... FAIL" -Level Error
+        Write-Log (Get-Msg 'wizard.docker_fail') -Level Error
         $allPassed = $false
     }
 
     # .NET status
     if ($script:CheckResults.DotNet) {
-        Write-Log ".NET Runtime............. PASS" -Level Success
+        Write-Log (Get-Msg 'wizard.dotnet_pass') -Level Success
     } else {
-        Write-Log ".NET Runtime............. FAIL" -Level Error
+        Write-Log (Get-Msg 'wizard.dotnet_fail') -Level Error
         $allPassed = $false
     }
 
     # Service status
     if ($script:CheckResults.Service) {
-        Write-Log "Application Service...... PASS" -Level Success
+        Write-Log (Get-Msg 'wizard.service_pass') -Level Success
     } else {
-        Write-Log "Application Service...... FAIL" -Level Warning
+        Write-Log (Get-Msg 'wizard.service_fail') -Level Warning
         $allPassed = $false
     }
 
     # Configuration status
     if ($script:CheckResults.Config) {
-        Write-Log "Configuration............ PASS" -Level Success
+        Write-Log (Get-Msg 'wizard.config_pass') -Level Success
     } else {
-        Write-Log "Configuration............ FAIL" -Level Warning
+        Write-Log (Get-Msg 'wizard.config_fail') -Level Warning
         $allPassed = $false
     }
 
     Write-Log ""
 
     if ($allPassed) {
-        Write-Log "All checks passed! Your installation is ready." -Level Success
+        Write-Log (Get-Msg 'wizard.all_checks_passed') -Level Success
     } else {
-        Write-Log "Some checks did not pass. Review the issues above." -Level Warning
+        Write-Log (Get-Msg 'wizard.some_checks_failed') -Level Warning
     }
 
     return $allPassed
@@ -210,27 +307,27 @@ function Test-DockerAvailable {
         Checks if Docker is available and running.
     #>
 
-    Write-Log "Checking Docker availability..."
+    Write-Log (Get-Msg 'wizard.checking_docker')
 
     try {
         $dockerPath = Get-Command docker -ErrorAction SilentlyContinue
         if (-not $dockerPath) {
-            Write-Log "Docker is not installed or not in PATH" -Level Warning
+            Write-Log (Get-Msg 'wizard.docker_not_installed') -Level Warning
             return $false
         }
 
         # Check if Docker daemon is running
         $dockerInfo = & docker info 2>&1
         if ($LASTEXITCODE -ne 0) {
-            Write-Log "Docker is installed but not running" -Level Warning
+            Write-Log (Get-Msg 'wizard.docker_not_running') -Level Warning
             return $false
         }
 
-        Write-Log "Docker is available and running" -Level Success
+        Write-Log (Get-Msg 'wizard.docker_available') -Level Success
         return $true
     }
     catch {
-        Write-Log "Error checking Docker: $($_.Exception.Message)" -Level Error
+        Write-Log (Get-Msg 'wizard.docker_error' -Args @($_.Exception.Message)) -Level Error
         return $false
     }
 }
@@ -241,26 +338,26 @@ function Test-DotNetAvailable {
         Checks if .NET runtime is available.
     #>
 
-    Write-Log "Checking .NET runtime..."
+    Write-Log (Get-Msg 'wizard.checking_dotnet')
 
     try {
         $dotnetPath = Get-Command dotnet -ErrorAction SilentlyContinue
         if (-not $dotnetPath) {
-            Write-Log ".NET is not installed or not in PATH" -Level Warning
+            Write-Log (Get-Msg 'wizard.dotnet_not_installed') -Level Warning
             return $false
         }
 
         # Get .NET version
         $dotnetVersion = & dotnet --version 2>&1
         if ($LASTEXITCODE -eq 0) {
-            Write-Log ".NET version $dotnetVersion is available" -Level Success
+            Write-Log (Get-Msg 'wizard.dotnet_available' -Args @($dotnetVersion)) -Level Success
             return $true
         }
 
         return $false
     }
     catch {
-        Write-Log "Error checking .NET: $($_.Exception.Message)" -Level Error
+        Write-Log (Get-Msg 'wizard.dotnet_error' -Args @($_.Exception.Message)) -Level Error
         return $false
     }
 }
@@ -271,26 +368,26 @@ function Test-ServiceStatus {
         Checks if the application service is installed and running.
     #>
 
-    Write-Log "Checking service status..."
+    Write-Log (Get-Msg 'wizard.checking_service')
 
     try {
         $service = Get-Service -Name $ServiceName -ErrorAction SilentlyContinue
 
         if (-not $service) {
-            Write-Log "Service '$ServiceName' is not installed" -Level Warning
+            Write-Log (Get-Msg 'wizard.service_not_installed' -Args @($ServiceName)) -Level Warning
             return $false
         }
 
         if ($service.Status -eq 'Running') {
-            Write-Log "Service is installed and Running" -Level Success
+            Write-Log (Get-Msg 'wizard.service_running') -Level Success
             return $true
         } else {
-            Write-Log "Service is installed but status is: $($service.Status)" -Level Warning
+            Write-Log (Get-Msg 'wizard.service_status' -Args @($service.Status)) -Level Warning
             return $false
         }
     }
     catch {
-        Write-Log "Error checking service: $($_.Exception.Message)" -Level Error
+        Write-Log (Get-Msg 'wizard.service_error' -Args @($_.Exception.Message)) -Level Error
         return $false
     }
 }
@@ -301,33 +398,33 @@ function Test-Configuration {
         Checks if configuration files exist and are valid.
     #>
 
-    Write-Log "Checking configuration..."
+    Write-Log (Get-Msg 'wizard.checking_config')
 
     try {
         # Check config directory
         if (-not (Test-Path $ConfigPath)) {
-            Write-Log "Configuration directory not found: $ConfigPath" -Level Warning
+            Write-Log (Get-Msg 'wizard.config_dir_not_found' -Args @($ConfigPath)) -Level Warning
             return $false
         }
 
         # Check appsettings.json
         if (-not (Test-Path $AppSettingsFile)) {
-            Write-Log "appsettings.json not found" -Level Warning
+            Write-Log (Get-Msg 'wizard.appsettings_not_found') -Level Warning
             return $false
         }
 
         # Try to parse settings file
         $settings = Get-Content $AppSettingsFile -Raw | ConvertFrom-Json -ErrorAction SilentlyContinue
         if (-not $settings) {
-            Write-Log "appsettings.json is not valid JSON" -Level Warning
+            Write-Log (Get-Msg 'wizard.appsettings_invalid') -Level Warning
             return $false
         }
 
-        Write-Log "Configuration is valid" -Level Success
+        Write-Log (Get-Msg 'wizard.config_valid') -Level Success
         return $true
     }
     catch {
-        Write-Log "Error checking configuration: $($_.Exception.Message)" -Level Error
+        Write-Log (Get-Msg 'wizard.config_error' -Args @($_.Exception.Message)) -Level Error
         return $false
     }
 }
@@ -338,7 +435,7 @@ function Invoke-SystemChecks {
         Runs all system requirement checks.
     #>
 
-    Write-Log "System Requirements Check" -Level Header
+    Write-Log (Get-Msg 'wizard.system_requirements') -Level Header
     Write-Log "========================="
     Write-Log ""
 
@@ -363,7 +460,7 @@ function Start-ApplicationService {
         Attempts to start the application service.
     #>
 
-    Write-Log "Starting Application Service" -Level Header
+    Write-Log (Get-Msg 'wizard.starting_service_header') -Level Header
     Write-Log "============================"
     Write-Log ""
 
@@ -371,16 +468,16 @@ function Start-ApplicationService {
         $service = Get-Service -Name $ServiceName -ErrorAction SilentlyContinue
 
         if (-not $service) {
-            Write-Log "Service is not installed, cannot start" -Level Error
+            Write-Log (Get-Msg 'wizard.service_cannot_start') -Level Error
             return $false
         }
 
         if ($service.Status -eq 'Running') {
-            Write-Log "Service is already running" -Level Success
+            Write-Log (Get-Msg 'wizard.service_already_running') -Level Success
             return $true
         }
 
-        Write-Log "Starting service '$ServiceName'..."
+        Write-Log (Get-Msg 'wizard.starting_service' -Args @($ServiceName))
         Start-Service -Name $ServiceName -ErrorAction Stop
 
         # Wait for service to start
@@ -391,17 +488,17 @@ function Start-ApplicationService {
             $elapsed++
             $service = Get-Service -Name $ServiceName
             if ($service.Status -eq 'Running') {
-                Write-Log "Service started successfully" -Level Success
+                Write-Log (Get-Msg 'wizard.service_started') -Level Success
                 $script:CheckResults.Service = $true
                 return $true
             }
         }
 
-        Write-Log "Service did not start within $timeout seconds" -Level Warning
+        Write-Log (Get-Msg 'wizard.service_start_timeout' -Args @($timeout)) -Level Warning
         return $false
     }
     catch {
-        Write-Log "Failed to start service: $($_.Exception.Message)" -Level Error
+        Write-Log (Get-Msg 'wizard.service_start_failed' -Args @($_.Exception.Message)) -Level Error
         return $false
     }
 }
@@ -437,11 +534,11 @@ function Set-FirstRunComplete {
         }
 
         $markerContent | ConvertTo-Json | Set-Content -Path $MarkerFile -Encoding UTF8
-        Write-Log "First-run marker created" -Level Success
+        Write-Log (Get-Msg 'wizard.marker_created') -Level Success
         return $true
     }
     catch {
-        Write-Log "Failed to create first-run marker: $($_.Exception.Message)" -Level Warning
+        Write-Log (Get-Msg 'wizard.marker_failed' -Args @($_.Exception.Message)) -Level Warning
         return $false
     }
 }
@@ -501,16 +598,16 @@ function Open-ApplicationBrowser {
         Opens the application URL in the default browser.
     #>
 
-    Write-Log "Opening application in browser..."
+    Write-Log (Get-Msg 'wizard.opening_browser')
 
     try {
         Start-Process $AppUrl
-        Write-Log "Browser opened to $AppUrl" -Level Success
+        Write-Log (Get-Msg 'wizard.browser_opened' -Args @($AppUrl)) -Level Success
         return $true
     }
     catch {
-        Write-Log "Failed to open browser: $($_.Exception.Message)" -Level Warning
-        Write-Log "You can manually navigate to: $AppUrl"
+        Write-Log (Get-Msg 'wizard.browser_failed' -Args @($_.Exception.Message)) -Level Warning
+        Write-Log (Get-Msg 'wizard.browser_manual' -Args @($AppUrl))
         return $false
     }
 }
@@ -525,20 +622,20 @@ function Write-NextSteps {
         Displays next steps for the user to begin using the application.
     #>
 
-    Write-Log "Next Steps" -Level Header
+    Write-Log (Get-Msg 'wizard.next_steps') -Level Header
     Write-Log "=========="
     Write-Log ""
-    Write-Log "Your ContPAQi AI Bridge installation is ready to use!"
+    Write-Log (Get-Msg 'wizard.ready_to_use')
     Write-Log ""
-    Write-Log "To get started:"
-    Write-Log "  1. Ensure Docker Desktop is running"
-    Write-Log "  2. The service will start automatically on system boot"
-    Write-Log "  3. Access the application at: $AppUrl"
+    Write-Log (Get-Msg 'wizard.to_get_started')
+    Write-Log (Get-Msg 'wizard.step_docker')
+    Write-Log (Get-Msg 'wizard.step_service')
+    Write-Log (Get-Msg 'wizard.step_access' -Args @($AppUrl))
     Write-Log ""
-    Write-Log "For more information:"
-    Write-Log "  - Documentation: $InstallPath\docs"
-    Write-Log "  - Configuration: $ConfigPath"
-    Write-Log "  - Logs: $InstallPath\logs"
+    Write-Log (Get-Msg 'wizard.more_info')
+    Write-Log (Get-Msg 'wizard.docs_path' -Args @($InstallPath))
+    Write-Log (Get-Msg 'wizard.config_path' -Args @($ConfigPath))
+    Write-Log (Get-Msg 'wizard.logs_path' -Args @($InstallPath))
     Write-Log ""
 }
 
@@ -588,8 +685,8 @@ function Start-FirstRunWizard {
     # Check if already initialized
     if (-not $Force -and -not (Test-FirstRun)) {
         if (-not ($Quiet -or $Silent)) {
-            Write-Log "Application has already been initialized." -Level Info
-            Write-Log "Use -Force to run the wizard again." -Level Info
+            Write-Log (Get-Msg 'wizard.already_initialized') -Level Info
+            Write-Log (Get-Msg 'wizard.use_force') -Level Info
         }
         return $EXIT_ALREADY_INITIALIZED
     }
@@ -604,7 +701,7 @@ function Start-FirstRunWizard {
     if (-not ($SkipChecks -or $Skip)) {
         $checksOk = Invoke-SystemChecks
     } else {
-        Write-Log "Skipping system checks as requested" -Level Warning
+        Write-Log (Get-Msg 'wizard.skipping_checks') -Level Warning
         # Set all checks to true when skipped
         $script:CheckResults.Docker = $true
         $script:CheckResults.DotNet = $true
@@ -615,7 +712,7 @@ function Start-FirstRunWizard {
     # Try to start service if not running
     if (-not $script:CheckResults.Service) {
         if (-not $NonInteractive) {
-            $startService = Request-UserConfirmation -Prompt "Would you like to start the service now?"
+            $startService = Request-UserConfirmation -Prompt (Get-Msg 'wizard.start_service_prompt')
             if ($startService) {
                 $serviceOk = Start-ApplicationService
             }
@@ -636,7 +733,7 @@ function Start-FirstRunWizard {
         if ($OpenBrowser) {
             Open-ApplicationBrowser
         } elseif (-not $NonInteractive) {
-            $openBrowser = Request-UserConfirmation -Prompt "Would you like to open the application in your browser?"
+            $openBrowser = Request-UserConfirmation -Prompt (Get-Msg 'wizard.open_browser_prompt')
             if ($openBrowser) {
                 Open-ApplicationBrowser
             }
@@ -666,7 +763,7 @@ try {
     exit $exitCode
 }
 catch {
-    Write-Log "Unexpected error: $($_.Exception.Message)" -Level Error
+    Write-Log (Get-Msg 'wizard.unexpected_error' -Args @($_.Exception.Message)) -Level Error
     Write-Log $_.ScriptStackTrace -Level Error
     exit $EXIT_CONFIG_FAILED
 }
