@@ -3565,7 +3565,7 @@ Implement internationalization (i18n) support for the application with English a
   ```
   **Completed**: 2025-12-11 | Installed i18next, react-i18next, i18next-browser-languagedetector. Created src/i18n/index.ts with configuration, utility functions (getCurrentLanguage, changeLanguage, etc.), and registry loading support. Created placeholder en.json/es.json. Updated main.tsx with Suspense wrapper. 34 tests passing
 
-- [ ] 18.3 Create English language file (en.json)
+- [x] 18.3 Create English language file (en.json)
   ```json
   <!-- IMPLEMENTATION STEPS:
   Create src/i18n/locales/en.json with all UI strings:
@@ -3591,6 +3591,7 @@ Implement internationalization (i18n) support for the application with English a
   }
   -->
   ```
+  **Completed**: 2025-12-12 | Expanded en.json from 27 to 380 lines with comprehensive translations across 15 sections: app, status, actions, settings, invoice (form/placeholders/messages/labels), validation, errors, navigation, license, batch, pdf, common, confirmation, shortcuts, docker, accessibility. Total 326 translation keys with i18next interpolation syntax ({{variable}}). 163 tests passing.
 
 - [ ] 18.4 Create Spanish language file (es.json)
   ```json
