@@ -74,7 +74,16 @@ jobs:
       # -----------------------------------------------------------------------
       - name: Install desktop app dependencies
         working-directory: desktop-app
-        run: npm ci --omit=optional
+        run: npm ci
+
+      - name: Remove canvas (optional dep that fails to build on Windows CI)
+        working-directory: desktop-app
+        run: |
+          if (Test-Path "node_modules/canvas") {
+            Remove-Item -Recurse -Force "node_modules/canvas"
+            Write-Host "Removed canvas package"
+          }
+        shell: pwsh
 
       - name: Build desktop app
         working-directory: desktop-app
