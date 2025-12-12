@@ -4,6 +4,7 @@
  * Subtask 13.3: Docker status checking
  * Subtask 13.5: Handle Docker daemon not running scenario
  * Subtask 13.6: Implement health check polling with retry
+ * Subtask 18.7: Language preference persistence
  *
  * Handles:
  * - Window creation and lifecycle
@@ -12,6 +13,7 @@
  * - Application menu
  * - File dialogs
  * - Health check polling
+ * - Language preference persistence
  */
 
 import { app, BrowserWindow, ipcMain, dialog, Menu, shell } from 'electron';
@@ -19,6 +21,7 @@ import * as path from 'path';
 import { spawn, ChildProcess } from 'child_process';
 import { DockerManager, DockerStatus } from './docker-manager';
 import { HealthCheckManager, HealthStatus } from './health-check-manager';
+import { registerLanguageIpcHandlers } from './language-manager';
 
 // Constants
 const CONTAINER_NAME = 'mcp-container';
@@ -452,6 +455,7 @@ function registerIpcHandlers(): void {
 app.whenReady().then(() => {
   createMenu();
   registerIpcHandlers();
+  registerLanguageIpcHandlers(); // Subtask 18.7: Language persistence
   createWindow();
 
   app.on('activate', () => {
