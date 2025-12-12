@@ -1,0 +1,97 @@
+# =============================================================================
+# ContPAQi Website - Update Download Link
+# =============================================================================
+# This workflow is triggered by the contpaqi repo when a new installer release
+# is published. It updates the download configuration and rebuilds the site.
+#
+# Trigger: repository_dispatch from contpaqi repo
+# =============================================================================
+
+name: Update Download Link
+
+on:
+  repository_dispatch:
+    types: [installer-updated]
+
+  # Allow manual trigger for testing
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to set (e.g., 1.0.0)'
+        required: true
+        default: '1.0.0'
+
+jobs:
+  update-download:
+    name: Update Download Configuration
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Determine version and URLs
+        id: release
+        run: |
+          if [ "${{ github.event_name }}" == "repository_dispatch" ]; then
+            VERSION="${{ github.event.client_payload.version }}"
+            DOWNLOAD_URL="${{ github.event.client_payload.download_url }}"
+            RELEASE_URL="${{ github.event.client_payload.release_url }}"
+            REPO="${{ github.event.client_payload.repository }}"
+          else
+            VERSION="${{ github.event.inputs.version }}"
+            REPO="danribes/contpaqi"
+            DOWNLOAD_URL="https://github.com/${REPO}/releases/download/v${VERSION}/ContPAQi-AI-Bridge-Setup-${VERSION}.exe"
+            RELEASE_URL="https://github.com/${REPO}/releases/tag/v${VERSION}"
+          fi
+
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          echo "DOWNLOAD_URL=$DOWNLOAD_URL" >> $GITHUB_OUTPUT
+          echo "RELEASE_URL=$RELEASE_URL" >> $GITHUB_OUTPUT
+          echo "REPO=$REPO" >> $GITHUB_OUTPUT
+
+      - name: Update download configuration
+        run: |
+          mkdir -p src/config
+          cat > src/config/download.json << EOF
+          {
+            "version": "${{ steps.release.outputs.VERSION }}",
+            "downloadUrl": "${{ steps.release.outputs.DOWNLOAD_URL }}",
+            "releaseUrl": "${{ steps.release.outputs.RELEASE_URL }}",
+            "repository": "${{ steps.release.outputs.REPO }}",
+            "fileName": "ContPAQi-AI-Bridge-Setup-${{ steps.release.outputs.VERSION }}.exe",
+            "updatedAt": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "requirements": {
+              "os": "Windows 10/11 (64-bit)",
+              "docker": "Docker Desktop",
+              "dotnet": ".NET 6.0 Runtime"
+            }
+          }
+          EOF
+
+          echo "Updated download.json:"
+          cat src/config/download.json
+
+      - name: Commit and push changes
+        run: |
+          git config user.name "GitHub Actions Bot"
+          git config user.email "actions@github.com"
+
+          git add src/config/download.json
+
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "chore: Update download link to v${{ steps.release.outputs.VERSION }}"
+            git push
+          fi
+
+      # Optional: Trigger site rebuild if using static site generator
+      - name: Trigger site rebuild
+        if: false  # Set to true if you need to trigger a rebuild
+        run: |
+          echo "Site rebuild would be triggered here"
+          # Example for Vercel:
+          # curl -X POST "${{ secrets.VERCEL_DEPLOY_HOOK }}"
+          # Example for Netlify:
+          # curl -X POST "${{ secrets.NETLIFY_BUILD_HOOK }}"
