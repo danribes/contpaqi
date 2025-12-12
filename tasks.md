@@ -3709,7 +3709,7 @@ Implement internationalization (i18n) support for the application with English a
   ```
   **Completed**: 2025-12-12 | Created LocalizedMessages.psm1 module with 140+ bilingual message keys across 5 categories (docker, service, wizard, test, common). Updated all 4 installer scripts with -Language parameter, module import, Get-Msg helper functions with fallback messages, and localized Write-Log/Write-Status functions. Language detection priority: Parameter > Registry (HKCU:\Software\ContPAQi\AIBridge\Settings\Language) > Default (English). Supports string interpolation with {0}, {1} placeholders. Created 244 tests in powershell-localization.test.ts validating message structure, key parity, and interpolation support.
 
-- [ ] 18.9 Create language selection wizard page in installer
+- [x] 18.9 Create language selection wizard page in installer
   ```pascal
   <!-- IMPLEMENTATION STEPS:
   Create custom wizard page in Inno Setup:
@@ -3733,6 +3733,7 @@ Implement internationalization (i18n) support for the application with English a
   Save selection to registry: HKCU\Software\ContPAQi\AIBridge\Language
   -->
   ```
+  **Completed**: 2025-12-12 | Fixed Inno Setup language selection wizard page to use HKCU registry instead of HKLM for user preferences. Updated SaveLanguagePreference() and LoadLanguagePreference() functions to write to `HKCU\SOFTWARE\ContPAQi AI Bridge\Language`, matching the PowerShell LocalizedMessages.psm1 registry path. Updated [Registry] section accordingly. Language page already implemented with English/Español radio buttons, custom messages for bilingual UI, and ActiveLanguage detection. Created 39 tests in inno-setup-language-page.test.ts validating page structure, registry consistency, and cross-system integration.
 
 - [ ] 18.10 Write unit tests for i18n functionality
   ```typescript
