@@ -122,6 +122,7 @@ jobs:
           # Copy installer scripts (including localization module)
           cp installer/scripts/*.ps1 installer/dist/scripts/
           cp installer/scripts/*.psm1 installer/dist/scripts/ 2>/dev/null || true
+        shell: bash
 
       # -----------------------------------------------------------------------
       # Build Installer with Inno Setup
