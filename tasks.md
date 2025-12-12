@@ -3593,7 +3593,7 @@ Implement internationalization (i18n) support for the application with English a
   ```
   **Completed**: 2025-12-12 | Expanded en.json from 27 to 380 lines with comprehensive translations across 15 sections: app, status, actions, settings, invoice (form/placeholders/messages/labels), validation, errors, navigation, license, batch, pdf, common, confirmation, shortcuts, docker, accessibility. Total 326 translation keys with i18next interpolation syntax ({{variable}}). 163 tests passing.
 
-- [ ] 18.4 Create Spanish language file (es.json)
+- [x] 18.4 Create Spanish language file (es.json)
   ```json
   <!-- IMPLEMENTATION STEPS:
   Create src/i18n/locales/es.json with Spanish translations:
@@ -3631,6 +3631,7 @@ Implement internationalization (i18n) support for the application with English a
   }
   -->
   ```
+  **Completed**: 2025-12-12 | Expanded es.json from 27 to 380 lines with complete Spanish translations for all 326 keys. Full parity with en.json including: app, status, actions, settings, invoice (form/placeholders/messages/labels), validation, errors, navigation, license, batch, pdf, common, confirmation, shortcuts, docker, accessibility. Used Mexican Spanish formal register (usted), proper accents (á,é,í,ó,ú,ñ), and matching interpolation placeholders. 178 tests passing.
 
 - [ ] 18.5 Update UI components to use translation keys
   ```typescript
