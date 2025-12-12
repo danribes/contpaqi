@@ -1,6 +1,7 @@
 /**
  * Status Indicator Components
  * Subtask 13.7: Create status indicators (Starting/Ready/Error)
+ * Subtask 18.5: Updated to use i18n translation keys
  *
  * Provides visual status indicators for the application state:
  * - StatusIndicator: Simple dot with optional text
@@ -9,6 +10,7 @@
  */
 
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 /**
  * Application status values
@@ -103,7 +105,21 @@ export function getStatusTextColor(status: AppStatus): string {
 }
 
 /**
- * Get the display text for a status
+ * Get the translation key for a status
+ */
+export function getStatusTextKey(status: AppStatus): string {
+  const keyMap: Record<AppStatus, string> = {
+    starting: 'status.starting',
+    ready: 'status.ready',
+    error: 'status.error',
+    offline: 'status.offline',
+  };
+  return keyMap[status] || 'status.starting';
+}
+
+/**
+ * Get the display text for a status (fallback for non-React contexts)
+ * @deprecated Use getStatusTextKey with useTranslation hook in React components
  */
 export function getStatusText(status: AppStatus): string {
   switch (status) {
@@ -290,10 +306,11 @@ export function StatusIndicator({
   size = 'md',
   className = '',
 }: StatusIndicatorProps) {
+  const { t } = useTranslation();
   const sizeClasses = getSizeClasses(size);
   const colorClass = getStatusColor(status);
   const animate = shouldAnimate(status);
-  const displayText = message || getStatusText(status);
+  const displayText = message || t(getStatusTextKey(status));
 
   return (
     <div className={`flex items-center gap-2 ${className}`}>
@@ -333,9 +350,10 @@ export interface StatusBadgeProps {
  * Compact status badge for headers
  */
 export function StatusBadge({ status, message, className = '' }: StatusBadgeProps) {
+  const { t } = useTranslation();
   const colorClass = getStatusColor(status);
   const textColorClass = getStatusTextColor(status);
-  const displayText = message || getStatusText(status);
+  const displayText = message || t(getStatusTextKey(status));
   const animate = shouldAnimate(status);
 
   const bgColorClass = status === 'ready'
@@ -376,7 +394,44 @@ export interface StatusBarState {
 }
 
 /**
- * Get a descriptive message for the status bar
+ * Get the translation key for a status bar message
+ */
+export function getStatusBarMessageKey(state: StatusBarState): string {
+  const { dockerStatus, healthStatus } = state;
+
+  if (dockerStatus === 'docker_error') {
+    return 'errors.dockerNotRunning';
+  }
+
+  if (dockerStatus === 'stopped') {
+    return 'docker.containerStopped';
+  }
+
+  if (dockerStatus === 'checking') {
+    return 'docker.checking';
+  }
+
+  if (dockerStatus === 'running') {
+    switch (healthStatus) {
+      case 'healthy':
+        return 'docker.healthy';
+      case 'unhealthy':
+        return 'docker.unhealthy';
+      case 'error':
+        return 'errors.healthCheckFailed';
+      case 'unknown':
+        return 'docker.waitingForService';
+      default:
+        return 'docker.waitingForService';
+    }
+  }
+
+  return 'status.checking';
+}
+
+/**
+ * Get a descriptive message for the status bar (fallback for non-React contexts)
+ * @deprecated Use getStatusBarMessageKey with useTranslation hook in React components
  */
 export function getStatusBarMessage(state: StatusBarState): string {
   const { dockerStatus, healthStatus } = state;
@@ -437,10 +492,11 @@ export function StatusBar({
   isRetrying = false,
   className = '',
 }: StatusBarProps) {
+  const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
 
   const appStatus = deriveAppStatus(dockerStatus, healthStatus);
-  const message = getStatusBarMessage({ dockerStatus, healthStatus, lastCheckTime });
+  const messageKey = getStatusBarMessageKey({ dockerStatus, healthStatus, lastCheckTime });
   const textColorClass = getStatusTextColor(appStatus);
 
   const bgColorClass =
@@ -458,8 +514,8 @@ export function StatusBar({
         <div className="flex items-center gap-3">
           <StatusIcon status={appStatus} className={`w-5 h-5 ${textColorClass}`} />
           <div>
-            <p className={`font-medium ${textColorClass}`}>{getStatusText(appStatus)}</p>
-            <p className="text-sm text-gray-600">{message}</p>
+            <p className={`font-medium ${textColorClass}`}>{t(getStatusTextKey(appStatus))}</p>
+            <p className="text-sm text-gray-600">{t(messageKey)}</p>
           </div>
         </div>
 
@@ -470,7 +526,7 @@ export function StatusBar({
               disabled={isRetrying}
               className="px-3 py-1 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isRetrying ? 'Retrying...' : 'Retry'}
+              {isRetrying ? t('common.processing') : t('actions.retry')}
             </button>
           )}
 
@@ -499,16 +555,16 @@ export function StatusBar({
         <div className="px-3 pb-3 pt-0 border-t border-gray-200">
           <div className="grid grid-cols-2 gap-4 text-sm mt-3">
             <div>
-              <p className="text-gray-500">Docker</p>
+              <p className="text-gray-500">{t('docker.status')}</p>
               <p className="font-medium capitalize">{dockerStatus.replace('_', ' ')}</p>
             </div>
             <div>
-              <p className="text-gray-500">Health</p>
+              <p className="text-gray-500">{t('docker.healthCheck')}</p>
               <p className="font-medium capitalize">{healthStatus}</p>
             </div>
             {lastCheckTime && (
               <div className="col-span-2">
-                <p className="text-gray-500">Last Check</p>
+                <p className="text-gray-500">{t('common.time')}</p>
                 <p className="font-medium">{lastCheckTime.toLocaleTimeString()}</p>
               </div>
             )}
@@ -543,6 +599,7 @@ export function StartupScreen({
   steps = [],
   className = '',
 }: StartupScreenProps) {
+  const { t } = useTranslation();
   const textColorClass = getStatusTextColor(status);
 
   return (
@@ -557,9 +614,9 @@ export function StartupScreen({
 
         {/* Status Text */}
         <h1 className="text-2xl font-bold text-gray-800 mb-2">
-          Contpaqi AI Bridge
+          {t('app.name')}
         </h1>
-        <p className={`text-lg ${textColorClass}`}>{getStatusText(status)}</p>
+        <p className={`text-lg ${textColorClass}`}>{t(getStatusTextKey(status))}</p>
         <p className="text-gray-600 mt-1">{message}</p>
 
         {/* Progress Steps */}
