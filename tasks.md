@@ -3673,7 +3673,7 @@ Implement internationalization (i18n) support for the application with English a
   ```
   **Completed**: 2025-12-12 | Created LanguageSwitcher.tsx component with three display variants (dropdown, buttons, compact). Includes flag icons (🇺🇸, 🇲🇽), native language names, full ARIA accessibility support, keyboard navigation, and Tailwind styling. Integrates with react-i18next via useTranslation hook. Persists language preference to localStorage. 70 tests covering all variants and edge cases.
 
-- [ ] 18.7 Persist language preference across sessions
+- [x] 18.7 Persist language preference across sessions
   ```typescript
   <!-- IMPLEMENTATION STEPS:
   Create electron/language-manager.ts:
@@ -3691,6 +3691,7 @@ Implement internationalization (i18n) support for the application with English a
   - IPC handlers for main process
   -->
   ```
+  **Completed**: 2025-12-12 | Created electron/language-manager.ts with Windows Registry read/write operations using reg.exe, system locale detection via app.getLocale(), and IPC handlers (language:getFromRegistry, language:setToRegistry, language:getSystemLocale). Updated preload.ts with electronAPI methods (getRegistryLanguage, setRegistryLanguage, getSystemLocale) and main.ts to register handlers on app ready. Implements priority resolution: localStorage > Registry > System Locale > Default. 71 tests covering all functionality.
 
 - [ ] 18.8 Update installer scripts with localized messages
   ```powershell

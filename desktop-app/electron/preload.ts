@@ -5,6 +5,7 @@
  * Subtask 13.4: Container lifecycle management
  * Subtask 13.5: Handle Docker daemon not running scenario
  * Subtask 13.6: Implement health check polling with retry
+ * Subtask 18.7: Language preference persistence
  *
  * Exposes safe APIs to the renderer process via contextBridge.
  * This is the only way for the renderer to communicate with the main process
@@ -127,6 +128,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
   removeFilesSelectedListener: () => {
     ipcRenderer.removeAllListeners('files:selected');
   },
+
+  // Language management (Subtask 18.7)
+  getRegistryLanguage: () => ipcRenderer.invoke('language:getFromRegistry'),
+  setRegistryLanguage: (lang: string) => ipcRenderer.invoke('language:setToRegistry', lang),
+  getSystemLocale: () => ipcRenderer.invoke('language:getSystemLocale'),
 });
 
 // Type definitions for TypeScript
@@ -167,6 +173,11 @@ declare global {
       // Event listeners
       onFilesSelected: (callback: (files: string[]) => void) => void;
       removeFilesSelectedListener: () => void;
+
+      // Language management (Subtask 18.7)
+      getRegistryLanguage: () => Promise<string | null>;
+      setRegistryLanguage: (lang: string) => Promise<{ success: boolean; error?: string }>;
+      getSystemLocale: () => Promise<string>;
     };
   }
 }
