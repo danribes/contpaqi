@@ -3513,7 +3513,7 @@ Create Windows installer with all dependencies and services.
 ## Task 18: Multi-Language Support (i18n)
 
 **Priority**: Medium | **Dependencies**: Tasks 13, 14, 17 | **Tags**: i18n, localization, phase-7
-**Status**: In Progress
+**Status**: COMPLETE
 **Estimated Effort**: 3-4 days
 
 ### Description
@@ -3802,7 +3802,7 @@ Tasks 13, 14, 17 ─────────────────────
 - [x] **Phase 4**: Licensing & Protection (Tasks 15-16) — 14/14 subtasks ✓
 - [x] **Phase 5**: Desktop App (Tasks 13-14) — 17/17 subtasks ✓
 - [x] **Phase 6**: Deployment (Task 17) — 10/10 subtasks ✓
-- [ ] **Phase 7**: Localization (Task 18) — 2/10 subtasks
+- [x] **Phase 7**: Localization (Task 18) — 10/10 subtasks ✓
 
 ---
 
@@ -3876,3 +3876,14 @@ Tasks 13, 14, 17 ─────────────────────
 | **Task 11 Complete** | 2025-12-07 | All 7 subtasks done, ConcurrentDictionary status tracking |
 | Subtask 12.1-12.7: API Endpoints | 2025-12-07 | InvoiceController, localhost security, security headers, 13 tests |
 | **Task 12 Complete** | 2025-12-07 | All 7 subtasks done, 202 Accepted pattern, health endpoint |
+| Subtask 18.1: Inno Setup Language | 2025-12-11 | CustomMessages, LanguagePage wizard, registry storage, 27 tests |
+| Subtask 18.2: i18n Framework | 2025-12-11 | i18next, react-i18next, language detection, 34 tests |
+| Subtask 18.3: English Translations | 2025-12-12 | en.json with 338 keys across 16 categories, 163 tests |
+| Subtask 18.4: Spanish Translations | 2025-12-12 | es.json with 338 keys, full parity with en.json, 178 tests |
+| Subtask 18.5: UI Components i18n | 2025-12-12 | useTranslation in StatusIndicator, ValidationBlocking, 110 tests |
+| Subtask 18.6: Language Switcher | 2025-12-12 | LanguageSwitcher.tsx with 3 variants, accessibility, 70 tests |
+| Subtask 18.7: Persistence | 2025-12-12 | language-manager.ts, Registry read/write, IPC handlers, 71 tests |
+| Subtask 18.8: PowerShell Localization | 2025-12-12 | LocalizedMessages.psm1, -Language param, 244 tests |
+| Subtask 18.9: Installer Wizard Page | 2025-12-12 | HKCU registry, SaveLanguagePreference fix, 39 tests |
+| Subtask 18.10: i18n Unit Tests | 2025-12-12 | Comprehensive i18n.test.ts, 161 tests, 338 keys validated |
+| **Task 18 Complete** | 2025-12-12 | All 10 subtasks done, English/Spanish i18n support |
