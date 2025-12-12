@@ -43,8 +43,21 @@ param(
     [switch]$SkipService,
 
     [Parameter(HelpMessage="Only check prerequisites")]
-    [switch]$PrerequisitesOnly
+    [switch]$PrerequisitesOnly,
+
+    [Parameter(HelpMessage="Language for messages (en/es)")]
+    [ValidateSet('en', 'es')]
+    [string]$Language
 )
+
+# Import localization module
+$ModulePath = Join-Path $PSScriptRoot "LocalizedMessages.psm1"
+if (Test-Path $ModulePath) {
+    Import-Module $ModulePath -Force
+    if ($Language) {
+        Set-CurrentLanguage -Language $Language
+    }
+}
 
 # =============================================================================
 # Configuration
@@ -88,6 +101,102 @@ $script:SkippedCount = 0
 # Helper Functions
 # =============================================================================
 
+function Get-Msg {
+    <#
+    .SYNOPSIS
+        Helper function to get localized message or fallback to English.
+    #>
+    param([string]$Key, [object[]]$Args)
+
+    if (Get-Command Get-LocalizedMessage -ErrorAction SilentlyContinue) {
+        return Get-LocalizedMessage -Key $Key -Args $Args
+    }
+    # Fallback messages
+    $fallback = @{
+        'test.windows_version_tests' = 'Windows Version Tests'
+        'test.detected' = 'Detected: {0} (Build {1})'
+        'test.windows_10_11_detected' = 'Windows 10/11 Detected'
+        'test.found' = 'Found: {0}'
+        'test.windows_11_build' = 'Windows 11 Build {0}+ (22000+)'
+        'test.windows_10_build' = 'Windows 10 Build {0}+ (19041+)'
+        'test.build' = 'Build: {0}'
+        'test.64bit_os' = '64-bit Operating System'
+        'test.is_64bit' = 'Is64Bit: {0}'
+        'test.prerequisite_tests' = 'Prerequisite Tests'
+        'test.powershell_51' = 'PowerShell 5.1+'
+        'test.version' = 'Version: {0}'
+        'test.dotnet_available' = '.NET Runtime Available'
+        'test.dotnet_not_found' = '.NET not found in PATH'
+        'test.docker_installed' = 'Docker Installed'
+        'test.found_in_path' = 'Found in PATH'
+        'test.not_found' = 'Not found'
+        'test.docker_daemon_running' = 'Docker Daemon Running'
+        'test.daemon_running' = 'Daemon is running'
+        'test.daemon_not_running' = 'Daemon not running'
+        'test.docker_tests_skipped' = 'Docker Tests'
+        'test.skipped_by_user' = 'Skipped by user'
+        'test.installation_tests' = 'Installation Tests'
+        'test.install_dir_exists' = 'Installation Directory Exists'
+        'test.path' = 'Path: {0}'
+        'test.cannot_continue' = 'Cannot continue installation tests - directory not found'
+        'test.executable_exists' = 'Executable Exists'
+        'test.config_dir_exists' = 'Config Directory Exists'
+        'test.appsettings_exists' = 'appsettings.json Exists'
+        'test.appsettings_valid' = 'appsettings.json Valid JSON'
+        'test.config_valid' = 'Configuration is valid'
+        'test.invalid_json' = 'Invalid JSON: {0}'
+        'test.logs_dir_exists' = 'Logs Directory Exists'
+        'test.scripts_dir_exists' = 'Scripts Directory Exists'
+        'test.service_tests' = 'Service Tests'
+        'test.service_installed' = 'Service Installed (ContPAQiBridge)'
+        'test.service_found' = 'Service found'
+        'test.service_not_found' = 'Service not found'
+        'test.service_running' = 'Service Running'
+        'test.status' = 'Status: {0}'
+        'test.service_auto_start' = 'Service Auto-Start Enabled'
+        'test.start_type' = 'StartType: {0}'
+        'test.docker_tests' = 'Docker Tests'
+        'test.docker_available' = 'Docker Available'
+        'test.docker_not_found' = 'Docker not found'
+        'test.docker_daemon_not_running' = 'Docker daemon not running'
+        'test.docker_image_loaded' = 'Docker Image Loaded ({0})'
+        'test.image_found' = 'Image found'
+        'test.image_not_found' = 'Image not found'
+        'test.shortcut_tests' = 'Shortcut Tests'
+        'test.desktop_shortcut' = 'Desktop Shortcut Exists'
+        'test.public_desktop' = 'Public Desktop'
+        'test.user_desktop' = 'User Desktop'
+        'test.start_menu_folder' = 'Start Menu Folder Exists'
+        'test.programs' = 'Programs\{0}'
+        'test.start_menu_main' = 'Start Menu Main Shortcut'
+        'test.health_tests' = 'Health Check Tests'
+        'test.health_endpoint' = 'Health Endpoint Reachable'
+        'test.health_status_ok' = 'Health Status OK'
+        'test.response' = 'Response: {0}'
+        'test.connect_failed' = 'Could not connect: {0}'
+        'test.results_summary' = 'TEST RESULTS SUMMARY'
+        'test.total_tests' = 'Total Tests:'
+        'test.passed' = 'Passed:'
+        'test.failed' = 'Failed:'
+        'test.skipped' = 'Skipped:'
+        'test.results_by_category' = 'Results by Category:'
+        'test.passed_of' = '{0}: {1}/{2} passed'
+        'test.all_passed' = 'ALL TESTS PASSED - Installation verified successfully!'
+        'test.some_failed' = 'SOME TESTS FAILED - Review issues above'
+        'test.report_saved' = 'Report saved to: {0}'
+        'test.installation_path' = 'Installation Path: {0}'
+        'test.test_started' = 'Test Started: {0}'
+        'test.unexpected_error' = 'Unexpected error: {0}'
+        'common.pass' = 'PASS'
+        'common.fail' = 'FAIL'
+        'common.warn' = 'WARN'
+        'common.skip' = 'SKIP'
+    }
+    $msg = $fallback[$Key]
+    if ($msg -and $Args) { $msg = $msg -f $Args }
+    return $msg
+}
+
 function Write-TestLog {
     <#
     .SYNOPSIS
@@ -106,9 +215,9 @@ function Write-TestLog {
     }
 
     switch ($Level) {
-        "Error"   { Write-Host "  [FAIL] $Message" -ForegroundColor Red }
-        "Warning" { Write-Host "  [WARN] $Message" -ForegroundColor Yellow }
-        "Success" { Write-Host "  [PASS] $Message" -ForegroundColor Green }
+        "Error"   { Write-Host "  [$(Get-Msg 'common.fail')] $Message" -ForegroundColor Red }
+        "Warning" { Write-Host "  [$(Get-Msg 'common.warn')] $Message" -ForegroundColor Yellow }
+        "Success" { Write-Host "  [$(Get-Msg 'common.pass')] $Message" -ForegroundColor Green }
         "Header"  { Write-Host "`n$Message" -ForegroundColor Cyan }
         "Detail"  { Write-Host "         $Message" -ForegroundColor Gray }
         default   { Write-Host "  $Message" }
@@ -165,14 +274,14 @@ function Test-WindowsVersion {
         Verifies Windows 10/11 version compatibility.
     #>
 
-    Write-TestLog "Windows Version Tests" -Level Header
+    Write-TestLog (Get-Msg 'test.windows_version_tests') -Level Header
     Write-TestLog "====================="
 
     $os = Get-CimInstance -ClassName Win32_OperatingSystem
     $buildNumber = [int]$os.BuildNumber
     $caption = $os.Caption
 
-    Write-TestLog "Detected: $caption (Build $buildNumber)" -Level Detail
+    Write-TestLog (Get-Msg 'test.detected' -Args @($caption, $buildNumber)) -Level Detail
 
     # Test: Windows 10 or 11
     $isWindows10or11 = $caption -match "Windows 10|Windows 11"
@@ -218,7 +327,7 @@ function Test-Prerequisites {
         Tests prerequisite requirements for a clean install.
     #>
 
-    Write-TestLog "Prerequisite Tests" -Level Header
+    Write-TestLog (Get-Msg 'test.prerequisite_tests') -Level Header
     Write-TestLog "=================="
 
     # Test: PowerShell version
@@ -283,7 +392,7 @@ function Test-Installation {
         Verifies installation directory and files.
     #>
 
-    Write-TestLog "Installation Tests" -Level Header
+    Write-TestLog (Get-Msg 'test.installation_tests') -Level Header
     Write-TestLog "=================="
 
     # Test: Installation directory exists
@@ -368,7 +477,7 @@ function Test-ServiceInstallation {
         Tests Windows service installation and status.
     #>
 
-    Write-TestLog "Service Tests" -Level Header
+    Write-TestLog (Get-Msg 'test.service_tests') -Level Header
     Write-TestLog "============="
 
     if ($SkipService) {
@@ -420,7 +529,7 @@ function Test-DockerIntegration {
         Tests Docker image and container status.
     #>
 
-    Write-TestLog "Docker Tests" -Level Header
+    Write-TestLog (Get-Msg 'test.docker_tests') -Level Header
     Write-TestLog "============"
 
     if ($SkipDocker) {
@@ -474,7 +583,7 @@ function Test-Shortcuts {
         Tests desktop and Start Menu shortcuts.
     #>
 
-    Write-TestLog "Shortcut Tests" -Level Header
+    Write-TestLog (Get-Msg 'test.shortcut_tests') -Level Header
     Write-TestLog "=============="
 
     # Test: Desktop shortcut (All Users)
@@ -531,7 +640,7 @@ function Test-HealthEndpoint {
         Tests the application health endpoint.
     #>
 
-    Write-TestLog "Health Check Tests" -Level Header
+    Write-TestLog (Get-Msg 'test.health_tests') -Level Header
     Write-TestLog "=================="
 
     # Test: API endpoint reachable
@@ -704,7 +813,7 @@ try {
     exit $exitCode
 }
 catch {
-    Write-Host "[ERROR] Unexpected error: $($_.Exception.Message)" -ForegroundColor Red
+    Write-Host "[$(Get-Msg 'common.fail')] $(Get-Msg 'test.unexpected_error' -Args @($_.Exception.Message))" -ForegroundColor Red
     Write-Host $_.ScriptStackTrace -ForegroundColor Red
     exit $EXIT_CRITICAL_FAILED
 }

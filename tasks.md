@@ -3693,7 +3693,7 @@ Implement internationalization (i18n) support for the application with English a
   ```
   **Completed**: 2025-12-12 | Created electron/language-manager.ts with Windows Registry read/write operations using reg.exe, system locale detection via app.getLocale(), and IPC handlers (language:getFromRegistry, language:setToRegistry, language:getSystemLocale). Updated preload.ts with electronAPI methods (getRegistryLanguage, setRegistryLanguage, getSystemLocale) and main.ts to register handlers on app ready. Implements priority resolution: localStorage > Registry > System Locale > Default. 71 tests covering all functionality.
 
-- [ ] 18.8 Update installer scripts with localized messages
+- [x] 18.8 Update installer scripts with localized messages
   ```powershell
   <!-- IMPLEMENTATION STEPS:
   Update PowerShell scripts to support localization:
@@ -3707,6 +3707,7 @@ Implement internationalization (i18n) support for the application with English a
   Display messages in selected language
   -->
   ```
+  **Completed**: 2025-12-12 | Created LocalizedMessages.psm1 module with 140+ bilingual message keys across 5 categories (docker, service, wizard, test, common). Updated all 4 installer scripts with -Language parameter, module import, Get-Msg helper functions with fallback messages, and localized Write-Log/Write-Status functions. Language detection priority: Parameter > Registry (HKCU:\Software\ContPAQi\AIBridge\Settings\Language) > Default (English). Supports string interpolation with {0}, {1} placeholders. Created 244 tests in powershell-localization.test.ts validating message structure, key parity, and interpolation support.
 
 - [ ] 18.9 Create language selection wizard page in installer
   ```pascal
