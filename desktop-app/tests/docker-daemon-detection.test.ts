@@ -164,9 +164,10 @@ describe('Docker Daemon Not Running Detection', () => {
 
       const error = await dockerManager.getDaemonError();
 
-      expect(error.code).toBe('DAEMON_NOT_RUNNING');
-      expect(error.message).toContain('Docker');
-      expect(error.suggestion).toBeDefined();
+      expect(error).not.toBeNull();
+      expect(error!.code).toBe('DAEMON_NOT_RUNNING');
+      expect(error!.message).toContain('Docker');
+      expect(error!.suggestion).toBeDefined();
     });
 
     it('should provide user-friendly message for Docker not installed', async () => {
@@ -175,8 +176,9 @@ describe('Docker Daemon Not Running Detection', () => {
 
       const error = await dockerManager.getDaemonError();
 
-      expect(error.code).toBe('DOCKER_NOT_INSTALLED');
-      expect(error.suggestion).toContain('install');
+      expect(error).not.toBeNull();
+      expect(error!.code).toBe('DOCKER_NOT_INSTALLED');
+      expect(error!.suggestion).toContain('install');
     });
 
     it('should provide user-friendly message for permission errors', async () => {
@@ -188,8 +190,9 @@ describe('Docker Daemon Not Running Detection', () => {
 
       const error = await dockerManager.getDaemonError();
 
-      expect(error.code).toBe('PERMISSION_DENIED');
-      expect(error.suggestion).toBeDefined();
+      expect(error).not.toBeNull();
+      expect(error!.code).toBe('PERMISSION_DENIED');
+      expect(error!.suggestion).toBeDefined();
     });
 
     it('should return null when daemon is running', async () => {
