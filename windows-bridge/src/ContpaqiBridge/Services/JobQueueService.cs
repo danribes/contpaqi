@@ -187,7 +187,7 @@ public class JobQueueService : BackgroundService
                 Referencia = job.InvoiceData.Folio ?? ""
             };
 
-            var movResult = _sdk.InsertaMovimiento(polizaResult.Value.GetValueOrDefault(), movimiento);
+            var movResult = _sdk.InsertaMovimiento(polizaResult.Value, movimiento);
             if (!movResult.Success)
             {
                 _logger.LogWarning("Failed to insert movement: {Error}", movResult.ErrorMessage);
@@ -206,7 +206,7 @@ public class JobQueueService : BackgroundService
                 Referencia = job.InvoiceData.Folio ?? ""
             };
 
-            _sdk.InsertaMovimiento(polizaResult.Value.GetValueOrDefault(), ivaMovimiento);
+            _sdk.InsertaMovimiento(polizaResult.Value, ivaMovimiento);
         }
 
         return Task.CompletedTask;
