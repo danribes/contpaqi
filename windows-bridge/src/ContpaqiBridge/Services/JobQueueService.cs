@@ -162,10 +162,9 @@ public class JobQueueService : BackgroundService
         // Create poliza
         var polizaData = new PolizaData
         {
-            Tipo = 1, // Ingreso
+            TipoPoliza = 1, // Ingreso
             Fecha = job.InvoiceData.Fecha,
-            Concepto = $"Factura {job.InvoiceData.Folio ?? "S/N"} - {job.InvoiceData.RfcReceptor}",
-            Diario = 1
+            Concepto = $"Factura {job.InvoiceData.Folio ?? "S/N"} - {job.InvoiceData.RfcReceptor}"
         };
 
         var polizaResult = _sdk.CreaPoliza(polizaData);
@@ -181,14 +180,14 @@ public class JobQueueService : BackgroundService
         {
             var movimiento = new MovimientoData
             {
-                NumCuenta = "1101", // Default account, would be configurable
+                CuentaCodigo = "1101", // Default account, would be configurable
                 Cargo = lineItem.Amount,
                 Abono = 0,
                 Concepto = lineItem.Description,
                 Referencia = job.InvoiceData.Folio ?? ""
             };
 
-            var movResult = _sdk.InsertaMovimiento(polizaResult.Value!.Value, movimiento);
+            var movResult = _sdk.InsertaMovimiento(polizaResult.Value!.GetValueOrDefault(), movimiento);
             if (!movResult.Success)
             {
                 _logger.LogWarning("Failed to insert movement: {Error}", movResult.ErrorMessage);
@@ -200,14 +199,14 @@ public class JobQueueService : BackgroundService
         {
             var ivaMovimiento = new MovimientoData
             {
-                NumCuenta = "1106", // IVA account
+                CuentaCodigo = "1106", // IVA account
                 Cargo = job.InvoiceData.Iva,
                 Abono = 0,
                 Concepto = "IVA",
                 Referencia = job.InvoiceData.Folio ?? ""
             };
 
-            _sdk.InsertaMovimiento(polizaResult.Value!.Value, ivaMovimiento);
+            _sdk.InsertaMovimiento(polizaResult.Value!.GetValueOrDefault(), ivaMovimiento);
         }
 
         return Task.CompletedTask;
