@@ -336,6 +336,8 @@ end;
 
 // Check for prerequisites before installation
 function InitializeSetup(): Boolean;
+var
+  ErrorCode: Integer;
 begin
   Result := True;
 
@@ -353,7 +355,7 @@ begin
     if MsgBox('.NET 6.0 Runtime is required but not detected.' + #13#10 + #13#10 +
               'Would you like to open the download page?', mbConfirmation, MB_YESNO) = IDYES then
     begin
-      ShellExec('open', 'https://dotnet.microsoft.com/download/dotnet/6.0', '', '', SW_SHOW, ewNoWait, Result);
+      ShellExec('open', 'https://dotnet.microsoft.com/download/dotnet/6.0', '', '', SW_SHOW, ewNoWait, ErrorCode);
     end;
 
     if MsgBox('Continue installation without .NET Runtime?', mbConfirmation, MB_YESNO) = IDNO then
