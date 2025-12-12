@@ -137,14 +137,14 @@ Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
 Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\bin\{#MyAppExeName}"; Tasks: desktopicon
 
 [Registry]
-; Application registration
+; Application registration (machine-wide)
 Root: HKLM; Subkey: "SOFTWARE\{#MyAppPublisher}\{#MyAppName}"; ValueType: string; ValueName: "InstallPath"; ValueData: "{app}"; Flags: uninsdeletekey
 Root: HKLM; Subkey: "SOFTWARE\{#MyAppPublisher}\{#MyAppName}"; ValueType: string; ValueName: "Version"; ValueData: "{#MyAppVersion}"
 Root: HKLM; Subkey: "SOFTWARE\{#MyAppPublisher}\{#MyAppName}"; ValueType: string; ValueName: "DataPath"; ValueData: "{app}\data"
 
-; Language preference (set by SelectedLanguage function in [Code] section)
-; Default value set here, actual value written by SaveLanguagePreference()
-Root: HKLM; Subkey: "SOFTWARE\{#MyAppPublisher}\{#MyAppName}"; ValueType: string; ValueName: "Language"; ValueData: "en"; Flags: createvalueifdoesntexist
+; Language preference (user-specific, set by SaveLanguagePreference() in [Code] section)
+; Uses HKCU to match PowerShell LocalizedMessages.psm1 registry path
+Root: HKCU; Subkey: "SOFTWARE\ContPAQi AI Bridge"; ValueType: string; ValueName: "Language"; ValueData: "en"; Flags: createvalueifdoesntexist
 
 ; Environment variables (optional)
 Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"; ValueType: expandsz; ValueName: "CONTPAQI_BRIDGE_HOME"; ValueData: "{app}"; Flags: uninsdeletevalue
@@ -240,7 +240,7 @@ begin
     Result := 'en'; // Default to English
 end;
 
-// Save language preference to registry
+// Save language preference to registry (HKCU for user preference)
 procedure SaveLanguagePreference();
 var
   LanguageCode: String;
@@ -248,20 +248,20 @@ begin
   LanguageCode := GetSelectedLanguage();
   SelectedLanguageCode := LanguageCode;
 
-  // Write to registry under app key
-  RegWriteStringValue(HKEY_LOCAL_MACHINE,
-    'SOFTWARE\{#MyAppPublisher}\{#MyAppName}',
+  // Write to registry under user key (matches PowerShell LocalizedMessages.psm1)
+  RegWriteStringValue(HKEY_CURRENT_USER,
+    'SOFTWARE\ContPAQi AI Bridge',
     'Language',
     LanguageCode);
 end;
 
-// Load language preference from registry (for display)
+// Load language preference from registry (HKCU for user preference)
 function LoadLanguagePreference(): String;
 var
   LanguageCode: String;
 begin
-  if RegQueryStringValue(HKEY_LOCAL_MACHINE,
-    'SOFTWARE\{#MyAppPublisher}\{#MyAppName}',
+  if RegQueryStringValue(HKEY_CURRENT_USER,
+    'SOFTWARE\ContPAQi AI Bridge',
     'Language',
     LanguageCode) then
     Result := LanguageCode
