@@ -10,23 +10,62 @@ builder.WebHost.ConfigureKestrel(options =>
 });
 
 // Add services to the container.
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+    });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Register SDK interop (use mock for testing/non-Windows environments)
-#if DEBUG
-if (Environment.GetEnvironmentVariable("USE_MOCK_SDK") == "true" || !OperatingSystem.IsWindows())
+// Register ExportService (always available for export modes)
+builder.Services.AddSingleton<ExportService>();
+
+// Determine SDK mode from environment or config
+var sdkMode = Environment.GetEnvironmentVariable("SDK_MODE")?.ToLower()
+    ?? builder.Configuration.GetValue<string>("SdkMode")?.ToLower()
+    ?? "auto";
+
+// Register SDK interop based on mode
+// Modes: "contpaqi" = force ContPAQi, "export" = force export, "mock" = force mock, "auto" = auto-detect
+if (sdkMode == "export")
 {
+    // Export mode: use ExportSdkInterop for file output
+    builder.Services.AddSingleton<ISdkInterop, ExportSdkInterop>();
+    Console.WriteLine("SDK Mode: Export (files will be saved to exports folder)");
+}
+else if (sdkMode == "mock" || Environment.GetEnvironmentVariable("USE_MOCK_SDK") == "true")
+{
+    // Mock mode: use MockSdkInterop for testing
     builder.Services.AddSingleton<ISdkInterop, MockSdkInterop>();
+    Console.WriteLine("SDK Mode: Mock (simulated operations)");
+}
+else if (sdkMode == "contpaqi")
+{
+    // Force ContPAQi mode
+    builder.Services.AddSingleton<ISdkInterop, SdkInterop>();
+    Console.WriteLine("SDK Mode: ContPAQi (COM SDK)");
 }
 else
 {
+    // Auto mode: detect based on environment
+    #if DEBUG
+    if (!OperatingSystem.IsWindows())
+    {
+        // Non-Windows in debug: use export mode
+        builder.Services.AddSingleton<ISdkInterop, ExportSdkInterop>();
+        Console.WriteLine("SDK Mode: Export (non-Windows detected)");
+    }
+    else
+    {
+        builder.Services.AddSingleton<ISdkInterop, SdkInterop>();
+        Console.WriteLine("SDK Mode: ContPAQi (Windows detected)");
+    }
+    #else
     builder.Services.AddSingleton<ISdkInterop, SdkInterop>();
+    Console.WriteLine("SDK Mode: ContPAQi (Release build)");
+    #endif
 }
-#else
-builder.Services.AddSingleton<ISdkInterop, SdkInterop>();
-#endif
 
 // Register job queue service
 builder.Services.AddSingleton<JobQueueService>();

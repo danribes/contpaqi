@@ -376,5 +376,29 @@
     "error": "Error",
     "success": "Success",
     "warning": "Warning"
+  },
+  "outputMode": {
+    "title": "Output Mode",
+    "description": "Select how to process the invoice",
+    "contpaqi": {
+      "name": "ContPAQi",
+      "description": "Send directly to ContPAQi accounting software",
+      "unavailable": "ContPAQi is not available. Install ContPAQi or use export mode."
+    },
+    "json": {
+      "name": "JSON File",
+      "description": "Export to JSON file for testing or review"
+    },
+    "csv": {
+      "name": "CSV File",
+      "description": "Export to CSV file for spreadsheet import"
+    },
+    "both": {
+      "name": "JSON + CSV",
+      "description": "Export to both JSON and CSV files"
+    },
+    "exportPath": "Files will be saved to: {{path}}",
+    "selectAtLeastOne": "Please select at least one output format",
+    "contpaqiRequired": "ContPAQi integration requires the software to be installed"
   }
 }

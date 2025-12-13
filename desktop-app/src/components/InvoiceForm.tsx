@@ -54,6 +54,11 @@ import {
   useSubmissionFlow,
   type InvoiceSummary,
 } from './SubmissionConfirmation';
+import {
+  OutputModeSelector,
+  OutputModeCompact,
+  type OutputMode,
+} from './OutputModeSelector';
 
 // =============================================================================
 // Types
@@ -105,13 +110,19 @@ export interface InvoiceFormProps {
   /** Extracted invoice data for auto-population */
   extractedData?: InvoiceData;
   /** Callback when form is submitted */
-  onSubmit?: (data: InvoiceData) => void;
+  onSubmit?: (data: InvoiceData, outputMode: OutputMode) => void;
   /** Callback when a field is focused (for PDF highlighting) */
   onFieldFocus?: (fieldName: string, bbox?: [number, number, number, number]) => void;
   /** Whether the form is in read-only mode */
   readOnly?: boolean;
   /** Additional CSS classes */
   className?: string;
+  /** Whether ContPAQi is available (SDK initialized) */
+  contpaqiAvailable?: boolean;
+  /** Export path for file exports */
+  exportPath?: string;
+  /** Default output mode */
+  defaultOutputMode?: OutputMode;
 }
 
 // =============================================================================
@@ -543,12 +554,20 @@ export function InvoiceForm({
   onFieldFocus,
   readOnly = false,
   className = '',
+  contpaqiAvailable = false,
+  exportPath,
+  defaultOutputMode = 'json',
 }: InvoiceFormProps) {
   const [formState, setFormState] = useState<FormState>(() =>
     createInitialFormState(extractedData)
   );
   const [lineItems, setLineItems] = useState<LineItem[]>(
     extractedData?.lineItems || []
+  );
+
+  // Output mode state - default to JSON if ContPAQi not available
+  const [outputMode, setOutputMode] = useState<OutputMode>(
+    contpaqiAvailable ? defaultOutputMode : 'json'
   );
 
   // Re-populate when extracted data changes
@@ -646,8 +665,8 @@ export function InvoiceForm({
 
     // Simulate async submission - in real app this would be an API call
     await new Promise((resolve) => setTimeout(resolve, 1000));
-    onSubmit?.(data);
-  }, [formState, lineItems, onSubmit]);
+    onSubmit?.(data, outputMode);
+  }, [formState, lineItems, onSubmit, outputMode]);
 
   const {
     state: submissionState,
@@ -820,6 +839,17 @@ export function InvoiceForm({
           Review and correct the extracted information
         </p>
       </div>
+
+      {/* Output Mode Selector */}
+      {!readOnly && (
+        <OutputModeSelector
+          value={outputMode}
+          onChange={setOutputMode}
+          contpaqiAvailable={contpaqiAvailable}
+          exportPath={exportPath}
+          className="mb-6"
+        />
+      )}
 
       {/* Math Error Warning Banner (Subtask 14.5) */}
       {mathValidation.errors.length > 0 && (

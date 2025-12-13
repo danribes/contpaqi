@@ -8,6 +8,7 @@ namespace ContpaqiBridge.Services;
 /// <summary>
 /// Background service that processes invoice jobs sequentially.
 /// Required because Contpaqi SDK does not support concurrent operations.
+/// Supports multiple output modes: ContPAQi, JSON export, CSV export.
 /// </summary>
 public class JobQueueService : BackgroundService
 {
@@ -15,16 +16,19 @@ public class JobQueueService : BackgroundService
     private readonly ConcurrentDictionary<string, InvoiceJob> _jobs;
     private readonly ILogger<JobQueueService> _logger;
     private readonly ISdkInterop _sdk;
+    private readonly ExportService _exportService;
     private readonly IConfiguration _config;
     private const int MaxRetries = 3;
     private const int RetryDelayMs = 1000;
 
     public JobQueueService(
         ISdkInterop sdk,
+        ExportService exportService,
         IConfiguration config,
         ILogger<JobQueueService> logger)
     {
         _sdk = sdk;
+        _exportService = exportService;
         _config = config;
         _logger = logger;
         _jobs = new ConcurrentDictionary<string, InvoiceJob>();
@@ -36,6 +40,7 @@ public class JobQueueService : BackgroundService
 
     public bool IsSdkInitialized => _sdk.IsInitialized;
     public int PendingJobCount => _jobs.Count(j => j.Value.Status == JobStatus.Pending || j.Value.Status == JobStatus.Processing);
+    public string ExportPath => _exportService.ExportPath;
 
     public async Task<string> EnqueueAsync(InvoiceJob job)
     {
@@ -60,7 +65,9 @@ public class JobQueueService : BackgroundService
             CompletedAt = job.CompletedAt,
             PolizaId = job.PolizaId,
             ErrorMessage = job.ErrorMessage,
-            RetryCount = job.RetryCount
+            RetryCount = job.RetryCount,
+            OutputMode = job.OutputMode,
+            ExportedFiles = job.ExportedFiles
         };
     }
 
@@ -141,13 +148,34 @@ public class JobQueueService : BackgroundService
         }
     }
 
-    private Task ProcessJobAsync(InvoiceJob job)
+    private async Task ProcessJobAsync(InvoiceJob job)
     {
         if (job.InvoiceData == null)
         {
             throw new InvalidOperationException("Invoice data is missing");
         }
 
+        // Store the output mode from the request
+        job.OutputMode = job.InvoiceData.OutputMode;
+
+        // Check if we should use export mode
+        var useExportMode = job.OutputMode != OutputMode.Contpaqi;
+
+        if (useExportMode)
+        {
+            await ProcessExportJobAsync(job);
+        }
+        else
+        {
+            await ProcessContpaqiJobAsync(job);
+        }
+    }
+
+    /// <summary>
+    /// Process job using ContPAQi COM SDK.
+    /// </summary>
+    private Task ProcessContpaqiJobAsync(InvoiceJob job)
+    {
         // Ensure SDK is initialized
         if (!_sdk.IsInitialized)
         {
@@ -163,7 +191,7 @@ public class JobQueueService : BackgroundService
         var polizaData = new PolizaData
         {
             TipoPoliza = 1, // Ingreso
-            Fecha = job.InvoiceData.Fecha,
+            Fecha = job.InvoiceData!.Fecha,
             Concepto = $"Factura {job.InvoiceData.Folio ?? "S/N"} - {job.InvoiceData.RfcReceptor}"
         };
 
@@ -211,6 +239,99 @@ public class JobQueueService : BackgroundService
 
         return Task.CompletedTask;
     }
+
+    /// <summary>
+    /// Process job by exporting to file (JSON/CSV).
+    /// </summary>
+    private async Task ProcessExportJobAsync(InvoiceJob job)
+    {
+        var invoiceData = job.InvoiceData!;
+
+        // Create poliza export data
+        var polizaId = new Random().Next(1000, 9999); // Generate a mock ID for export
+        job.PolizaId = polizaId;
+
+        var exportData = new PolizaExportData
+        {
+            PolizaId = polizaId,
+            Fecha = invoiceData.Fecha,
+            TipoPoliza = 1, // Ingreso
+            NumeroPoliza = invoiceData.Folio ?? $"EXP-{job.Id.Substring(0, 8)}",
+            Concepto = $"Factura {invoiceData.Folio ?? "S/N"} - {invoiceData.RfcReceptor}",
+            RfcEmisor = invoiceData.RfcEmisor,
+            RfcReceptor = invoiceData.RfcReceptor,
+            Subtotal = invoiceData.Subtotal,
+            Iva = invoiceData.Iva,
+            Total = invoiceData.Total,
+            Movimientos = new List<MovimientoExportData>()
+        };
+
+        // Add line item movements
+        foreach (var lineItem in invoiceData.LineItems)
+        {
+            exportData.Movimientos.Add(new MovimientoExportData
+            {
+                CuentaCodigo = "1101",
+                NombreCuenta = "Clientes",
+                Cargo = lineItem.Amount,
+                Abono = 0,
+                Concepto = lineItem.Description,
+                Referencia = invoiceData.Folio ?? ""
+            });
+        }
+
+        // Add IVA movement if applicable
+        if (invoiceData.Iva > 0)
+        {
+            exportData.Movimientos.Add(new MovimientoExportData
+            {
+                CuentaCodigo = "1106",
+                NombreCuenta = "IVA Acreditable",
+                Cargo = invoiceData.Iva,
+                Abono = 0,
+                Concepto = "IVA",
+                Referencia = invoiceData.Folio ?? ""
+            });
+        }
+
+        // Export based on requested mode
+        var results = new List<ExportResult>();
+
+        switch (job.OutputMode)
+        {
+            case OutputMode.Json:
+                results.Add(await _exportService.ExportToJsonAsync(exportData));
+                break;
+            case OutputMode.Csv:
+                results.Add(await _exportService.ExportToCsvAsync(exportData));
+                break;
+            case OutputMode.Both:
+                results = await _exportService.ExportToAllFormatsAsync(exportData);
+                break;
+        }
+
+        // Store exported file info in job
+        job.ExportedFiles = results
+            .Where(r => r.Success)
+            .Select(r => new ExportedFileInfo
+            {
+                FileName = r.FileName ?? "",
+                FilePath = r.FilePath ?? "",
+                Format = r.Format ?? ""
+            })
+            .ToList();
+
+        // Check for any failures
+        var failures = results.Where(r => !r.Success).ToList();
+        if (failures.Any())
+        {
+            _logger.LogWarning("Some exports failed: {Errors}",
+                string.Join(", ", failures.Select(f => f.ErrorMessage)));
+        }
+
+        _logger.LogInformation("Job {JobId} exported to {FileCount} file(s): {Files}",
+            job.Id, job.ExportedFiles.Count, string.Join(", ", job.ExportedFiles.Select(f => f.FileName)));
+    }
 }
 
 /// <summary>
@@ -226,6 +347,16 @@ public class InvoiceJob
     public int? PolizaId { get; set; }
     public string? ErrorMessage { get; set; }
     public int RetryCount { get; set; } = 0;
+
+    /// <summary>
+    /// Output mode for this job (Contpaqi, Json, Csv, or Both).
+    /// </summary>
+    public OutputMode OutputMode { get; set; } = OutputMode.Contpaqi;
+
+    /// <summary>
+    /// List of exported files (when using export modes).
+    /// </summary>
+    public List<ExportedFileInfo>? ExportedFiles { get; set; }
 }
 
 public enum JobStatus
