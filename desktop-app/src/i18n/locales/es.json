@@ -376,5 +376,29 @@
     "error": "Error",
     "success": "Éxito",
     "warning": "Advertencia"
+  },
+  "outputMode": {
+    "title": "Modo de Salida",
+    "description": "Seleccione cómo procesar la factura",
+    "contpaqi": {
+      "name": "ContPAQi",
+      "description": "Enviar directamente al software contable ContPAQi",
+      "unavailable": "ContPAQi no está disponible. Instale ContPAQi o use el modo de exportación."
+    },
+    "json": {
+      "name": "Archivo JSON",
+      "description": "Exportar a archivo JSON para pruebas o revisión"
+    },
+    "csv": {
+      "name": "Archivo CSV",
+      "description": "Exportar a archivo CSV para importar en hojas de cálculo"
+    },
+    "both": {
+      "name": "JSON + CSV",
+      "description": "Exportar a ambos archivos JSON y CSV"
+    },
+    "exportPath": "Los archivos se guardarán en: {{path}}",
+    "selectAtLeastOne": "Por favor seleccione al menos un formato de salida",
+    "contpaqiRequired": "La integración con ContPAQi requiere que el software esté instalado"
   }
 }

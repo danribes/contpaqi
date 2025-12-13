@@ -43,18 +43,28 @@ public class InvoiceController : ControllerBase
 
         var job = new InvoiceJob
         {
-            InvoiceData = request
+            InvoiceData = request,
+            OutputMode = request.OutputMode
         };
 
         var jobId = await _jobQueue.EnqueueAsync(job);
-        _logger.LogInformation("Invoice job {JobId} created for RFC {Rfc}", jobId, request.RfcEmisor);
+        _logger.LogInformation("Invoice job {JobId} created for RFC {Rfc} with output mode {OutputMode}",
+            jobId, request.RfcEmisor, request.OutputMode);
+
+        var modeMessage = request.OutputMode switch
+        {
+            OutputMode.Json => "Invoice will be exported to JSON file",
+            OutputMode.Csv => "Invoice will be exported to CSV file",
+            OutputMode.Both => "Invoice will be exported to JSON and CSV files",
+            _ => "Invoice queued for ContPAQi processing"
+        };
 
         var response = new CreateInvoiceResponse
         {
             JobId = jobId,
             Status = "pending",
             CreatedAt = job.CreatedAt,
-            Message = "Invoice queued for processing"
+            Message = modeMessage
         };
 
         return Accepted(response);
@@ -80,6 +90,7 @@ public class InvoiceController : ControllerBase
 
     /// <summary>
     /// Health check endpoint.
+    /// Returns available output modes and current configuration.
     /// </summary>
     [HttpGet("health")]
     [ProducesResponseType(typeof(HealthResponse), StatusCodes.Status200OK)]
@@ -89,7 +100,40 @@ public class InvoiceController : ControllerBase
         {
             Status = "healthy",
             SdkInitialized = _jobQueue.IsSdkInitialized,
-            PendingJobs = _jobQueue.PendingJobCount
+            PendingJobs = _jobQueue.PendingJobCount,
+            ExportPath = _jobQueue.ExportPath,
+            DefaultOutputMode = _jobQueue.IsSdkInitialized ? "contpaqi" : "json",
+            AvailableOutputModes = new List<OutputModeInfo>
+            {
+                new OutputModeInfo
+                {
+                    Id = "contpaqi",
+                    Name = "ContPAQi",
+                    Description = "Send directly to ContPAQi via COM SDK",
+                    Available = _jobQueue.IsSdkInitialized
+                },
+                new OutputModeInfo
+                {
+                    Id = "json",
+                    Name = "JSON File",
+                    Description = "Export to JSON file for testing/review",
+                    Available = true
+                },
+                new OutputModeInfo
+                {
+                    Id = "csv",
+                    Name = "CSV File",
+                    Description = "Export to CSV file for spreadsheet import",
+                    Available = true
+                },
+                new OutputModeInfo
+                {
+                    Id = "both",
+                    Name = "JSON + CSV",
+                    Description = "Export to both JSON and CSV files",
+                    Available = true
+                }
+            }
         };
 
         return Ok(response);
