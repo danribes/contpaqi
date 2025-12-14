@@ -140,9 +140,112 @@ Factura PDF → Extracción IA → Revisión Humana → Póliza ContPAQi
 - **GPU**: GPU NVIDIA con 4GB+ VRAM (para inferencia IA más rápida)
 
 ### Prerrequisitos de Software
-- **Docker Desktop** 4.0+ (con backend WSL 2)
+- **Docker Desktop** 4.0+ (con backend WSL 2) - **Debe instalarse primero**
 - **Runtime .NET 6.0** (se instala automáticamente)
 - **ContPAQi Contabilidad** (para publicar pólizas)
+
+---
+
+## Prerrequisitos: Instalación de Docker Desktop
+
+> **IMPORTANTE**: Docker Desktop debe estar instalado y ejecutándose antes de instalar ContPAQi AI Bridge. La aplicación utiliza Docker para ejecutar los modelos de IA para el procesamiento de facturas.
+
+### Paso 1: Descargar Docker Desktop
+
+1. Visite la página oficial de descarga de Docker Desktop:
+   **https://www.docker.com/products/docker-desktop/**
+
+2. Haga clic en **"Download for Windows"** (Descargar para Windows)
+
+3. Guarde el instalador (`Docker Desktop Installer.exe`) en su computadora
+
+### Paso 2: Instalar Docker Desktop
+
+1. **Ejecutar el instalador**
+   - Haga doble clic en `Docker Desktop Installer.exe`
+   - Si el Control de Cuentas de Usuario (UAC) le pregunta, haga clic en **Sí**
+
+2. **Opciones de configuración**
+   - ✅ Habilite **"Use WSL 2 instead of Hyper-V"** (Usar WSL 2 en lugar de Hyper-V) (recomendado)
+   - ✅ Habilite **"Add shortcut to desktop"** (Agregar acceso directo al escritorio)
+   - Haga clic en **Ok** para continuar
+
+3. **Esperar la instalación**
+   - El instalador descargará e instalará los componentes necesarios
+   - Esto puede tomar de 5 a 10 minutos dependiendo de su velocidad de internet
+
+4. **Reiniciar su computadora**
+   - Cuando se le solicite, haga clic en **"Close and restart"** (Cerrar y reiniciar)
+   - Su computadora se reiniciará para completar la instalación
+
+### Paso 3: Configuración Inicial de Docker
+
+1. **Iniciar Docker Desktop**
+   - Después del reinicio, Docker Desktop debería iniciarse automáticamente
+   - Si no, haga doble clic en el icono de Docker Desktop en su escritorio
+
+2. **Aceptar el acuerdo de licencia**
+   - Lea y acepte el Acuerdo de Servicio de Suscripción de Docker
+   - Haga clic en **Accept** (Aceptar)
+
+3. **Omitir o completar el tutorial**
+   - Puede omitir el tutorial haciendo clic en **"Skip tutorial"** (Omitir tutorial)
+
+4. **Esperar a que Docker inicie**
+   - Busque el icono de Docker en la bandeja del sistema (esquina inferior derecha)
+   - Cuando Docker esté listo, el icono dejará de animarse
+   - Debería ver **"Docker Desktop is running"** (Docker Desktop está ejecutándose)
+
+### Paso 4: Verificar la Instalación
+
+Abra **PowerShell** o **Símbolo del sistema** y ejecute:
+
+```powershell
+docker --version
+```
+
+Debería ver una salida como:
+```
+Docker version 24.0.x, build xxxxxxx
+```
+
+También verifique que Docker esté ejecutándose:
+
+```powershell
+docker info
+```
+
+¡Si ve información del sistema (no un error), Docker está listo!
+
+### Solución de Problemas de Instalación de Docker
+
+**"WSL 2 installation is incomplete" (La instalación de WSL 2 está incompleta)**
+1. Abra PowerShell como Administrador
+2. Ejecute: `wsl --install`
+3. Reinicie su computadora
+4. Inicie Docker Desktop nuevamente
+
+**"Hardware assisted virtualization and data execution protection must be enabled" (La virtualización asistida por hardware y la protección de ejecución de datos deben estar habilitadas)**
+1. Reinicie su computadora y entre a la configuración del BIOS/UEFI
+2. Habilite **Virtualization Technology** (Tecnología de Virtualización) (VT-x/AMD-V)
+3. Habilite **Data Execution Prevention** (Prevención de Ejecución de Datos) (DEP/NX)
+4. Guarde y reinicie
+
+**Docker Desktop no inicia**
+1. Asegúrese de tener Windows 10 build 19041 o superior
+2. Ejecute Windows Update para obtener las últimas actualizaciones
+3. Intente reinstalar Docker Desktop
+
+### Requisitos del Sistema para Docker
+
+| Requisito | Especificación |
+|-----------|----------------|
+| SO | Windows 10 64-bit (Build 19041+) o Windows 11 |
+| RAM | 4 GB mínimo (8 GB recomendado) |
+| Virtualización | La virtualización a nivel BIOS debe estar habilitada |
+| WSL 2 | Subsistema de Windows para Linux versión 2 |
+
+> **Nota**: Una vez que Docker Desktop esté instalado y ejecutándose, puede proceder con la instalación de ContPAQi AI Bridge a continuación.
 
 ---
 

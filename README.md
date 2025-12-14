@@ -140,9 +140,112 @@ PDF Invoice → AI Extraction → Human Review → ContPAQi Entry
 - **GPU**: NVIDIA GPU with 4GB+ VRAM (for faster AI inference)
 
 ### Software Prerequisites
-- **Docker Desktop** 4.0+ (with WSL 2 backend)
+- **Docker Desktop** 4.0+ (with WSL 2 backend) - **Must be installed first**
 - **.NET 6.0 Runtime** (installed automatically)
 - **ContPAQi Accounting** (for posting entries)
+
+---
+
+## Prerequisites: Installing Docker Desktop
+
+> **IMPORTANT**: Docker Desktop must be installed and running before installing ContPAQi AI Bridge. The application uses Docker to run the AI models for invoice processing.
+
+### Step 1: Download Docker Desktop
+
+1. Visit the official Docker Desktop download page:
+   **https://www.docker.com/products/docker-desktop/**
+
+2. Click **"Download for Windows"**
+
+3. Save the installer (`Docker Desktop Installer.exe`) to your computer
+
+### Step 2: Install Docker Desktop
+
+1. **Run the installer**
+   - Double-click `Docker Desktop Installer.exe`
+   - If prompted by User Account Control (UAC), click **Yes**
+
+2. **Configuration options**
+   - ✅ Enable **"Use WSL 2 instead of Hyper-V"** (recommended)
+   - ✅ Enable **"Add shortcut to desktop"**
+   - Click **Ok** to continue
+
+3. **Wait for installation**
+   - The installer will download and install required components
+   - This may take 5-10 minutes depending on your internet speed
+
+4. **Restart your computer**
+   - When prompted, click **"Close and restart"**
+   - Your computer will restart to complete the installation
+
+### Step 3: First-Time Docker Setup
+
+1. **Start Docker Desktop**
+   - After restart, Docker Desktop should start automatically
+   - If not, double-click the Docker Desktop icon on your desktop
+
+2. **Accept the license agreement**
+   - Read and accept the Docker Subscription Service Agreement
+   - Click **Accept**
+
+3. **Skip or complete the tutorial**
+   - You can skip the tutorial by clicking **"Skip tutorial"**
+
+4. **Wait for Docker to start**
+   - Look for the Docker icon in the system tray (bottom-right corner)
+   - When Docker is ready, the icon will stop animating
+   - You should see **"Docker Desktop is running"**
+
+### Step 4: Verify Installation
+
+Open **PowerShell** or **Command Prompt** and run:
+
+```powershell
+docker --version
+```
+
+You should see output like:
+```
+Docker version 24.0.x, build xxxxxxx
+```
+
+Also verify Docker is running:
+
+```powershell
+docker info
+```
+
+If you see system information (not an error), Docker is ready!
+
+### Troubleshooting Docker Installation
+
+**"WSL 2 installation is incomplete"**
+1. Open PowerShell as Administrator
+2. Run: `wsl --install`
+3. Restart your computer
+4. Start Docker Desktop again
+
+**"Hardware assisted virtualization and data execution protection must be enabled"**
+1. Restart your computer and enter BIOS/UEFI settings
+2. Enable **Virtualization Technology** (VT-x/AMD-V)
+3. Enable **Data Execution Prevention** (DEP/NX)
+4. Save and restart
+
+**Docker Desktop won't start**
+1. Make sure you have Windows 10 build 19041 or higher
+2. Run Windows Update to get the latest updates
+3. Try reinstalling Docker Desktop
+
+### Docker System Requirements
+
+| Requirement | Specification |
+|-------------|---------------|
+| OS | Windows 10 64-bit (Build 19041+) or Windows 11 |
+| RAM | 4 GB minimum (8 GB recommended) |
+| Virtualization | BIOS-level virtualization must be enabled |
+| WSL 2 | Windows Subsystem for Linux version 2 |
+
+> **Note**: After Docker Desktop is installed and running, you can proceed with the ContPAQi AI Bridge installation below.
 
 ---
 
